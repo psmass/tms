@@ -1019,7 +1019,17 @@
         </publisher>
         <subscriber name="TMS Device Subscriber1">
           <data_reader name="MicrogridMembershipOutcomeReader" topic_ref="MicrogridMembershipOutcome"/>
-          <data_reader name="RequestResponseReader" topic_ref="RequestResponse"/>
+          <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
+            <filter name="MyFilter" kind="builtin.sql">
+              <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3 </expression>
+              <parameter_list>
+                <param>49</param>
+                <param>50</param>
+                <param>51</param>
+                <param>52</param>
+              </parameter_list>
+            </filter>
+          </data_reader>
           <data_reader name="SourceTransitionRequestReader" topic_ref="SourceTransitionRequest"/>
         </subscriber>
       </domain_participant>
@@ -1031,7 +1041,17 @@
         </publisher>
         <subscriber name="TMS MSM-Simulation Subscriber1">
           <data_reader name="MicrogridMembershipRequestReader" topic_ref="MicrogridMembershipRequest"/>
-          <data_reader name="RequestResponseReader" topic_ref="RequestResponse"/>
+          <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
+            <filter name="MyFilter" kind="builtin.sql">
+              <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
+              <parameter_list>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+              </parameter_list>
+            </filter>
+          </data_reader>
           <data_reader name="SourceTransitionStateReader" topic_ref="SourceTransitionState"/>
         </subscriber>
       </domain_participant>
