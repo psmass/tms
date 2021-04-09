@@ -207,12 +207,8 @@ extern "C" int tms_app_main(int sample_count) {
     DDSContentFilteredTopic * topic_handle_to_mod_cft = NULL;
     DDS_ReturnCode_t retcode, retcode1, retcode2, retcode3;  // compound retcodes to do one check
 
-    DDS_StringSeq parameters;
-    DDS_StringSeq fparameters;
-
+    DDS_StringSeq parameters[tms_TOPIC_LAST_SENTINEL_ENUM]; // need unique sets of parameters for each reader Topic
     char paramId[4][3] = {{'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}};
-    int i;
-    char str[3];
  
     // Array of writer enum TOPIC_E - enter the writers defined in System Designer XML file
     TOPICS_E myWritersIndx [] = {
@@ -330,52 +326,52 @@ extern "C" int tms_app_main(int sample_count) {
         }
         std::cout << "Successfully Found: " << readerName 
             << std::endl << std::flush;
-    }
 
-    // Add this_device_id filter to reader topics so that we only receive the ones targeted to 
-    // this device. This can be done in the find reader loop above since the expression is in 
-    // the xml and the params (which are always the same) are in the actual deviceId.
-    // First Find the filter from the reader
-    topic_des_to_mod_cft = myReaders[tms_TOPIC_REQUEST_RESPONSE_ENUM]->get_topicdescription();
-    if (topic_des_to_mod_cft == NULL) {
-        std::cerr << "Error: REQUEST_RESPONSE get_topicdescription failure "
-                << retcode << std::endl << std::flush; 
-		    goto tms_app_main_end;
-    }
-    // Narrow down it down to the topic filter (filters are subclass of the topic they are filtering)
-    topic_handle_to_mod_cft = DDSContentFilteredTopic::narrow(topic_des_to_mod_cft);
-    if (topic_handle_to_mod_cft == NULL) {
-        std::cerr << "Error: REQUEST_RESPONSE narrow topic failure "
-                << retcode << std::endl << std::flush; 
-		goto tms_app_main_end;
-    }
-    // now get the parameters we want to modify
-    retcode = topic_handle_to_mod_cft->get_expression_parameters(parameters);
-    if (retcode != DDS_RETCODE_OK) {
-        std::cerr << "Error: REQUEST_RESPONSE set_parameters failure "
-                << retcode << std::endl << std::flush; 
-		goto tms_app_main_end;
-    }
+        // Add this_device_id filter to reader topics so that we only receive the ones targeted to 
+        // this device. This can be done in the find reader loop above since the expression is in 
+        // the xml and the params (which are always the same) are in the actual deviceId.
+        // First Find the filter from the reader
+        topic_des_to_mod_cft = myReaders[myReadersIndx[i]]->get_topicdescription();
+        if (topic_des_to_mod_cft == NULL) {
+            std::cerr << "Error: " << topic_name_array[myReadersIndx[i]] << " get_topicdescription failure "
+                    << retcode << std::endl << std::flush; 
+                goto tms_app_main_end;
+        }
+        // Narrow down it down to the topic filter (filters are subclass of the topic they are filtering)
+        topic_handle_to_mod_cft = DDSContentFilteredTopic::narrow(topic_des_to_mod_cft);
+        if (topic_handle_to_mod_cft == NULL) {
+            std::cerr << "Error: " << topic_name_array[myReadersIndx[i]] << " narrow topic failure "
+                    << retcode << std::endl << std::flush; 
+            goto tms_app_main_end;
+        }
+        // now get the parameters we want to modify
+        retcode = topic_handle_to_mod_cft->get_expression_parameters(parameters[myReadersIndx[i]]);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "Error: " << topic_name_array[myReadersIndx[i]] << " set_parameters failure "
+                    << retcode << std::endl << std::flush; 
+            goto tms_app_main_end;
+        }
 
-    // parmeters are a essentially a list of char * so we
-    // need a separate allocation for each param and then
-    // point each param at the allocation once set to the
-    // right value. The value must be set to each ascii 
-    // nibble of the deviceId terminated with '\0'
-    sprintf(paramId[0], "%d", this_device_id[28]);
-    parameters[0]=paramId[0];
-    sprintf(paramId[1], "%d", this_device_id[29]);
-    parameters[1]=paramId[1];
-    sprintf(paramId[2], "%d", this_device_id[30]);
-    parameters[2]=paramId[2];
-    sprintf(paramId[3], "%d", this_device_id[31]);
-    parameters[3]=paramId[3];
+        // parmeters are a essentially a list of char * so we
+        // need a separate allocation for each param and then
+        // point each param at the allocation once set to the
+        // right value. The value must be set to each ascii 
+        // nibble of the deviceId terminated with '\0'
+        sprintf(paramId[0], "%d", this_device_id[28]);
+        parameters [myReadersIndx[i]][0]=paramId[0];
+        sprintf(paramId[1], "%d", this_device_id[29]);
+        parameters[myReadersIndx[i]][1]=paramId[1];
+        sprintf(paramId[2], "%d", this_device_id[30]);
+        parameters[myReadersIndx[i]][2]=paramId[2];
+        sprintf(paramId[3], "%d", this_device_id[31]);
+        parameters[myReadersIndx[i]][3]=paramId[3];
 
-    retcode = topic_handle_to_mod_cft->set_expression_parameters(parameters);
-    if (retcode != DDS_RETCODE_OK) {
-        std::cerr << "Error: REQUEST_RESPONSE set_parameters failure "
-                << retcode << std::endl << std::flush; 
-		    goto tms_app_main_end;
+        retcode = topic_handle_to_mod_cft->set_expression_parameters(parameters[myReadersIndx[i]]);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "Error: REQUEST_RESPONSE set_parameters failure "
+                    << retcode << std::endl << std::flush; 
+                goto tms_app_main_end;
+        }
     }
 
 

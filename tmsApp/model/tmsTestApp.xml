@@ -1017,20 +1017,44 @@
           <data_writer name="RequestResponseWriter" topic_ref="RequestResponse"/>
           <data_writer name="SourceTransitionStateWriter" topic_ref="SourceTransitionState"/>
         </publisher>
+        <!--All Subscribers get a filter for their own deviceID. 
+      The deviceId in the xml is defaulted to all '0's and then the params are changed programmatically to the actual deviceId. 
+      Note as a tip, this also could have been done via param ENV vars in the xml which is set programmatically before the participant is created. 
+      -->
         <subscriber name="TMS Device Subscriber1">
-          <data_reader name="MicrogridMembershipOutcomeReader" topic_ref="MicrogridMembershipOutcome"/>
-          <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
+          <data_reader name="MicrogridMembershipOutcomeReader" topic_ref="MicrogridMembershipOutcome">
             <filter name="MyFilter" kind="builtin.sql">
-              <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3 </expression>
+              <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
               <parameter_list>
-                <param>49</param>
-                <param>50</param>
-                <param>51</param>
-                <param>52</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
               </parameter_list>
             </filter>
           </data_reader>
-          <data_reader name="SourceTransitionRequestReader" topic_ref="SourceTransitionRequest"/>
+          <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
+            <filter name="MyFilter" kind="builtin.sql">
+              <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
+              <parameter_list>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+              </parameter_list>
+            </filter>
+          </data_reader>
+          <data_reader name="SourceTransitionRequestReader" topic_ref="SourceTransitionRequest">
+            <filter name="MyFilter" kind="builtin.sql">
+              <expression>deviceId[28] = %0 and deviceId[29] = %1 and  deviceId[30] = %2 and deviceId[31] = %3</expression>
+              <parameter_list>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+              </parameter_list>
+            </filter>
+          </data_reader>
         </subscriber>
       </domain_participant>
       <domain_participant name="TMS MSM-Simulation Participant1" domain_ref="TMS_DomainLibrary1::TMS_Domain0">
@@ -1039,8 +1063,12 @@
           <data_writer name="RequestResponseWriter" topic_ref="RequestResponse"/>
           <data_writer name="SourceTransitionRequestWriter" topic_ref="SourceTransitionRequest"/>
         </publisher>
+        <!--SIM  MSM since we want to receive all requests and state changes readers so only filter is ReqResponse )
+      -->
         <subscriber name="TMS MSM-Simulation Subscriber1">
           <data_reader name="MicrogridMembershipRequestReader" topic_ref="MicrogridMembershipRequest"/>
+          <!--Filter on Request Response - we can statically set the device Id for the SIM MSM to all 0s
+-->
           <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
             <filter name="MyFilter" kind="builtin.sql">
               <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
