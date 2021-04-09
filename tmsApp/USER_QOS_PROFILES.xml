@@ -1023,10 +1023,17 @@
             <filter name="MyFilter" kind="builtin.sql">
               <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3 </expression>
               <parameter_list>
+              <!--
                 <param>49</param>
                 <param>50</param>
                 <param>51</param>
                 <param>52</param>
+              -->                
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+
               </parameter_list>
             </filter>
           </data_reader>
