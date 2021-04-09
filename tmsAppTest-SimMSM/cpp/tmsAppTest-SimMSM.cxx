@@ -208,8 +208,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     DDS_StringSeq parameters[tms_TOPIC_LAST_SENTINEL_ENUM]; // need unique sets of parameters for each reader Topic
     char paramId[4][3] = {{'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}};
 
-    // array of writer enum TOPIC_E - enter the writers defined in 
-    // System Designer XML file
+    // Array of writer enum TOPIC_E - enter the writers defined in System Designer XML file
     TOPICS_E myWritersIndx [] = {
         tms_TOPIC_REQUEST_RESPONSE_ENUM,
         tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM,
@@ -227,9 +226,9 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
         tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM,
         tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM
     };
-    size_t mrIndx = sizeof(myReadersIndx) / sizeof(TOPICS_E); // actual number of writers
+    size_t mrIndx = sizeof(myReadersIndx) / sizeof(TOPICS_E); // actual number of readers
 
-    DDSDynamicDataReader * myReaders[tms_TOPIC_LAST_SENTINEL_ENUM] = { // Maximum # writers possible
+    DDSDynamicDataReader * myReaders[tms_TOPIC_LAST_SENTINEL_ENUM] = { // Maximum # readers possible
         NULL
     };
 
@@ -345,11 +344,9 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
         goto tms_app_test_MSM_main_end;
     }
 
-    // parmeters are a essentially a list of char * so we
-    // need a separate allocation for each param and then
-    // point each param at the allocation once set to the
-    // right value. The value must be set to each ascii 
-    // nibble of the deviceId terminated with '\0'
+    // parmeters are a essentially a list of char * so we need a separate allocation for each parameter
+    // of the sequence. We then point each parameter at the allocation once set to the right value. The 
+    // value must be the ascii of each nibble of the deviceId terminated with '\0'
     sprintf(paramId[0], "%d", this_device_id[28]);
     parameters [tms_TOPIC_REQUEST_RESPONSE_ENUM][0]=paramId[0];
     sprintf(paramId[1], "%d", this_device_id[29]);

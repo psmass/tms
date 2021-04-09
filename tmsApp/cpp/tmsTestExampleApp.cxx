@@ -238,7 +238,7 @@ extern "C" int tms_app_main(int sample_count) {
     size_t mrIndx = sizeof(myReadersIndx) / sizeof(TOPICS_E); // actual number of readers
 
     // Array of Reader Handles - filled out by our Lookup loop below
-    DDSDynamicDataReader * myReaders[tms_TOPIC_LAST_SENTINEL_ENUM] = { // Maximum # writers possible
+    DDSDynamicDataReader * myReaders[tms_TOPIC_LAST_SENTINEL_ENUM] = { // Maximum # readers possible
         NULL
     };
 
@@ -352,11 +352,9 @@ extern "C" int tms_app_main(int sample_count) {
             goto tms_app_main_end;
         }
 
-        // parmeters are a essentially a list of char * so we
-        // need a separate allocation for each param and then
-        // point each param at the allocation once set to the
-        // right value. The value must be set to each ascii 
-        // nibble of the deviceId terminated with '\0'
+        // parmeters are a essentially a list of char * so we need a separate allocation for each parameter
+        // of the sequence. We then point each parameter at the allocation once set to the right value. The 
+        // value must be the ascii of each nibble of the deviceId terminated with '\0'
         sprintf(paramId[0], "%d", this_device_id[28]);
         parameters [myReadersIndx[i]][0]=paramId[0];
         sprintf(paramId[1], "%d", this_device_id[29]);
@@ -373,7 +371,6 @@ extern "C" int tms_app_main(int sample_count) {
                 goto tms_app_main_end;
         }
     }
-
 
 	// Turn up threads - the Event threads do nothing but hang on events (no data)
     // Like to put the following in an itterator creating all the pthreads but the 
@@ -462,7 +459,6 @@ extern "C" int tms_app_main(int sample_count) {
         goto tms_app_main_end;
     }
     NDDSUtility::sleep(send_period); // Optional - to let periodic writer go first
-
 
     // Upon approval enable all Periodic and Change State Topics
     myHeartbeatThreadInfo->enabled=true;  
