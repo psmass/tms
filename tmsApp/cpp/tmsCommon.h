@@ -10,8 +10,11 @@
 */
 #ifndef tmsCommon_h
 #define tmsCommon_h
-
-
+#include "tmsTestExample.h"
+struct Internal_membership_request {
+    tms_Fingerprint requesterId;
+    enum tms_MicrogridMembershipResult result;
+};
 
 enum TOPICS_E { 
     tms_TOPIC_ACTIVE_DIAGNOSTICS_ENUM,

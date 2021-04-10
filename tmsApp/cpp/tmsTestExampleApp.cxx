@@ -31,7 +31,8 @@ unsigned long long sequence_number=0; // ever monotonically increasing for each 
 // Variable associated with Source Transition Request - note the TMS topic struct holds both present and future state
 // so we should be able to leverage the state within the topic
 // Also a real MSM would need to keep these in arrays for the maximum number of devices allowed on a Microgrid
-enum tms_MicrogridMembershipResult internal_membership_result = MMR_UNINITIALIZED;
+struct Internal_membership_request internal_membership_request;
+
 enum tms_MicrogridMembershipResult external_tms_membership_result = MMR_UNINITIALIZED;  
 enum tms_SourceTransition internal_source_transition_state = ST_UNINITIALIZED; 
 enum tms_SourceTransition external_tms_source_transition_state = ST_UNINITIALIZED; 
@@ -248,14 +249,13 @@ extern "C" int tms_app_main(int sample_count) {
     // DDSGuardCondition heartbeatStateChangeCondit;  // example of publishing a periodic as a change state.
     DDSGuardCondition sourceTransitionStateChangeCondit;
 
-    DDS_Duration_t send_period = {1,0};
+    DDS_Duration_t send_period = {5,0};
 
     ReqCmdQ  req_cmd_q;
     RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
 
     // Declare Reader and Writer thread Information structs
     PeriodicWriterThreadInfo * myHeartbeatThreadInfo = new PeriodicWriterThreadInfo(tms_TOPIC_HEARTBEAT_ENUM, send_period);
-    // OnChangeWriterThreadInfo * myOnChangeWriterHeartbeatThreadInfo = new OnChangeWriterThreadInfo(tms_TOPIC_HEARTBEAT_ENUM, &heartbeatStateChangeCondit);
     WriterEventsThreadInfo * myDeviceAnnouncementEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM); 
 	WriterEventsThreadInfo * myMicrogridMembershipRequestEventThreadInfo = new WriterEventsThreadInfo (tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM);
     WriterEventsThreadInfo * myRequestResponseEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
@@ -328,8 +328,8 @@ extern "C" int tms_app_main(int sample_count) {
             << std::endl << std::flush;
 
         // Add this_device_id filter to reader topics so that we only receive the ones targeted to 
-        // this device. This can be done in the find reader loop above since the expression is in 
-        // the xml and the params (which are always the same) are in the actual deviceId.
+        // this device. This can be done in a loop  since the expression is in the xml and the params
+        // (which are always the same) are in the actual deviceId.
         // First Find the filter from the reader
         topic_des_to_mod_cft = myReaders[myReadersIndx[i]]->get_topicdescription();
         if (topic_des_to_mod_cft == NULL) {
@@ -356,7 +356,7 @@ extern "C" int tms_app_main(int sample_count) {
         // of the sequence. We then point each parameter at the allocation once set to the right value. The 
         // value must be the ascii of each nibble of the deviceId terminated with '\0'
         sprintf(paramId[0], "%d", this_device_id[28]);
-        parameters [myReadersIndx[i]][0]=paramId[0];
+        parameters[myReadersIndx[i]][0]=paramId[0];
         sprintf(paramId[1], "%d", this_device_id[29]);
         parameters[myReadersIndx[i]][1]=paramId[1];
         sprintf(paramId[2], "%d", this_device_id[30]);
@@ -446,15 +446,12 @@ extern "C" int tms_app_main(int sample_count) {
     // configure a request to join microgrid  - once configured - update the requestId.sequenceNumber and issue via the write below at will (not durable)
     retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_octet_array
         ("requestId.deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
-    retcode1 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->\
-        set_ulonglong("requestId.sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_UnsignedLongLong)\
-        reqSeqNo->getNextSeqNo(tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM)); 
-    retcode2 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_octet_array
+    retcode1 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_octet_array
         ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
     // note enums are compiler dependent and here seem to be 4 bytes long (the compiler will tell you- and you can always printf sizeof(MM_JOIN))
-    retcode3 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_long
+    retcode2 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_long
         ("membership", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) MM_JOIN);
-    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK || retcode3 != DDS_RETCODE_OK) {
+    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK ) {
         std::cerr << "microgrid_membership_request: Dynamic Data Set Error" << std::endl << std::flush;
         goto tms_app_main_end;
     }
@@ -471,6 +468,14 @@ extern "C" int tms_app_main(int sample_count) {
         // load DDS topics, set change triggers etc.)
         //if (internal_membership_result != MMR_COMPLETE) {
             // get approval to enter the grid - according to TMS spec Command Profile = "As needed"
+            // Each (any type) request gets a unique global sequence number 
+            retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->\
+                set_ulonglong("requestId.sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_UnsignedLongLong)\
+                reqSeqNo->getNextSeqNo(tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM)); 
+            if (retcode != DDS_RETCODE_OK) {
+                std::cerr << "Microgrid Request Sequence number: Dynamic Data Set Error" << std::endl << std::flush;
+                goto tms_app_main_end;
+            }
             retcode = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->write
                 (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM], DDS_HANDLE_NIL);
             if (retcode != DDS_RETCODE_OK) {

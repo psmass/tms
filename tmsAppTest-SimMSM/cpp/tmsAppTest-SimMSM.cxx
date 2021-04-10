@@ -32,7 +32,7 @@ unsigned long long sequence_number=0; // ever monotonically increasing for each 
 // Variable associated with Source Transition Request - note the TMS topic struct holds both present and future state
 // so we should be able to leverage the state within the topic
 // Also a real MSM would need to keep these in arrays for the maximum number of devices allowed on a Microgrid
-enum tms_MicrogridMembershipResult internal_membership_result = MMR_UNINITIALIZED;
+struct Internal_membership_request internal_membership_request;
 enum tms_MicrogridMembershipResult external_tms_membership_result = MMR_UNINITIALIZED;  
 enum tms_SourceTransition internal_source_transition_state = ST_UNINITIALIZED; 
 enum tms_SourceTransition external_tms_source_transition_state = ST_UNINITIALIZED; 
@@ -208,6 +208,8 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     DDS_StringSeq parameters[tms_TOPIC_LAST_SENTINEL_ENUM]; // need unique sets of parameters for each reader Topic
     char paramId[4][3] = {{'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}};
 
+    internal_membership_request.result = MMR_UNINITIALIZED;
+
     // Array of writer enum TOPIC_E - enter the writers defined in System Designer XML file
     TOPICS_E myWritersIndx [] = {
         tms_TOPIC_REQUEST_RESPONSE_ENUM,
@@ -242,7 +244,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     // DDSGuardCondition heartbeatStateChangeCondit;  // example of publishing a periodic as a change state.
     DDSGuardCondition microgridMembershipOutcomeCondit;
 
-    DDS_Duration_t send_period = {1,0};
+    DDS_Duration_t send_period = {5,0};
 
     ReqCmdQ  req_cmd_q;
     RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
@@ -348,7 +350,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     // of the sequence. We then point each parameter at the allocation once set to the right value. The 
     // value must be the ascii of each nibble of the deviceId terminated with '\0'
     sprintf(paramId[0], "%d", this_device_id[28]);
-    parameters [tms_TOPIC_REQUEST_RESPONSE_ENUM][0]=paramId[0];
+    parameters[tms_TOPIC_REQUEST_RESPONSE_ENUM][0]=paramId[0];
     sprintf(paramId[1], "%d", this_device_id[29]);
     parameters[tms_TOPIC_REQUEST_RESPONSE_ENUM][1]=paramId[1];
     sprintf(paramId[2], "%d", this_device_id[30]);
@@ -403,14 +405,12 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     retcode1 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->\
         set_ulonglong("requestId.sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_UnsignedLongLong)\
         reqSeqNo->getNextSeqNo(tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM)); 
-    retcode2 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_octet_array
-        ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
     // note enums are compiler dependent and here seem to be 4 bytes long (the compiler will tell you- and you can always printf sizeof(MMR_COMPLETE))
-    retcode3 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_long
+    retcode2 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_long
         ("membership", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) MM_JOIN);
-    retcode4 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_long
+    retcode3 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_long
         ("result", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) MMR_COMPLETE);
-    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK) {
+    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK || retcode3 != DDS_RETCODE_OK) {
         std::cerr << "microgrid_membership_outcome: Dynamic Data Set Error" << std::endl << std::flush;
         goto tms_app_test_MSM_main_end;
     }
@@ -424,13 +424,21 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
         // Do your stuff here to interact CAN to DDS (i.e. get devices state and
         // load DDS topics, set change triggers etc.)
     
-        // check for any internal variables that have changed that are associated
-        // with the On Change Topic triggers
-        //if (internal_membership_result != external_tms_membership_result) {
-            external_tms_membership_result=internal_membership_result;
+        // check for any internal variables that have changed that are associate with the On Change Topic
+        // triggers - for a ream MSM this would be an array of devices
+        //if (external_tms_membership_result != internal_membership_request.result) {
+            retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_octet_array
+                ("relatedRequestId.deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
+                (const DDS_Octet *) &internal_membership_request.requesterId); 
+            if (retcode != DDS_RETCODE_OK) {
+                std::cerr << "Main membership outcome: set requestor data error\n" << std::endl;
+                break; 
+            }
+            
+            external_tms_membership_result=internal_membership_request.result;
             retcode = microgridMembershipOutcomeCondit.set_trigger_value(DDS_BOOLEAN_TRUE);
             if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Main membership outcome: set_trigger condition error\n" << std::endl << std::flush;
+                std::cerr << "Main membership outcome: set_trigger condition error\n" << std::endl;
                 break;
             } 
         //}

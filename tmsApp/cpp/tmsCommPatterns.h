@@ -35,7 +35,7 @@ extern unsigned long long sequence_number; // ever monotonically increasing for 
 // Variable associated with Source Transition Request - note the TMS topic struct holds both present and future state
 // so we should be able to leverage the state within the topic
 // Also a real MSM would need to keep these in arrays for the maximum number of devices allowed on a Microgrid
-extern enum tms_MicrogridMembershipResult internal_membership_result;
+extern struct Internal_membership_request internal_membership_request;
 extern enum tms_MicrogridMembershipResult external_tms_membership_result;  
 extern enum tms_SourceTransition internal_source_transition_state; 
 extern enum tms_SourceTransition external_tms_source_transition_state; 

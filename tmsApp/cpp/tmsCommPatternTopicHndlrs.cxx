@@ -152,6 +152,11 @@ void GenericDefaultPeriodicWriterHandler(PeriodicWriterThreadInfo * myPeriodicWr
 
 
 void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST (ReaderThreadInfo * myReaderThreadInfo) {
+    DDS_UnsignedLong fingerprint_len = (DDS_UnsignedLong) tms_LEN_Fingerprint; // get requires a &var not value
+    // MSM handles this and would normally have an array of intenal_membership_requesters and results
+    // the main loop would take a change in the internal_membership_result[idx-requester] to publish the right approval
+    // to the associated requester
+    DDS_ReturnCode_t  retcode, retcode1;
     std::cout << "Receive Handler - Recieved " << MY_READER_TOPIC_NAME << " (should check for MM_JOIN/LEAVE) " << std::endl;
 
     // ****** PUT WHAT YOU NEED TO DO SPECIFICALLY FOR YOU TOPIC HERE
@@ -160,7 +165,17 @@ void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST (ReaderThreadInfo * my
     // tms_REPLY_OK, then we should set the internal variable as MMR_COMPLETE
     // The main_loop of the MSM should now see a difference between the internal state and the tms_state 
     // causing an On Change tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME to get triggered
-    internal_membership_result = MMR_COMPLETE;
+    // 
+    // minimally we (MSM) will set the relatedRequestId in the MembershipOutcome/Approval
+    // get the requesting device from the request
+    retcode = myReaderThreadInfo->dataSeqInstance->get_octet_array(
+                                    internal_membership_request.requesterId,
+                                    &fingerprint_len,
+                                    "requestId.deviceId",
+                                    DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED
+                                    );
+
+    internal_membership_request.result = MMR_COMPLETE;
 
     //strncpy (myReaderThreadInfo->reason, "Goodbye World", tms_MAXLEN_reason); // example change default reason
 
@@ -181,7 +196,8 @@ bool isThisMyDeviceId (tms_Fingerprint fingerprint) {
 void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * myReaderThreadInfo) {
     DDS_UnsignedLong fingerprint_len = (DDS_UnsignedLong) tms_LEN_Fingerprint;
     tms_SampleId tms_sample_id; // use microgrid def from model tmsTestExample.h
-    DDS_ReturnCode_t  retcode;
+    DDS_UnsignedLongLong sequence_number;
+    DDS_ReturnCode_t  retcode, retcode1;
 
     std::cout << "Receive Handler - Received " << MY_READER_TOPIC_NAME;
     // See if anyone is getting Responses not directed to them
@@ -191,12 +207,25 @@ void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * myReaderThread
                                     "relatedRequestId.deviceId",
                                     DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED
                                     );
+    retcode1 = myReaderThreadInfo->dataSeqInstance->get_ulonglong(
+                                    sequence_number,
+                                    "relatedRequestId.sequenceNumber",
+                                    DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED
+                                    );
+    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK) {
+        std::cerr << "Receive Handler  Error: " << MY_READER_TOPIC_NAME <<
+            "Data get Error" << std::endl << std::flush;
+        goto reader_handler_RR_end;
+    };
     if (isThisMyDeviceId(tms_sample_id.deviceId))
-        std::cout << " for Me. " <<  std::endl;
+        std::cout << " for Me. with sequence number " << sequence_number << std::endl;
     else
         std::cout << " some other device." << std::endl;
     
-    internal_membership_result = MMR_COMPLETE;
+    internal_membership_request.result = MMR_COMPLETE;
+
+    reader_handler_RR_end:
+    return;
 }
 
 void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME (ReaderThreadInfo * myReaderThreadInfo) {
