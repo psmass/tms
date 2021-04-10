@@ -90,6 +90,9 @@ const DDS_Char * const topic_name_array [] = {
     tms_TOPIC_STORAGE_INFO,
     tms_TOPIC_STORAGE_STATE
 };
+
+ReqCmdQ  req_cmd_q;
+
 char this_device_id [tms_LEN_Fingerprint+1] = "10000000100000001000000010000000";
 
 // Local prototypes
@@ -119,11 +122,19 @@ unsigned long long RequestSequenceNumber::getNextSeqNo(enum TOPICS_E topic_enum)
     // this function increments and returns the next sequenceNo for the requestTopic write
     // and enques the topic_enum and sequence number for later response processing
     ReqQEntry rq_entry;
-    rq_entry.requestorEnum = topic_enum;
+    rq_entry.requesterEnum = topic_enum;
     (*mySeqNum)++;
     rq_entry.sequenceNum = (*mySeqNum);
     myReqCmdQptr->reqCmdQWrite(rq_entry);
     return (*mySeqNum);
+}
+
+enum TOPICS_E RequestSequenceNumber::lookUpReqCmdQ(unsigned long long sequenceNo){
+     return myReqCmdQptr->reqCmdQRead(sequenceNo);
+}
+
+void RequestSequenceNumber::printReqCmd() {
+    myReqCmdQptr->printQueue();    
 }
 // END class RequestSequenceNumber member function definitions
 
@@ -146,18 +157,26 @@ ReqCmdQ::ReqCmdQ () {
 void ReqCmdQ::reqCmdQWrite(ReqQEntry reqQentry) {
     // CAUTION: Keep Order - Write sequence number first, read sequence number last
     rq.req_Q_entry[rq.end].sequenceNum = reqQentry.sequenceNum;
-    rq.req_Q_entry[rq.end].requestorEnum = reqQentry.requestorEnum;
+    rq.req_Q_entry[rq.end].requesterEnum = reqQentry.requesterEnum;
     rq.end = (rq.end + 1) % RQ_SIZE;
 }
 
 enum TOPICS_E  ReqCmdQ::reqCmdQRead(unsigned long long sequenceNo){
     // CAUTION: Keep Order - Write squence number first, read sequence number last
     int idx = sequenceNo % RQ_SIZE;
-    enum TOPICS_E enumFound = rq.req_Q_entry[idx].requestorEnum;
+    enum TOPICS_E enumFound = rq.req_Q_entry[idx].requesterEnum;
     if (rq.req_Q_entry[idx].sequenceNum != sequenceNo)
         enumFound = tms_TOPIC_LAST_SENTINEL_ENUM;
     
     return enumFound;
+}
+
+void ReqCmdQ::printQueue() {
+    std::cout << "ReqCmdQ Writer index (End) value: " << rq.end << std::endl;
+    for (int i = 0; i< RQ_SIZE; i++) {
+        std::cout << "index " << i << " Sequence No:  " << rq.req_Q_entry[i].sequenceNum
+        << " Requester: " << topic_name_array[rq.req_Q_entry[i].requesterEnum] << std::endl;
+    }
 }
 // END class ReqQEntry member function definitions
 
@@ -246,7 +265,6 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
 
     DDS_Duration_t send_period = {5,0};
 
-    ReqCmdQ  req_cmd_q;
     RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
 
     // Declare Reader and Writer thread Information structs

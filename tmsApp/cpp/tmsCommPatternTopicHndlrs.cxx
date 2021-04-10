@@ -196,11 +196,16 @@ bool isThisMyDeviceId (tms_Fingerprint fingerprint) {
 void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * myReaderThreadInfo) {
     DDS_UnsignedLong fingerprint_len = (DDS_UnsignedLong) tms_LEN_Fingerprint;
     tms_SampleId tms_sample_id; // use microgrid def from model tmsTestExample.h
-    DDS_UnsignedLongLong sequence_number;
+    DDS_UnsignedLongLong rcvd_sequence_number;
+    enum TOPICS_E lookedUpTopicEnum;
     DDS_ReturnCode_t  retcode, retcode1;
 
+    // local reqQaccess object
+    RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
+
     std::cout << "Receive Handler - Received " << MY_READER_TOPIC_NAME;
-    // See if anyone is getting Responses not directed to them
+    // See if anyone is getting Responses not directed to them 
+    // filters should never allow this case so this block of code can be omitted.
     retcode = myReaderThreadInfo->dataSeqInstance->get_octet_array(
                                     tms_sample_id.deviceId,
                                     &fingerprint_len,
@@ -208,7 +213,7 @@ void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * myReaderThread
                                     DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED
                                     );
     retcode1 = myReaderThreadInfo->dataSeqInstance->get_ulonglong(
-                                    sequence_number,
+                                    rcvd_sequence_number,
                                     "relatedRequestId.sequenceNumber",
                                     DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED
                                     );
@@ -217,11 +222,21 @@ void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * myReaderThread
             "Data get Error" << std::endl << std::flush;
         goto reader_handler_RR_end;
     };
-    if (isThisMyDeviceId(tms_sample_id.deviceId))
-        std::cout << " for Me. with sequence number " << sequence_number << std::endl;
-    else
+    if (isThisMyDeviceId(tms_sample_id.deviceId)) 
+        std::cout << " w/ Seq Num: " << rcvd_sequence_number;
+    else  
         std::cout << " some other device." << std::endl;
-    
+
+
+    // now see we had a pending request queued up
+    // reqSeqNo->printReqCmd();
+    lookedUpTopicEnum = reqSeqNo->lookUpReqCmdQ(rcvd_sequence_number);
+    if (lookedUpTopicEnum == tms_TOPIC_LAST_SENTINEL_ENUM) {
+        std::cout << " no matching request found: "  << std::endl;
+    } else {
+        std::cout << " Matches: " << topic_name_array[lookedUpTopicEnum] << std::endl;
+    }
+
     internal_membership_request.result = MMR_COMPLETE;
 
     reader_handler_RR_end:

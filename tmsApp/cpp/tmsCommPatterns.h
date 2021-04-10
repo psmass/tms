@@ -31,6 +31,7 @@ extern char this_device_id[]; // this_device is defined in the main app file (fo
 
 // should tuck this var into the RequestSequenceNumber class and make that Class a singlton pattern
 extern unsigned long long sequence_number; // ever monotonically increasing for each request sent
+extern ReqCmdQ  req_cmd_q;  // only one ReqCmdQ for the app so global (the access class is not global)
 
 // Variable associated with Source Transition Request - note the TMS topic struct holds both present and future state
 // so we should be able to leverage the state within the topic

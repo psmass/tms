@@ -17,7 +17,7 @@ struct Internal_membership_request {
 };
 
 enum TOPICS_E { 
-    tms_TOPIC_ACTIVE_DIAGNOSTICS_ENUM,
+    tms_TOPIC_ACTIVE_DIAGNOSTICS_ENUM = 0,
     tms_TOPIC_AUTHORIZATION_TO_ENERGIZE_OUTCOME_ENUM,
     tms_TOPIC_AUTHORIZATION_TO_ENERGIZE_REQUEST_ENUM,
     tms_TOPIC_AUTHORIZATION_TO_ENERGIZE_RESPONSE_ENUM,
@@ -79,6 +79,8 @@ class RequestSequenceNumber {
     // class to manage the static sequence_number used in requests
     RequestSequenceNumber(ReqCmdQ * req_cmd_q_ptr);
     unsigned long long getNextSeqNo(enum TOPICS_E topic_enum);
+    enum TOPICS_E lookUpReqCmdQ(unsigned long long sequenceNo);
+    void printReqCmd(void); // for debug
 
     private:
     unsigned long long * mySeqNum; // manages the single static sequence_number
@@ -86,7 +88,7 @@ class RequestSequenceNumber {
 };
 typedef struct {
     unsigned long long sequenceNum;
-    enum TOPICS_E requestorEnum;
+    enum TOPICS_E requesterEnum;
 } ReqQEntry;
 
 #define RQ_SIZE 10
@@ -109,7 +111,6 @@ class ReqCmdQ {
     // allocate and intializes the array of entries and structure control vars that track the circular writes
     ReqCmdQ();  
 
-  
     // Reading the reqCmdQ is non distructive, it simply takes the given sequenceNo and calculates
     // and index modulo the queue size returning the enum TOPICS_E stored in the entry ReqQEntry.  
     // HOWEVER, before it blindly returns the enum TOPICS_E it first verifes the stored sequence 
@@ -129,6 +130,8 @@ class ReqCmdQ {
     // main loop when you send a request.
     // Writing is never blocked and will wrap, overwriting the oldest entry. 
     void reqCmdQWrite(ReqQEntry reqQentry);
+    void printQueue(void); // for debug
+
 
     ReqQ rq;  // The actual request queue w/entries array
 };
