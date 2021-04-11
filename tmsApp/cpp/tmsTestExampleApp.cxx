@@ -97,7 +97,11 @@ ReqCmdQ  req_cmd_q;  // only one ReqCmdQ for the app so global (the access class
 // Should probably intialize this_device_id in a loop since setting an array size tms_LEN_Fingerprint
 // to a "fixed string 32 chars + null" defeats the purpose of using tms_LEN_Fingerprint - but eventually
 // it would be populated via a CAN device ID access 
-char this_device_id [tms_LEN_Fingerprint+1] = "00000000000000000000000000001234";  
+char this_device_id [tms_LEN_Fingerprint+1] = "00000000000000000000000000001234"; 
+// that_device_id not used by the device, but like a few other globals, the tmsCommPatterns and
+// tmsCommPatternTopicHandler references it so the linker needs it defined. (some code restructuring
+// would get rid of this nuisanse ) 
+char that_device_id [tms_LEN_Fingerprint+1] = "00000000000000000000000000000000"; 
 
 // Local prototypes
 void handle_SIGINT(int unused);
@@ -268,7 +272,6 @@ extern "C" int tms_app_main(int sample_count) {
     std::string writerName;
     std::string readerName;
 
-    // DDSGuardCondition heartbeatStateChangeCondit;  // example of publishing a periodic as a change state.
     DDSGuardCondition sourceTransitionStateChangeCondit;
 
     DDS_Duration_t send_period = {1,0};
@@ -503,9 +506,34 @@ extern "C" int tms_app_main(int sample_count) {
                 goto tms_app_main_end;
             }
         }
+
+        if (external_tms_source_transition_state != internal_source_transition_state ) {
+            // copy the targeted deviceId (from announcment) in to  the request 
+            //sstd::cout << "Main Device On Change Transition" << std::endl;
+            retcode = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_octet_array
+                ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
+                (const DDS_Octet *) &this_device_id);
+            // sourceTransition we should actually get the real current state 
+            retcode1 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_long
+                ("presentState", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) SS_UNINITIALIZED);
+            retcode2 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_long
+                ("futureState", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) SS_ON);
+            if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK) {
+                std::cerr << "Main Source Transition: set data error\n" << std::endl;
+                break;
+            }
+            external_tms_source_transition_state=internal_source_transition_state;
+
+            retcode = sourceTransitionStateChangeCondit.set_trigger_value(DDS_BOOLEAN_TRUE);
+            if (retcode != DDS_RETCODE_OK) {
+                std::cerr << "Main Source State: set_trigger condition error\n" << std::endl;
+                break;
+            }
+
+        }
     
         NDDSUtility::sleep(send_period);  // remove eventually 
-    }
+    } /* while run_flag */
 
     tms_app_main_end:
     /* Delete all entities */

@@ -72,8 +72,8 @@ ReaderHandlerPtr reader_handler_ptrs[] = {
     ReaderHandler_tms_TOPIC_REQUEST_RESPONSE,               // tms_TOPIC_REQUEST_RESPONSE_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_RESERVE_CONFIG_REPLY_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_RESERVE_CONFIG_REQUEST_ENUM,
-    GenericDefaultReaderHandler,                            // tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM,
-    GenericDefaultReaderHandler,                            // tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM,
+    ReaderHandler_tms_TOPIC_SOURCE_TRANSITION_REQUEST,      // tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM,
+    ReaderHandler_tms_TOPIC_SOURCE_TRANSITION_STATE,        // tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_STANDARD_CONFIG_MASTER_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_STORAGE_CONTROL_REQUEST_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_STORAGE_CONTROL_STATUS_ENUM,
@@ -244,10 +244,48 @@ void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * myReaderThread
 }
 
 void ReaderHandler_tms_TOPIC_DEVICE_ANNOUNCEMENT (ReaderThreadInfo * myReaderThreadInfo) {
+    // MSM Sim code executes this handler
+    DDS_UnsignedLong fingerprint_len = (DDS_UnsignedLong) tms_LEN_Fingerprint;
+    tms_SampleId tms_sample_id; // use microgrid def from model tmsTestExample.h
+    DDS_ReturnCode_t  retcode;
+
     std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << std::endl;
+    retcode = myReaderThreadInfo->dataSeqInstance->get_octet_array(
+                                    tms_sample_id.deviceId,
+                                    &fingerprint_len,
+                                    "deviceId",
+                                    DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED
+                                    );
+    if (retcode != DDS_RETCODE_OK ) {
+        std::cerr << "Receive Handler  Error: " << MY_READER_TOPIC_NAME <<
+            "Data get Error" << std::endl << std::flush;
+        goto reader_handler_DA_end;
+    };
+    // copy the requesters deviceId to "that_device_id" - again - a real MSM 
+    // would have an array of potential requesters/devices etc. - We are assuming just one.
+    strncpy(that_device_id, (char *)tms_sample_id.deviceId, tms_LEN_Fingerprint);
+    // std::cout << "Found Request Device: " << that_device_id << std::endl;
+
+    reader_handler_DA_end:
+    return;
+
 }
+
 void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME (ReaderThreadInfo * myReaderThreadInfo) {
     std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << std::endl;
+}
+
+void ReaderHandler_tms_TOPIC_SOURCE_TRANSITION_REQUEST (ReaderThreadInfo * myReaderThreadInfo) {
+    std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << 
+    " Yes Boss. Powering up (note I probably should see it that's what she is really asking.)" << std::endl;
+    internal_source_transition_state = ST_POWER_UP;
+
+}
+
+void ReaderHandler_tms_TOPIC_SOURCE_TRANSITION_STATE (ReaderThreadInfo * myReaderThreadInfo) {
+    std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << 
+    " Ok Sonny. Thanks for Powering up (should check state to see if that's what he did.)" << std::endl;
+
 }
 
 long int hb_seq_count = 0; // specific hb sequence - To Do: don't like it being a global

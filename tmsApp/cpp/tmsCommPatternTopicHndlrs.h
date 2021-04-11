@@ -42,6 +42,8 @@ void ReaderHandler_tms_TOPIC_DEVICE_ANNOUNCEMENT (ReaderThreadInfo * );
 void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST (ReaderThreadInfo * );
 void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * );
 void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME (ReaderThreadInfo * );
+void ReaderHandler_tms_TOPIC_SOURCE_TRANSITION_REQUEST (ReaderThreadInfo * );
+void ReaderHandler_tms_TOPIC_SOURCE_TRANSITION_STATE (ReaderThreadInfo * );
 
 void PeriodicWriterHandler_tms_TOPIC_HEARTBEAT (PeriodicWriterThreadInfo * );
 

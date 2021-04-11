@@ -96,7 +96,7 @@ ReqCmdQ  req_cmd_q;
 char this_device_id [tms_LEN_Fingerprint+1] = "10000000100000001000000010000000";
 
 // place to stick a device announcment - in real MSM this would be an array of devices
-char that_device_id [tms_LEN_Fingerprint+1] = "00000000000000000000000000000000"; 
+char that_device_id [tms_LEN_Fingerprint+1] = "00000000000000000000000000000000"; // i.e. the generator
 // Local prototypes
 void handle_SIGINT(int unused);
 int tms_app_main (unsigned int);
@@ -125,10 +125,10 @@ unsigned long long RequestSequenceNumber::getNextSeqNo(enum TOPICS_E topic_enum)
     // and enques the topic_enum and sequence number for later response processing
     ReqQEntry rq_entry;
     rq_entry.requesterEnum = topic_enum;
-    (*mySeqNum)++;
     rq_entry.sequenceNum = (*mySeqNum);
     myReqCmdQptr->reqCmdQWrite(rq_entry);
-    return (*mySeqNum);
+    (*mySeqNum)++;  // increment for the next sequence
+    return (*mySeqNum)-1; // but return the one we used
 }
 
 enum TOPICS_E RequestSequenceNumber::lookUpReqCmdQ(unsigned long long sequenceNo){
@@ -458,6 +458,8 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
 
     NDDSUtility::sleep(send_period); // Optional - to let periodic writer go first
 
+    internal_source_transition_state = ST_POWER_UP; // set internal state to what we want 
+
     /* Main loop */
     while (run_flag) {
 
@@ -491,7 +493,29 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
 
         // We will have the MSM sim request the device to power up. The actual MSM would
         // receive a device announcement, query the switch state, and then make a decision
-        if (external_tms_source_transition_state != internal_source_transition_state ) {
+        if (internal_membership_request.result == MMR_COMPLETE ) {
+
+            if (external_tms_source_transition_state != internal_source_transition_state ) {
+                // copy the targeted deviceId (from announcment) in to  the request 
+                std::cout << "Main SMS issuing a Source Transiton Request" << std::endl;
+                retcode = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->set_octet_array
+                    ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
+                    (const DDS_Octet *) &that_device_id);
+                // sourceTransition we want 
+                retcode2 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->set_long
+                    ("desiredTransition", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) ST_POWER_UP);
+                if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK) {
+                    std::cerr << "Main Source Transition: set data error\n" << std::endl;
+                    break;
+                }
+                external_tms_source_transition_state=internal_source_transition_state;
+
+                retcode = myWriters[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->write(* myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM], DDS_HANDLE_NIL);
+                if (retcode != DDS_RETCODE_OK) {
+                    std::cerr << "Main Topic Source Transition Request: Write Data Set Error " << std::endl << std::flush;
+                    break;
+                }
+            }
 
         }
 
