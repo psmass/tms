@@ -201,7 +201,7 @@ void*  pthreadToProcReaderEvents(void *reader_thread_info) {
                                 }
                                 myReaderThreadInfo->reqRspWriter->write(* request_response_data, DDS_HANDLE_NIL);
                                 if (retcode != DDS_RETCODE_OK) {
-                                    std::cerr << "Reader Thread: " << topic_name_array[tms_TOPIC_REQUEST_RESPONSE_ENUM]
+                                    std::cerr << "Reader Thread: " << MY_READER_TOPIC_NAME
                                         << " write Error " << std::endl << std::flush;
                                     goto end_reader_thread;
                                 }

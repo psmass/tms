@@ -28,6 +28,7 @@ typedef void (*PeriodicWriterHandlerPtr)(PeriodicWriterThreadInfo *);
 extern bool run_flag;
 
 extern char this_device_id[]; // this_device is defined in the main app file (for each device/app instance)
+extern char that_device_id[]; // place to stick a device announcment - in real MSM this would be an array of devices
 
 // should tuck this var into the RequestSequenceNumber class and make that Class a singlton pattern
 extern unsigned long long sequence_number; // ever monotonically increasing for each request sent

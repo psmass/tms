@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://community.rti.com/schema/6.1.0/rti_dds_profiles.xsd" version="6.1.0">
+<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://community.rti.com/schema/6.0.1/rti_dds_profiles.xsd" version="6.0.1">
     <types>
       <module name="tms">
         <const name="TOPIC_ACTIVE_DIAGNOSTICS" type="string" value="&quot;ActiveDiagnostics&quot;"/>
@@ -1023,37 +1023,37 @@
       -->
         <subscriber name="TMS Device Subscriber1">
           <data_reader name="MicrogridMembershipOutcomeReader" topic_ref="MicrogridMembershipOutcome">
-            <content_filter name="MyFilter" kind="builtin.sql">
+            <filter name="MyFilter" kind="builtin.sql">
               <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
-              <expression_parameters>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-              </expression_parameters>
-            </content_filter>
+              <parameter_list>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+              </parameter_list>
+            </filter>
           </data_reader>
           <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
-            <content_filter name="MyFilter" kind="builtin.sql">
+            <filter name="MyFilter" kind="builtin.sql">
               <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
-              <expression_parameters>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-              </expression_parameters>
-            </content_filter>
+              <parameter_list>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+              </parameter_list>
+            </filter>
           </data_reader>
           <data_reader name="SourceTransitionRequestReader" topic_ref="SourceTransitionRequest">
-            <content_filter name="MyFilter" kind="builtin.sql">
+            <filter name="MyFilter" kind="builtin.sql">
               <expression>deviceId[28] = %0 and deviceId[29] = %1 and  deviceId[30] = %2 and deviceId[31] = %3</expression>
-              <expression_parameters>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-              </expression_parameters>
-            </content_filter>
+              <parameter_list>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+              </parameter_list>
+            </filter>
           </data_reader>
         </subscriber>
       </domain_participant>
@@ -1070,17 +1070,27 @@
           <!--Filter on Request Response - we can statically set the device Id for the SIM MSM to all 0s
 -->
           <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
-            <content_filter name="MyFilter" kind="builtin.sql">
+            <filter name="MyFilter" kind="builtin.sql">
               <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
-              <expression_parameters>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-              </expression_parameters>
-            </content_filter>
+              <parameter_list>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+                <param>48</param>
+              </parameter_list>
+            </filter>
           </data_reader>
           <data_reader name="SourceTransitionStateReader" topic_ref="SourceTransitionState"/>
+          <data_reader name="DeviceAnnouncementReader" topic_ref="DeviceAnnouncement">
+            <datareader_qos>
+              <durability>
+                <kind>TRANSIENT_LOCAL_DURABILITY_QOS</kind>
+              </durability>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+              </reliability>
+            </datareader_qos>
+          </data_reader>
         </subscriber>
       </domain_participant>
     </domain_participant_library>

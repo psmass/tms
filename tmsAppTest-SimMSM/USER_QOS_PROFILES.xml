@@ -978,11 +978,6 @@
 
     <qos_library name="TMS_QoS_LIbrary1">
       <qos_profile name="Factory" is_default_qos="true">
-        <participant_qos>
-          <transport_builtin>
-                <mask>UDPv4  </mask>
-          </transport_builtin>
-        </participant_qos>
       </qos_profile>
       <qos_profile name="Base_Participant_QoS">
       </qos_profile>
@@ -1086,6 +1081,16 @@
             </filter>
           </data_reader>
           <data_reader name="SourceTransitionStateReader" topic_ref="SourceTransitionState"/>
+          <data_reader name="DeviceAnnouncementReader" topic_ref="DeviceAnnouncement">
+            <datareader_qos>
+              <durability>
+                <kind>TRANSIENT_LOCAL_DURABILITY_QOS</kind>
+              </durability>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+              </reliability>
+            </datareader_qos>
+          </data_reader>
         </subscriber>
       </domain_participant>
     </domain_participant_library>

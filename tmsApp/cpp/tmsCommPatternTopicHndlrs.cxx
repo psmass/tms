@@ -36,7 +36,7 @@ ReaderHandlerPtr reader_handler_ptrs[] = {
     GenericDefaultReaderHandler,                            // tms_TOPIC_DC_DEVICE_POWER_MEASUREMENT_LIST_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_DC_LOAD_SHARING_REQUEST_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_DC_LOAD_SHARING_STATUS_ENUM,
-    GenericDefaultReaderHandler,                            // tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM,
+    ReaderHandler_tms_TOPIC_DEVICE_ANNOUNCEMENT,            // tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_DEVICE_CLOCK_STATUS_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_DEVICE_GROUNDING_ENUM,
     GenericDefaultReaderHandler,                            // tms_TOPIC_DEVICE_GROUNDING_STATUS_ENUM,
@@ -243,6 +243,9 @@ void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * myReaderThread
     return;
 }
 
+void ReaderHandler_tms_TOPIC_DEVICE_ANNOUNCEMENT (ReaderThreadInfo * myReaderThreadInfo) {
+    std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << std::endl;
+}
 void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME (ReaderThreadInfo * myReaderThreadInfo) {
     std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << std::endl;
 }

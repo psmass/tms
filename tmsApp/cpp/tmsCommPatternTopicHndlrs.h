@@ -36,12 +36,13 @@
 #include "tmsCommPatterns.h"
 
 
-void GenericDefaultReaderHandler(ReaderThreadInfo * infoBlck);          // Default Reader handler used to initialize array of handlers
-void GenericDefaultPeriodicWriterHandler(PeriodicWriterThreadInfo * infoBlck);  // Default Periodic Writer handler used to initialize array of handlers
-void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST (ReaderThreadInfo * infoBlck);
-void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * infoBlck);
-void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME (ReaderThreadInfo * infoBlck);
+void GenericDefaultReaderHandler(ReaderThreadInfo * );          // Default Reader handler used to initialize array of handlers
+void GenericDefaultPeriodicWriterHandler(PeriodicWriterThreadInfo * );  // Default Periodic Writer handler used to initialize array of handlers
+void ReaderHandler_tms_TOPIC_DEVICE_ANNOUNCEMENT (ReaderThreadInfo * );
+void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST (ReaderThreadInfo * );
+void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * );
+void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME (ReaderThreadInfo * );
 
-void PeriodicWriterHandler_tms_TOPIC_HEARTBEAT (PeriodicWriterThreadInfo * isnfoBlck);
+void PeriodicWriterHandler_tms_TOPIC_HEARTBEAT (PeriodicWriterThreadInfo * );
 
 #endif

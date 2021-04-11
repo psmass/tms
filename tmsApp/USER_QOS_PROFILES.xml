@@ -1081,6 +1081,16 @@
             </filter>
           </data_reader>
           <data_reader name="SourceTransitionStateReader" topic_ref="SourceTransitionState"/>
+          <data_reader name="DeviceAnnouncementReader" topic_ref="DeviceAnnouncement">
+            <datareader_qos>
+              <durability>
+                <kind>TRANSIENT_LOCAL_DURABILITY_QOS</kind>
+              </durability>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+              </reliability>
+            </datareader_qos>
+          </data_reader>
         </subscriber>
       </domain_participant>
     </domain_participant_library>

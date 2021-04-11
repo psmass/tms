@@ -271,7 +271,7 @@ extern "C" int tms_app_main(int sample_count) {
     // DDSGuardCondition heartbeatStateChangeCondit;  // example of publishing a periodic as a change state.
     DDSGuardCondition sourceTransitionStateChangeCondit;
 
-    DDS_Duration_t send_period = {5,0};
+    DDS_Duration_t send_period = {1,0};
 
     // Declare Reader and Writer thread Information structs
     PeriodicWriterThreadInfo * myHeartbeatThreadInfo = new PeriodicWriterThreadInfo(tms_TOPIC_HEARTBEAT_ENUM, send_period);
@@ -395,7 +395,6 @@ extern "C" int tms_app_main(int sample_count) {
     // Like to put the following in an itterator creating all the pthreads but the 
     // topicThreadInfo's are somewhat different depending upon the communications pattern
     myHeartbeatThreadInfo->writer = myWriters[tms_TOPIC_HEARTBEAT_ENUM];
-    // myHeartbeatThreadInfo->writer = heartbeat_writer;
     myHeartbeatThreadInfo->enabled=false; // enable topic when Membership approved
     myHeartbeatThreadInfo->periodicData=myWriterDataInstances[tms_TOPIC_HEARTBEAT_ENUM]; 
     pthread_t whb_tid; // writer device_announcement tid
@@ -485,22 +484,24 @@ extern "C" int tms_app_main(int sample_count) {
         std::cout << ". "; // background idle
         // Do your stuff here to interact CAN to DDS (i.e. get devices state and
         // load DDS topics, set change triggers etc.)
-        //if (internal_membership_result != MMR_COMPLETE) {
+
+        // So long as we are not approved, keep asking
+        if (internal_membership_request.result != MMR_COMPLETE) {
             // get approval to enter the grid - according to TMS spec Command Profile = "As needed"
             // Each (any type) request gets a unique global sequence number 
             retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->\
                 set_ulonglong("requestId.sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_UnsignedLongLong)\
                 reqSeqNo->getNextSeqNo(tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM)); 
             if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Microgrid Request Sequence number: Dynamic Data Set Error" << std::endl << std::flush;
+                std::cerr << "Microgrid Request Sequence number: Dynamic Data Set Error" << std::endl;
                 goto tms_app_main_end;
             }
             retcode = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->write
                 (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM], DDS_HANDLE_NIL);
             if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Micrgrid Membership Request: Write Error " << std::endl << std::flush;
+                std::cerr << "Micrgrid Membership Request: Write Error " << std::endl;
                 goto tms_app_main_end;
-        //   }
+            }
         }
     
         NDDSUtility::sleep(send_period);  // remove eventually 

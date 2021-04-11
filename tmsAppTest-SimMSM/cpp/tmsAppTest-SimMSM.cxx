@@ -95,6 +95,8 @@ ReqCmdQ  req_cmd_q;
 
 char this_device_id [tms_LEN_Fingerprint+1] = "10000000100000001000000010000000";
 
+// place to stick a device announcment - in real MSM this would be an array of devices
+char that_device_id [tms_LEN_Fingerprint+1] = "00000000000000000000000000000000"; 
 // Local prototypes
 void handle_SIGINT(int unused);
 int tms_app_main (unsigned int);
@@ -233,7 +235,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     TOPICS_E myWritersIndx [] = {
         tms_TOPIC_REQUEST_RESPONSE_ENUM,
         tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM,
-        tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM
+        tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM,
     }; 
     size_t mwIndx = sizeof(myWritersIndx) / sizeof(TOPICS_E); // actual number of writers
 
@@ -243,6 +245,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
 
     // array of Reader handles by enum TOPIC_E 
     TOPICS_E myReadersIndx [] = {
+        tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM,
         tms_TOPIC_REQUEST_RESPONSE_ENUM,
         tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM,
         tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM
@@ -263,7 +266,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     // DDSGuardCondition heartbeatStateChangeCondit;  // example of publishing a periodic as a change state.
     DDSGuardCondition microgridMembershipOutcomeCondit;
 
-    DDS_Duration_t send_period = {5,0};
+    DDS_Duration_t send_period = {1,0};
 
     RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
 
@@ -272,6 +275,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
         new OnChangeWriterThreadInfo (tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM, &microgridMembershipOutcomeCondit);
     WriterEventsThreadInfo * myRequestResponseEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
     WriterEventsThreadInfo * mySourceTransitionRequestEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM);
+    ReaderThreadInfo * myDeviceAnnouncementReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM);        
     ReaderThreadInfo * myMicrogridMembershipRequestReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, ECHO_RQST_RESPONSE);
     ReaderThreadInfo * myRequestResponseReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
     ReaderThreadInfo * mySourceTransitionStateReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM);
@@ -414,25 +418,44 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     pthread_t rrr_tid; // Reader Request Response tid - a regular pirate rrr
     pthread_create(&rrr_tid, NULL, pthreadToProcReaderEvents, (void*) myRequestResponseReaderThreadInfo);
 
+    myDeviceAnnouncementReaderThreadInfo->reader = myReaders[tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM];
+    pthread_t rda_tid; // Reader Request Response tid - a regular pirate rrr
+    pthread_create(&rda_tid, NULL, pthreadToProcReaderEvents, (void*) myDeviceAnnouncementReaderThreadInfo);
+
     NDDSUtility::sleep(send_period); // wait a second for thread initialization to complete printing (printing is not sychronized)
 
-    // Preconfigure outcome topic (MicrogridMembershipApproval), in a real MSM you'd keep a database (array) of requesting devices and state
+    // Preconfigure outcome topic (MicrogridMembershipApproval), in a real MSM you'd keep a database (array)
+    // of requesting devices and state
     // Putting the MSM id in the requestId and the approved device relatedRequestId in the deviceId
     retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_octet_array
         ("requestId.deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
     retcode1 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->\
         set_ulonglong("requestId.sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_UnsignedLongLong)\
         reqSeqNo->getNextSeqNo(tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM)); 
-    // note enums are compiler dependent and here seem to be 4 bytes long (the compiler will tell you- and you can always printf sizeof(MMR_COMPLETE))
+    // note enums are compiler dependent and here seem to be 4 byte  long used
+    // (the compiler will tell you - and you can always printf sizeof(MMR_COMPLETE))
     retcode2 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_long
         ("membership", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) MM_JOIN);
     retcode3 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_long
         ("result", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) MMR_COMPLETE);
     if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK || retcode3 != DDS_RETCODE_OK) {
-        std::cerr << "microgrid_membership_outcome: Dynamic Data Set Error" << std::endl << std::flush;
+        std::cerr << "microgrid_membership_outcome: Dynamic Data Set Error" << std::endl;
         goto tms_app_test_MSM_main_end;
     }
  
+    // Preconfigure outcome topic (SourceTransitionRequest), in a real MSM you'd keep a database (array) 
+    // of requesting devices and state
+    // Putting the MSM id in the requestId and the approved device relatedRequestId in the deviceId 
+    // Preconfiguring our deviceId in all the writer topics could probably be done in the writer loop above
+    retcode = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->set_octet_array
+        ("requestId.deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
+    retcode1 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->\
+        set_ulonglong("requestId.sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_UnsignedLongLong)\
+        reqSeqNo->getNextSeqNo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM)); 
+    // note enums are compiler dependent and here seem to be 4 byte long used
+    // (the compiler will tell you- and you can always printf sizeof(MMR_COMPLETE))
+    
+
     NDDSUtility::sleep(send_period); // Optional - to let periodic writer go first
 
     /* Main loop */
@@ -443,8 +466,13 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
         // load DDS topics, set change triggers etc.)
     
         // check for any internal variables that have changed that are associate with the On Change Topic
-        // triggers - for a ream MSM this would be an array of devices
-        //if (external_tms_membership_result != internal_membership_request.result) {
+        // triggers - for a real MSM this would be an array of devices not just one.
+
+        // Look to see if a device internal approval was recently granted 
+        // (via a device sent MicrogridMembershipRequest). If so publish the outcome and
+        // set the external = internal variable.
+        if (external_tms_membership_result != internal_membership_request.result) {
+            // first populate the outcome with the device we are approving
             retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_octet_array
                 ("relatedRequestId.deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
                 (const DDS_Octet *) &internal_membership_request.requesterId); 
@@ -459,7 +487,13 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                 std::cerr << "Main membership outcome: set_trigger condition error\n" << std::endl;
                 break;
             } 
-        //}
+        }
+
+        // We will have the MSM sim request the device to power up. The actual MSM would
+        // receive a device announcement, query the switch state, and then make a decision
+        if (external_tms_source_transition_state != internal_source_transition_state ) {
+
+        }
 
         NDDSUtility::sleep(send_period);  // remove eventually 
     }
@@ -474,6 +508,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     pthread_cancel(rmmo_tid);
     pthread_cancel(rsts_tid);
     pthread_cancel(rrr_tid);
+    pthread_cancel(rda_tid);
 
     tms_app__test_MSM_main_just_return:
     return participant_shutdown(participant);
