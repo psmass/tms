@@ -488,6 +488,9 @@ extern "C" int tms_app_main(int sample_count) {
         // Do your stuff here to interact CAN to DDS (i.e. get devices state and
         // load DDS topics, set change triggers etc.)
 
+        // My thought is to have a statemachine perhaps along the line (INIT, POWERUP, MONITOR, SHUTDOWN)
+        // with a Switch Statement to determine current state , action, next state.
+
         // So long as we are not approved, keep asking
         if (internal_membership_request.result != MMR_COMPLETE) {
             // get approval to enter the grid - according to TMS spec Command Profile = "As needed"

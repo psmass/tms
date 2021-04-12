@@ -466,6 +466,14 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
         std::cout << ". " << std::flush; // background idle
         // Do your stuff here to interact CAN to DDS (i.e. get devices state and
         // load DDS topics, set change triggers etc.)
+
+        // My thought is to implement a statemachine perhaps along the line 
+        // (INIT, POWERUP, MONITOR, SHUTDOWN) per discovered device. Each device
+        // State would be hanlded with a Switch Statement to determine current state,
+        // action, next state.
+        // For a Real MSM states would be kept in arrays indexed by  discovered devices. The
+        // background loop would itterate through all device state machines issuing commands, 
+        // responding to issues etc.
     
         // check for any internal variables that have changed that are associate with the On Change Topic
         // triggers - for a real MSM this would be an array of devices not just one.
@@ -491,8 +499,9 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
             } 
         }
 
-        // We will have the MSM sim request the device to power up. The actual MSM would
-        // receive a device announcement, query the switch state, and then make a decision
+        // Once the device is discovered, and joined the grid we will have the MSM sim request
+        // the device to power up. 
+        // The actual MSM would receive a device announcement, query the switch state, and then make a decision
         if (internal_membership_request.result == MMR_COMPLETE ) {
 
             if (external_tms_source_transition_state != internal_source_transition_state ) {
