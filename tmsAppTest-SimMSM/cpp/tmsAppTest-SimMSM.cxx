@@ -263,16 +263,12 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     std::string writerName;
     std::string readerName;
 
-    // DDSGuardCondition heartbeatStateChangeCondit;  // example of publishing a periodic as a change state.
-    DDSGuardCondition microgridMembershipOutcomeCondit;
-
     DDS_Duration_t send_period = {1,0};
 
     RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
 
     // Declare Reader and Writer thread Information structs
-	OnChangeWriterThreadInfo * myOnChangeMicrogridMembershipOutcomeThreadInfo = \
-        new OnChangeWriterThreadInfo (tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM, &microgridMembershipOutcomeCondit);
+	WriterEventsThreadInfo * myMicrogridMembershipOutcomeThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM);
     WriterEventsThreadInfo * myRequestResponseEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
     WriterEventsThreadInfo * mySourceTransitionRequestEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM);
     ReaderThreadInfo * myDeviceAnnouncementReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM);        
@@ -394,11 +390,9 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     pthread_t wrr_tid; // Wroter Request Response tid
     pthread_create(&wrr_tid, NULL, pthreadToProcWriterEvents, (void*) myRequestResponseEventThreadInfo);
 
-    myOnChangeMicrogridMembershipOutcomeThreadInfo->writer = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM];
-    myOnChangeMicrogridMembershipOutcomeThreadInfo->enabled=true; // enable topic to be published
-    myOnChangeMicrogridMembershipOutcomeThreadInfo->changeStateData=myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]; 
+    myMicrogridMembershipOutcomeThreadInfo->writer = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM];
     pthread_t wmmo_tid; // writer microgrid membership outcome tid
-    pthread_create(&wmmo_tid, NULL, pthreadOnChangeWriter, (void*) myOnChangeMicrogridMembershipOutcomeThreadInfo);
+    pthread_create(&wmmo_tid, NULL, pthreadToProcWriterEvents, (void*) myMicrogridMembershipOutcomeThreadInfo);
 
     mySourceTransitionRequestEventThreadInfo->writer = myWriters[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM];
     pthread_t wstr_tid; // writer source transiton request tid
@@ -492,11 +486,12 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
             }
             
             external_tms_membership_result=internal_membership_request.result;
-            retcode = microgridMembershipOutcomeCondit.set_trigger_value(DDS_BOOLEAN_TRUE);
-            if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Main membership outcome: set_trigger condition error\n" << std::endl;
-                break;
-            } 
+            retcode = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->write
+                (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM], DDS_HANDLE_NIL);
+                if (retcode != DDS_RETCODE_OK) {
+                    std::cerr << "Main membership outcome: Write Data Set Error " << std::endl << std::flush;
+                    break;
+                }
         }
 
         // Once the device is discovered, and joined the grid we will have the MSM sim request

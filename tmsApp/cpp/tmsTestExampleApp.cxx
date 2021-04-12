@@ -272,7 +272,6 @@ extern "C" int tms_app_main(int sample_count) {
     std::string writerName;
     std::string readerName;
 
-    DDSGuardCondition sourceTransitionStateChangeCondit;
 
     DDS_Duration_t send_period = {1,0};
 
@@ -281,7 +280,7 @@ extern "C" int tms_app_main(int sample_count) {
     WriterEventsThreadInfo * myDeviceAnnouncementEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM); 
 	WriterEventsThreadInfo * myMicrogridMembershipRequestEventThreadInfo = new WriterEventsThreadInfo (tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM);
     WriterEventsThreadInfo * myRequestResponseEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
-    OnChangeWriterThreadInfo * myOnChangeWriterSourceTransitionStateThreadInfo = new OnChangeWriterThreadInfo(tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, &sourceTransitionStateChangeCondit);
+    WriterEventsThreadInfo * mySourceTransitionStateThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM);
     ReaderThreadInfo * myMicrogridMembershipOutcomeReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM);
     ReaderThreadInfo * myRequestResponseReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
     ReaderThreadInfo * mySourceTransitionRequestReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM, ECHO_RQST_RESPONSE);
@@ -404,11 +403,9 @@ extern "C" int tms_app_main(int sample_count) {
     pthread_create(&whb_tid, NULL, pthreadPeriodicWriter, (void*) myHeartbeatThreadInfo);
     
     // myOnChangeWriterSourceTransitionStateThreadInfo->writer = source_transition_state_writer;
-    myOnChangeWriterSourceTransitionStateThreadInfo->writer = myWriters[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM];
-    myOnChangeWriterSourceTransitionStateThreadInfo->enabled=true; // enable topic to be published
-    myOnChangeWriterSourceTransitionStateThreadInfo->changeStateData=myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]; 
+    mySourceTransitionStateThreadInfo->writer = myWriters[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM];
     pthread_t wstc_tid; // writer device_announcement tid
-    pthread_create(&wstc_tid, NULL, pthreadOnChangeWriter, (void*) myOnChangeWriterSourceTransitionStateThreadInfo);
+    pthread_create(&wstc_tid, NULL, pthreadToProcWriterEvents, (void*) mySourceTransitionStateThreadInfo);
 
     // myDeviceAnnouncementEventThreadInfo->writer = device_announcement_writer;
     myDeviceAnnouncementEventThreadInfo->writer = myWriters[tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM];
@@ -527,9 +524,10 @@ extern "C" int tms_app_main(int sample_count) {
             }
             external_tms_source_transition_state=internal_source_transition_state;
 
-            retcode = sourceTransitionStateChangeCondit.set_trigger_value(DDS_BOOLEAN_TRUE);
+            retcode = myWriters[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->write
+                (* myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM], DDS_HANDLE_NIL); 
             if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Main Source State: set_trigger condition error\n" << std::endl;
+                std::cerr << "Main Source State: Request: Write Error \n" << std::endl;
                 break;
             }
 

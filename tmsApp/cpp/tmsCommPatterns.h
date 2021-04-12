@@ -124,26 +124,5 @@ class PeriodicWriterThreadInfo {
 };
 void*  pthreadPeriodicWriter(void  * periodic_writer_thread_info);
 
-class OnChangeWriterThreadInfo {
-    // Info struct for Change of State PublishThread 
-    // (tms Microgrid Standard section 4.9.2.1 Status Flow)
-    // This pattern is a broader version of the periodic publish pattern
-    // Here a trigger or DDS guard condition is triggered externally which 
-    // unblocks the thread
-    // After enabled will send topic at a fixed rate
-    public:
-        OnChangeWriterThreadInfo(enum TOPICS_E topicEnum, DDSGuardCondition *guard_condition);  // pass in trigger event
-        enum TOPICS_E topic_enum();
-        DDSGuardCondition* my_guard_condition();
-
-        DDSDynamicDataWriter * writer;
-        DDS_DynamicData * changeStateData;
-        bool enabled;
-    private:
-        enum TOPICS_E myTopicEnum;
-        DDSGuardCondition *myGuardCondition;
-};
-void*  pthreadOnChangeWriter(void  * on_change_writer_thread_info);
-
 
 #endif
