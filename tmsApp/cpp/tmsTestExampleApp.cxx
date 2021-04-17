@@ -230,6 +230,8 @@ extern "C" int tms_app_main(int sample_count) {
     DDSTopicDescription * topic_des_to_mod_cft = NULL; // we need to modify cft for reader topics
     DDSContentFilteredTopic * topic_handle_to_mod_cft = NULL;
     DDS_ReturnCode_t retcode, retcode1, retcode2, retcode3;  // compound retcodes to do one check
+    enum APP_STATE_E app_state = INIT;  // application main loop state machine
+    bool shut_down = false;
 
     DDS_StringSeq parameters[tms_TOPIC_LAST_SENTINEL_ENUM]; // need unique sets of parameters for each reader Topic
     char paramId[4][3] = {{'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}};
@@ -475,71 +477,83 @@ extern "C" int tms_app_main(int sample_count) {
     }
     NDDSUtility::sleep(send_period); // Optional - to let periodic writer go first
 
-    // Upon approval enable all Periodic and Change State Topics
-    myHeartbeatThreadInfo->enabled=true;  
-
     /* Main loop */
-    while (run_flag) {
+    while (!shut_down) {
+        if (!run_flag) // CTRL^C will transition to shut_down stat
+            app_state = SHUT_DOWN;  // allows app level shut down - then exit
 
-        std::cout << ". "; // background idle
-        // Do your stuff here to interact CAN to DDS (i.e. get devices state and
+        // Do your stuff in the appropriate state to interact CAN to DDS (i.e. get devices state and
         // load DDS topics, set change triggers etc.)
 
-        // My thought is to have a statemachine perhaps along the line (INIT, POWERUP, MONITOR, SHUTDOWN)
-        // with a Switch Statement to determine current state , action, next state.
-
-        // So long as we are not approved, keep asking
-        if (internal_membership_request.result != MMR_COMPLETE) {
-            // get approval to enter the grid - according to TMS spec Command Profile = "As needed"
-            // Each (any type) request gets a unique global sequence number 
-            retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->\
-                set_ulonglong("requestId.sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_UnsignedLongLong)\
-                reqSeqNo->getNextSeqNo(tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM)); 
-            if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Microgrid Request Sequence number: Dynamic Data Set Error" << std::endl;
-                goto tms_app_main_end;
-            }
-            retcode = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->write
-                (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM], DDS_HANDLE_NIL);
-            if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Micrgrid Membership Request: Write Error " << std::endl;
-                goto tms_app_main_end;
-            }
-        }
-
-        if (external_tms_source_transition_state != internal_source_transition_state ) {
-            // copy the targeted deviceId (from announcment) in to  the request 
-            //sstd::cout << "Main Device On Change Transition" << std::endl;
-            retcode = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_octet_array
-                ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
-                (const DDS_Octet *) &this_device_id);
-            // sourceTransition we should actually get the real current state 
-            retcode1 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_long
-                ("presentState", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) SS_UNINITIALIZED);
-            retcode2 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_long
-                ("futureState", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) SS_ON);
-            if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK) {
-                std::cerr << "Main Source Transition: set data error\n" << std::endl;
+        switch (app_state) {
+            case INIT:
+                // So long as we are not approved, keep asking
+                if (internal_membership_request.result != MMR_COMPLETE) {
+                    // get approval to enter the grid - according to TMS spec Command Profile = "As needed"
+                    // Each (any type) request gets a unique global sequence number 
+                    retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->\
+                        set_ulonglong("requestId.sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_UnsignedLongLong)\
+                        reqSeqNo->getNextSeqNo(tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM)); 
+                    if (retcode != DDS_RETCODE_OK) {
+                        std::cerr << "Microgrid Request Sequence number: Dynamic Data Set Error" << std::endl;
+                        app_state = SHUT_DOWN;
+                    }
+                    retcode = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->write
+                        (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM], DDS_HANDLE_NIL);
+                    if (retcode != DDS_RETCODE_OK) {
+                        std::cerr << "Micrgrid Membership Request: Write Error " << std::endl;
+                        app_state = SHUT_DOWN;
+                    }
+                } else {
+                    // Upon approval enable all Periodic and Change State Topics
+                    myHeartbeatThreadInfo->enabled=true;  
+                    app_state = POWER_UP;
+                }
+                NDDSUtility::sleep(send_period); // don't flood requests 
                 break;
-            }
-            external_tms_source_transition_state=internal_source_transition_state;
+            case POWER_UP:  // wait for source transition request
+                if (external_tms_source_transition_state != internal_source_transition_state ) {
+                    // copy the targeted deviceId (from announcment) in to  the request 
+                    //sstd::cout << "Main Device On Change Transition" << std::endl;
+                    retcode = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_octet_array
+                        ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
+                        (const DDS_Octet *) &this_device_id);
+                    // sourceTransition we should actually get the real current state 
+                    retcode1 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_long
+                        ("presentState", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) SS_UNINITIALIZED);
+                    retcode2 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->set_long
+                        ("futureState", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) SS_ON);
+                    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK) {
+                        std::cerr << "Main Source Transition: set data error\n" << std::endl;
+                        app_state = SHUT_DOWN;
+                    }
+                    external_tms_source_transition_state=internal_source_transition_state;
 
-            retcode = myWriters[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->write
-                (* myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM], DDS_HANDLE_NIL); 
-            if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Main Source State: Request: Write Error \n" << std::endl;
+                    retcode = myWriters[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM]->write
+                        (* myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM], DDS_HANDLE_NIL); 
+                    if (retcode != DDS_RETCODE_OK) {
+                        std::cerr << "Main Source State: Request: Write Error \n" << std::endl;
+                        app_state = SHUT_DOWN;
+                    }
+                }
+                NDDSUtility::sleep(send_period); // save the cpu - wait in between checks
                 break;
-            }
-
+            case STEADY_STATE:
+                std::cout << ". "; // background idle
+                NDDSUtility::sleep(send_period);  // remove eventually 
+                break;
+            case SHUT_DOWN:
+                /* Do any app level shutdown  here */
+                shut_down = true;  // exit the main_loop
+                break;
+            default:
+                std::cerr << "Main loop State Machine unknown state" << std::endl;
+                app_state = SHUT_DOWN;
         }
-    
-        NDDSUtility::sleep(send_period);  // remove eventually 
-    } /* while run_flag */
+    } /* while !shut_down*/
 
     tms_app_main_end:
-    /* Delete all entities */
-    std::cout << "Stopping - shutting down participant\n" << std::flush;
-
+    std::cout << "Stopping - shutting down participant\n";
     pthread_cancel(whb_tid); 
     pthread_cancel(wstc_tid);
     pthread_cancel(wda_tid); 

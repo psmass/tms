@@ -72,6 +72,14 @@ enum TOPICS_E {
     tms_TOPIC_LAST_SENTINEL_ENUM
 };
 
+// States for application state machine
+enum APP_STATE_E {
+    INIT = 0,
+    POWER_UP,
+    STEADY_STATE,
+    SHUT_DOWN
+};
+
 class ReqCmdQ; // forward reference
 
 class RequestSequenceNumber {

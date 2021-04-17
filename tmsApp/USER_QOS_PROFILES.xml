@@ -1086,9 +1086,6 @@
               <durability>
                 <kind>TRANSIENT_LOCAL_DURABILITY_QOS</kind>
               </durability>
-              <reliability>
-                <kind>RELIABLE_RELIABILITY_QOS</kind>
-              </reliability>
             </datareader_qos>
           </data_reader>
         </subscriber>

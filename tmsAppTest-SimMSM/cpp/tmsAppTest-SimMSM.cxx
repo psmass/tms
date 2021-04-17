@@ -225,6 +225,8 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     DDSTopicDescription * topic_des_to_mod_cft = NULL; // we need to modify cft for reader topics
     DDSContentFilteredTopic * topic_handle_to_mod_cft = NULL;
     DDS_ReturnCode_t retcode, retcode1, retcode2, retcode3, retcode4;  // compound retcodes to do one check
+    enum APP_STATE_E app_state_device = INIT;  // application main loop state machine for a device
+    bool shut_down = false;
 
     DDS_StringSeq parameters[tms_TOPIC_LAST_SENTINEL_ENUM]; // need unique sets of parameters for each reader Topic
     char paramId[4][3] = {{'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}};
@@ -364,7 +366,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
         goto tms_app_test_MSM_main_end;
     }
 
-    // parmeters are a essentially a list of char * so we need a separate allocation for each parameter
+    // parameters are a essentially a list of char * so we need a separate allocation for each parameter
     // of the sequence. We then point each parameter at the allocation once set to the right value. The 
     // value must be the ascii of each nibble of the deviceId terminated with '\0'
     sprintf(paramId[0], "%d", this_device_id[28]);
@@ -455,76 +457,79 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     internal_source_transition_state = ST_POWER_UP; // set internal state to what we want 
 
     /* Main loop */
-    while (run_flag) {
+     while (!shut_down) {
+        if (!run_flag) // CTRL^C will transition to shut_down stat
+            app_state_device = SHUT_DOWN;  // allows app level shut down - then exit
 
-        std::cout << ". " << std::flush; // background idle
-        // Do your stuff here to interact CAN to DDS (i.e. get devices state and
+        // Do your stuff in the appropriate state to interact CAN to DDS (i.e. get devices state and
         // load DDS topics, set change triggers etc.)
 
-        // My thought is to implement a statemachine perhaps along the line 
-        // (INIT, POWERUP, MONITOR, SHUTDOWN) per discovered device. Each device
-        // State would be hanlded with a Switch Statement to determine current state,
-        // action, next state.
-        // For a Real MSM states would be kept in arrays indexed by  discovered devices. The
-        // background loop would itterate through all device state machines issuing commands, 
-        // responding to issues etc.
-    
-        // check for any internal variables that have changed that are associate with the On Change Topic
-        // triggers - for a real MSM this would be an array of devices not just one.
+        // A real MSM would have an array of app_states (one for each device)
+        // Here we keep it simple and manage just the one Device under test.
+        switch (app_state_device) {
+            case INIT:
+                // Look to see if a device internal approval was recently granted (upon request)
+                // (via a device sent MicrogridMembershipRequest). If so publish the outcome and
+                // set the external = internal variable.
+                if (external_tms_membership_result != internal_membership_request.result) {
+                    // first populate the outcome with the device we are approving
+                    retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_octet_array
+                        ("relatedRequestId.deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
+                        (const DDS_Octet *) &internal_membership_request.requesterId); 
+                    if (retcode != DDS_RETCODE_OK) {
+                        std::cerr << "Main membership outcome: set requestor data error\n" << std::endl;
+                        break; 
+                    }
+                
+                    external_tms_membership_result=internal_membership_request.result;
+                    retcode = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->write
+                        (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM], DDS_HANDLE_NIL);
+                        if (retcode != DDS_RETCODE_OK) {
+                            std::cerr << "Main membership outcome: Write Data Set Error " << std::endl << std::flush;
+                            break;
+                        }
+                app_state_device = POWER_UP; // approval granted ask to power up
+                }   
+                NDDSUtility::sleep(send_period); // save the cpu - wait in between checks
+                break;
+            case POWER_UP:
+                if (external_tms_source_transition_state != internal_source_transition_state ) {
+                    // copy the targeted deviceId (from announcment) in to  the request 
+                    std::cout << "Main SMS issuing a Source Transiton Request" << std::endl;
+                    retcode = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->set_octet_array
+                        ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
+                        (const DDS_Octet *) &that_device_id);
+                    // sourceTransition we want 
+                    retcode2 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->set_long
+                        ("desiredTransition", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) ST_POWER_UP);
+                    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK) {
+                        std::cerr << "Main Source Transition: set data error\n" << std::endl;
+                        break;
+                    }
+                    external_tms_source_transition_state=internal_source_transition_state;
 
-        // Look to see if a device internal approval was recently granted 
-        // (via a device sent MicrogridMembershipRequest). If so publish the outcome and
-        // set the external = internal variable.
-        if (external_tms_membership_result != internal_membership_request.result) {
-            // first populate the outcome with the device we are approving
-            retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_octet_array
-                ("relatedRequestId.deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
-                (const DDS_Octet *) &internal_membership_request.requesterId); 
-            if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "Main membership outcome: set requestor data error\n" << std::endl;
-                break; 
-            }
-            
-            external_tms_membership_result=internal_membership_request.result;
-            retcode = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->write
-                (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM], DDS_HANDLE_NIL);
-                if (retcode != DDS_RETCODE_OK) {
-                    std::cerr << "Main membership outcome: Write Data Set Error " << std::endl << std::flush;
-                    break;
+                    retcode = myWriters[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->write(* myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM], DDS_HANDLE_NIL);
+                    if (retcode != DDS_RETCODE_OK) {
+                        std::cerr << "Main Topic Source Transition Request: Write Data Set Error " << std::endl << std::flush;
+                        break;
+                    }
+                    app_state_device = STEADY_STATE;
                 }
+                NDDSUtility::sleep(send_period); // save the cpu - wait in between checks
+                break;
+            case STEADY_STATE:
+                std::cout << ". " << std::flush; // background idle
+                NDDSUtility::sleep(send_period);  // remove eventually 
+                break;
+            case SHUT_DOWN:
+                /* Do any app level shutdown  here */
+                shut_down = true; // exit main loop
+                break;
+            default:
+                std::cerr << "Main loop State Machine unknown state" << std::endl;
+                app_state_device = SHUT_DOWN;
         }
-
-        // Once the device is discovered, and joined the grid we will have the MSM sim request
-        // the device to power up. 
-        // The actual MSM would receive a device announcement, query the switch state, and then make a decision
-        if (internal_membership_request.result == MMR_COMPLETE ) {
-
-            if (external_tms_source_transition_state != internal_source_transition_state ) {
-                // copy the targeted deviceId (from announcment) in to  the request 
-                std::cout << "Main SMS issuing a Source Transiton Request" << std::endl;
-                retcode = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->set_octet_array
-                    ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, 
-                    (const DDS_Octet *) &that_device_id);
-                // sourceTransition we want 
-                retcode2 = myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->set_long
-                    ("desiredTransition", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) ST_POWER_UP);
-                if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK) {
-                    std::cerr << "Main Source Transition: set data error\n" << std::endl;
-                    break;
-                }
-                external_tms_source_transition_state=internal_source_transition_state;
-
-                retcode = myWriters[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM]->write(* myWriterDataInstances[tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM], DDS_HANDLE_NIL);
-                if (retcode != DDS_RETCODE_OK) {
-                    std::cerr << "Main Topic Source Transition Request: Write Data Set Error " << std::endl << std::flush;
-                    break;
-                }
-            }
-
-        }
-
-        NDDSUtility::sleep(send_period);  // remove eventually 
-    }
+    } /* while !shut_down*/
 
     tms_app_test_MSM_main_end:
     /* Delete all entities */
