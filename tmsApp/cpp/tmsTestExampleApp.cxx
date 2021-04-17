@@ -122,7 +122,7 @@ void handle_SIGINT(int unused)
 // Used to manage the static sequence_number across all requests
 RequestSequenceNumber::RequestSequenceNumber(ReqCmdQ * req_cmd_q_ptr) {
     myReqCmdQptr =req_cmd_q_ptr;
-    mySeqNum = &sequence_number; 
+    mySeqNum = &sequence_number;
 }
 
 unsigned long long RequestSequenceNumber::getNextSeqNo(enum TOPICS_E topic_enum) { 
@@ -164,7 +164,12 @@ ReqCmdQ::ReqCmdQ () {
 // be a pair IFF the read seqenceNum matches the requested seqnceNo.
 void ReqCmdQ::reqCmdQWrite(ReqQEntry reqQentry) {
     // CAUTION: Keep Order - Write sequence number first, read sequence number last
+    if (rq.req_Q_entry[rq.end].responseNotProcessed) {
+        std::cout << "Overwriting unprocessed Response in RequestResponseQ" << std::endl;
+        // Application may want to add code to take action here
+    }
     rq.req_Q_entry[rq.end].sequenceNum = reqQentry.sequenceNum;
+    rq.req_Q_entry[rq.end].responseNotProcessed = true;
     rq.req_Q_entry[rq.end].requesterEnum = reqQentry.requesterEnum;
     rq.end = (rq.end + 1) % RQ_SIZE;
 }
@@ -175,6 +180,8 @@ enum TOPICS_E  ReqCmdQ::reqCmdQRead(unsigned long long sequenceNo){
     enum TOPICS_E enumFound = rq.req_Q_entry[idx].requesterEnum;
     if (rq.req_Q_entry[idx].sequenceNum != sequenceNo)
         enumFound = tms_TOPIC_LAST_SENTINEL_ENUM;
+    else  // we found it - mark it processed
+        rq.req_Q_entry[idx].responseNotProcessed = false;
     return enumFound;
 }
 
@@ -182,7 +189,9 @@ void ReqCmdQ::printQueue() {
     std::cout << "ReqCmdQ Writer index (End) value: " << rq.end << std::endl;
     for (int i = 0; i< RQ_SIZE; i++) {
         std::cout << "index " << i << " Sequence No:  " << rq.req_Q_entry[i].sequenceNum
-        << " Requester: " << topic_name_array[rq.req_Q_entry[i].requesterEnum] << std::endl;
+        << " Requester: " << topic_name_array[rq.req_Q_entry[i].requesterEnum] 
+        << " ResponseNotProcessed(1/0): " << rq.req_Q_entry[i].responseNotProcessed
+        << std::endl;
     }
 }
 // END class ReqQEntry member function definitions
@@ -505,7 +514,7 @@ extern "C" int tms_app_main(int sample_count) {
                         app_state = SHUT_DOWN;
                     }
                 } else {
-                    // Upon approval enable all Periodic and Change State Topics
+                    // Upon approval enable heartbeat
                     myHeartbeatThreadInfo->enabled=true;  
                     app_state = POWER_UP;
                 }

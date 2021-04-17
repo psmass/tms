@@ -97,6 +97,7 @@ class RequestSequenceNumber {
 typedef struct {
     unsigned long long sequenceNum;
     enum TOPICS_E requesterEnum;
+    bool responseNotProcessed; // tracks overwriting/missed responses
 } ReqQEntry;
 
 #define RQ_SIZE 10
