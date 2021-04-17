@@ -164,11 +164,15 @@ ReqCmdQ::ReqCmdQ () {
 // be a pair IFF the read seqenceNum matches the requested seqnceNo.
 void ReqCmdQ::reqCmdQWrite(ReqQEntry reqQentry) {
     // CAUTION: Keep Order - Write sequence number first, read sequence number last
-    if (rq.req_Q_entry[rq.end].responseNotProcessed) {
-        std::cout << "Overwriting unprocessed Response in RequestResponseQ" << std::endl;
-        // Application may want to add code to take action here
-    }
+    // read current sequence number in case of an overwrite
+    unsigned long long prev_seq_num = rq.req_Q_entry[rq.end].sequenceNum;
     rq.req_Q_entry[rq.end].sequenceNum = reqQentry.sequenceNum;
+    if (rq.req_Q_entry[rq.end].responseNotProcessed) {
+        std::cout << "Overwrote unprocessed Response in RequestResponseQ: " 
+        << prev_seq_num  << std::endl;
+        // Application may want to add code to take action on prev_seq_num / request_enum
+        // (not overwritten yet) here
+    }
     rq.req_Q_entry[rq.end].responseNotProcessed = true;
     rq.req_Q_entry[rq.end].requesterEnum = reqQentry.requesterEnum;
     rq.end = (rq.end + 1) % RQ_SIZE;
@@ -283,18 +287,19 @@ extern "C" int tms_app_main(int sample_count) {
     std::string writerName;
     std::string readerName;
 
-
     DDS_Duration_t send_period = {1,0};
+    DDS_Duration_t heartbeat_period = HEARTBEAT_PERIOD;
+    DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
 
     // Declare Reader and Writer thread Information structs
-    PeriodicWriterThreadInfo * myHeartbeatThreadInfo = new PeriodicWriterThreadInfo(tms_TOPIC_HEARTBEAT_ENUM, send_period);
-    WriterEventsThreadInfo * myDeviceAnnouncementEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM); 
-	WriterEventsThreadInfo * myMicrogridMembershipRequestEventThreadInfo = new WriterEventsThreadInfo (tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM);
-    WriterEventsThreadInfo * myRequestResponseEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
-    WriterEventsThreadInfo * mySourceTransitionStateThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM);
-    ReaderThreadInfo * myMicrogridMembershipOutcomeReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM);
-    ReaderThreadInfo * myRequestResponseReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
-    ReaderThreadInfo * mySourceTransitionRequestReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM, ECHO_RQST_RESPONSE);
+    PeriodicWriterThreadInfo * myHeartbeatThreadInfo = new PeriodicWriterThreadInfo(tms_TOPIC_HEARTBEAT_ENUM, heartbeat_period);
+    WriterEventsThreadInfo * myDeviceAnnouncementEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, hb_deadman_period); 
+	WriterEventsThreadInfo * myMicrogridMembershipRequestEventThreadInfo = new WriterEventsThreadInfo (tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, hb_deadman_period);
+    WriterEventsThreadInfo * myRequestResponseEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM, hb_deadman_period);
+    WriterEventsThreadInfo * mySourceTransitionStateThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, hb_deadman_period);
+    ReaderThreadInfo * myMicrogridMembershipOutcomeReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM, hb_deadman_period );
+    ReaderThreadInfo * myRequestResponseReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM, hb_deadman_period );
+    ReaderThreadInfo * mySourceTransitionRequestReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM, hb_deadman_period, ECHO_RQST_RESPONSE);
 
     /* To customize participant QoS, use 
     the configuration file USER_QOS_PROFILES.xml */

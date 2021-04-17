@@ -21,17 +21,21 @@
 
 #include "tmsCommPatterns.h"
 
+DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
 
-ReaderThreadInfo::ReaderThreadInfo(enum TOPICS_E topicEnum, bool echoResponse) 
-        {
-            myTopicEnum = topicEnum;
-            echo_response = echoResponse; // default not to echo a response (rcv'd type not a request) 
-            reqRspWriter = NULL;  // initialize to NULL and perform a checks if the user requres an echoResponse
-            tms_REPLY_code = tms_REPLY_OK; // default to ok
-            strncpy (reason, "Hello World", tms_MAXLEN_reason); // default reason
-        }
+ReaderThreadInfo::ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod, bool echoResponse) 
+{
+    myTopicEnum = topicEnum;
+    echo_response = echoResponse; // default not to echo a response (rcv'd type not a request) 
+    reqRspWriter = NULL;  // initialize to NULL and perform a checks if the user requres an echoResponse
+    tms_REPLY_code = tms_REPLY_OK; // default to ok
+    strncpy (reason, "Hello World", tms_MAXLEN_reason); // default reason
+    myHbDeadmanPeriod = hbDeadmanPeriod;
+}
 
 bool    ReaderThreadInfo::echoReqResponse() { return echo_response; }
+
+DDS_Duration_t ReaderThreadInfo::hbDeadmanPeriod() { return myHbDeadmanPeriod; }
 
 enum TOPICS_E ReaderThreadInfo::topic_enum() { return myTopicEnum; };
 
@@ -49,8 +53,14 @@ void*  pthreadToProcReaderEvents(void *reader_thread_info) {
     DDS_UnsignedLong fingerprint_len = (DDS_UnsignedLong) tms_LEN_Fingerprint; // the get_octet_array requires this non-const
     DDS_DynamicData * request_response_data = NULL;
 
-    std::cout << "Created Reader Pthread: " << MY_READER_TOPIC_NAME << " Topic" << std::endl;
-  
+    std::cout << "Created Reader Pthread: " << MY_READER_TOPIC_NAME << " Topic";
+
+    if (myReaderThreadInfo->hbDeadmanPeriod() != DDS_DURATION_INFINITE) { // if we set a timeout this tread is being monitored
+        thread_heartbeat_semaphores[myReaderThreadInfo->topic_enum()].topic_thread_active = true;
+        std::cout << "  ** Thread being Monitored for failure **";
+    }
+    std::cout <<  std::endl;
+
     // Create read condition
     read_condition = myReaderThreadInfo->reader->create_readcondition(
         DDS_NOT_READ_SAMPLE_STATE,
@@ -90,9 +100,11 @@ void*  pthreadToProcReaderEvents(void *reader_thread_info) {
     }
 
 	while (run_flag) {
-       	retcode = waitset->wait(active_conditions_seq, DDS_DURATION_INFINITE);
-        if (retcode == DDS_RETCODE_TIMEOUT) {
-            std::cerr << "Reader thread: Wait timed out!! No conditions were triggered" << std::endl;
+       	retcode = waitset->wait(active_conditions_seq, myReaderThreadInfo->hbDeadmanPeriod());
+        // reset deadman anytime we run
+        thread_heartbeat_semaphores[myReaderThreadInfo->topic_enum()].deadman_fired = true;
+        if (retcode == DDS_RETCODE_TIMEOUT) {  
+            // std::cout << "Reader thread: Wait timed out!! No conditions were triggered" << std::endl;
             continue;
         } else if (retcode != DDS_RETCODE_OK) {
             std::cerr << "Reader thread:  wait returned error: " << retcode << std::endl; 
@@ -230,12 +242,14 @@ void*  pthreadToProcReaderEvents(void *reader_thread_info) {
 }
 
 // WriterEventsThreadInfo member functions
-WriterEventsThreadInfo::WriterEventsThreadInfo(enum TOPICS_E topicEnum) 
+WriterEventsThreadInfo::WriterEventsThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod) 
         {
             myTopicEnum = topicEnum;
+            myHbDeadmanPeriod = hbDeadmanPeriod;
         }
 
 enum TOPICS_E WriterEventsThreadInfo::topic_enum() {return myTopicEnum; };
+DDS_Duration_t WriterEventsThreadInfo::hbDeadmanPeriod() { return myHbDeadmanPeriod; }
 
 
 void*  pthreadToProcWriterEvents(void  * writerEventsThreadInfo) {
@@ -245,7 +259,13 @@ void*  pthreadToProcWriterEvents(void  * writerEventsThreadInfo) {
     DDS_ReturnCode_t retcode;
     DDSConditionSeq active_conditions_seq;
 
-    std::cout << "Created Writer Pthread: " << MY_WRITER_TOPIC_NAME << " Topic" << std::endl;
+    
+    std::cout << "Created Writer Pthread: " << MY_WRITER_TOPIC_NAME << " Topic" ;
+    if (myWriterEventsThreadInfo->hbDeadmanPeriod() != DDS_DURATION_INFINITE) {// if we set a timeout this tread is being monitored
+        thread_heartbeat_semaphores[myWriterEventsThreadInfo->topic_enum()].topic_thread_active = true;
+        std::cout << "  ** Thread being Monitored for failure **";
+    }
+    std::cout <<  std::endl;
 
     // Configure Waitset for Writer Status ****
     DDSStatusCondition *status_condition = myWriterEventsThreadInfo->writer->get_statuscondition();
@@ -272,21 +292,25 @@ void*  pthreadToProcWriterEvents(void  * writerEventsThreadInfo) {
     // wait() blocks execution of the thread until one or more attached condition triggers  
 	// thread exits upon ^c or error
     while (run_flag) { 
-        retcode = waitset->wait(active_conditions_seq, DDS_DURATION_INFINITE);
-        /* We get to timeout if no conditions were triggered */
+        retcode = waitset->wait(active_conditions_seq, myWriterEventsThreadInfo->hbDeadmanPeriod());
+        // reset deadman anytime we run
+        thread_heartbeat_semaphores[myWriterEventsThreadInfo->topic_enum()].deadman_fired = true;
         if (retcode == DDS_RETCODE_TIMEOUT) {
-            std::cerr << "Writer thread: Wait timed out!! No conditions were triggered" << std::endl;
+            //std::cerr << "Writer thread: Wait timed out!! No conditions were triggered" << std::endl;
             continue;
         } else if (retcode != DDS_RETCODE_OK) {
             std::cerr << "Writer thread: wait returned error " << retcode << std::endl;
             goto end_writer_thread;
         }
 
-        /* Get the number of active conditions */
+        // if (myWriterEventsThreadInfo->topic_enum()== tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM)
+           // while(1); //simulate a dead thread to test heartbeat disable
+
+        // Get the number of active conditions 
         int active_conditions = active_conditions_seq.length();
 
         for (int i = 0; i < active_conditions; ++i) {
-            /* Compare with Status Conditions */
+            // Compare with Status Conditions 
             if (active_conditions_seq[i] == status_condition) {
                 DDS_StatusMask triggeredmask =
                         myWriterEventsThreadInfo->writer->get_status_changes();

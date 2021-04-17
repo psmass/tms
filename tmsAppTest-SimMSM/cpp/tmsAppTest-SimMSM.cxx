@@ -158,10 +158,15 @@ ReqCmdQ::ReqCmdQ () {
 // be a pair IFF the read seqenceNum matches the requested seqnceNo.
 void ReqCmdQ::reqCmdQWrite(ReqQEntry reqQentry) {
     // CAUTION: Keep Order - Write sequence number first, read sequence number last
-    if (rq.req_Q_entry[rq.end].responseNotProcessed) {
-        std::cout << "Overwriting unprocessed Response in RequestResponseQ" << std::endl;
-    }
+    // read current sequence number in case of an overwrite
+    unsigned long long prev_seq_num = rq.req_Q_entry[rq.end].sequenceNum;
     rq.req_Q_entry[rq.end].sequenceNum = reqQentry.sequenceNum;
+    if (rq.req_Q_entry[rq.end].responseNotProcessed) {
+        std::cout << "Overwrote unprocessed Response in RequestResponseQ: " 
+        << prev_seq_num  << std::endl;
+        // Application may want to add code to take action on prev_seq_num / request_enum
+        // (not overwritten yet) here
+    }
     rq.req_Q_entry[rq.end].responseNotProcessed = true;
     rq.req_Q_entry[rq.end].requesterEnum = reqQentry.requesterEnum;
     rq.end = (rq.end + 1) % RQ_SIZE;
@@ -281,7 +286,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     WriterEventsThreadInfo * myRequestResponseEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
     WriterEventsThreadInfo * mySourceTransitionRequestEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM);
     ReaderThreadInfo * myDeviceAnnouncementReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM);        
-    ReaderThreadInfo * myMicrogridMembershipRequestReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, ECHO_RQST_RESPONSE);
+    ReaderThreadInfo * myMicrogridMembershipRequestReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, DDS_DURATION_INFINITE, ECHO_RQST_RESPONSE);
     ReaderThreadInfo * myRequestResponseReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM);
     ReaderThreadInfo * mySourceTransitionStateReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM);
 

@@ -138,6 +138,9 @@ PeriodicWriterHandlerPtr periodic_handler_ptrs[] = {
     GenericDefaultPeriodicWriterHandler,                    // tms_TOPIC_LAST_SENTINEL_ENUM        
 };
 
+// array of heartbeat_semaphores used by topic threads to set if enabled. A user heartbeat
+// handler can then detect dead processes.
+ThreadHeartbeatSem thread_heartbeat_semaphores[tms_TOPIC_LAST_SENTINEL_ENUM] = {{0}};
 
 void GenericDefaultReaderHandler(ReaderThreadInfo * myReaderThreadInfo) {
     //ReaderThreadInfo * myReaderThreadInfo = (ReaderThreadInfo *) infoBlck; 
@@ -293,6 +296,31 @@ void PeriodicWriterHandler_tms_TOPIC_HEARTBEAT (PeriodicWriterThreadInfo * myPer
     // Periodic Handler to send specific periodic data for Heartbeat topic 
 
     DDS_ReturnCode_t retcode;
+    for (int i=0; i<tms_TOPIC_LAST_SENTINEL_ENUM; i++) {
+        // for active threads check for our deadman_reset 
+        if (thread_heartbeat_semaphores[i].topic_thread_active) {
+            /*
+            std::cout 
+            << " hb_dm_fired: " << thread_heartbeat_semaphores[i].deadman_fired
+            << " hb_miss_count: " << thread_heartbeat_semaphores[i].dm_miss_count  
+            << " " << topic_name_array[i]
+            <<std::endl;
+            */
+            // if deadman reset clear any count otherwise increment it
+            if (thread_heartbeat_semaphores[i].deadman_fired)
+                thread_heartbeat_semaphores[i].dm_miss_count=0;
+            else
+                thread_heartbeat_semaphores[i].dm_miss_count++;
+            
+            if (thread_heartbeat_semaphores[i].dm_miss_count == 3) {
+                std::cout << "Thread deadman failure (3 times): " << topic_name_array[i] << std::endl;
+                myPeriodicWriterThreadInfo->enabled = false; // turn off the heartbeat
+            }
+
+            thread_heartbeat_semaphores[i].deadman_fired = false; // reset the deadman
+        }
+    }
+    
 
     std::cout << "Periodic Writer Handler - Heartbeat " << hb_seq_count << std::endl;
     retcode = myPeriodicWriterThreadInfo->periodicData->set_ulong("sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, hb_seq_count);

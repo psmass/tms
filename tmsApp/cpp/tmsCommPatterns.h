@@ -21,6 +21,12 @@
 class ReaderThreadInfo;
 class PeriodicWriterThreadInfo;
 
+struct ThreadHeartbeatSem {
+    bool topic_thread_active;
+    bool deadman_fired;
+    int dm_miss_count;
+};
+
 typedef void (*ReaderHandlerPtr)(ReaderThreadInfo *); // ptr to void ReaderFunc(ReaderThreadInfo *) 
 typedef void (*PeriodicWriterHandlerPtr)(PeriodicWriterThreadInfo *); 
 
@@ -45,6 +51,7 @@ extern const DDS_Char * const topic_name_array[];
 
 extern ReaderHandlerPtr reader_handler_ptrs[]; // list of Reader topic handlers
 extern PeriodicWriterHandlerPtr periodic_handler_ptrs[]; // list of Reader topic handlers
+extern ThreadHeartbeatSem thread_heartbeat_semaphores[]; 
 
 
 /* This Interface provides threads for tms Communications Patterns
@@ -66,9 +73,10 @@ class ReaderThreadInfo {
     // C'tor has Echo Response flag to handle Rcv'd Command Requests and all
     // Response 
     public:
-        ReaderThreadInfo(enum TOPICS_E topicEnum, bool echoResponse = false); 
+        ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod = DDS_DURATION_INFINITE, bool echoResponse = false ); 
         enum TOPICS_E topic_enum();
         bool echoReqResponse();
+        DDS_Duration_t hbDeadmanPeriod();
 
         DDSDynamicDataReader * reader;
 
@@ -83,6 +91,7 @@ class ReaderThreadInfo {
     private:
         enum TOPICS_E myTopicEnum;
         bool echo_response; // used for received request topics
+        DDS_Duration_t myHbDeadmanPeriod;
 
 };
 void*  pthreadToProcReaderEvents(void  * readerThreadInfo);
@@ -95,12 +104,14 @@ class WriterEventsThreadInfo {
     // This struct holds info needed for the pthread for
     // writer waitset events (no data) processing 
     public:
-        WriterEventsThreadInfo(enum TOPICS_E topicEnum);
+        WriterEventsThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod = DDS_DURATION_INFINITE);
         enum TOPICS_E topic_enum();
+        DDS_Duration_t hbDeadmanPeriod();
 
         DDSDynamicDataWriter * writer;
     private:
         enum TOPICS_E myTopicEnum;
+        DDS_Duration_t myHbDeadmanPeriod;
 };
 void*  pthreadToProcWriterEvents(void  * writerEventsThreadInfo);
 

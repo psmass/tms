@@ -11,6 +11,10 @@
 #ifndef tmsCommon_h
 #define tmsCommon_h
 #include "tmsTestExample.h"
+
+#define HEARTBEAT_PERIOD {1, 0} // DDS_Duratio_t = 1 second
+#define HB_DEADMAN_PERIOD {0, 500000000} // DDS_Duratio_t = 500 000 000 ns = .5 second
+
 struct Internal_membership_request {
     tms_Fingerprint requesterId;
     enum tms_MicrogridMembershipResult result;
