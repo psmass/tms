@@ -373,11 +373,6 @@ extern "C" int tms_app_main(int sample_count) {
             // Pre-set static this_device_id in the DeviceId field for this topic  
             myWriterDataInstances[myWritersIndx[i].wrtTopic]->set_octet_array
                 ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
-            retcode = myWriters[myWritersIndx[i].wrtTopic]->write(* myWriterDataInstances[myWritersIndx[i].wrtTopic], DDS_HANDLE_NIL);
-            if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "product_info: Dynamic Data Set Error " << std::endl << std::flush;
-                goto tms_app_main_end;
-            }
         }
     }
 
@@ -492,6 +487,12 @@ extern "C" int tms_app_main(int sample_count) {
        to get these announcements
     */
     std::cout <<  std::endl << tms_TOPIC_DEVICE_ANNOUNCEMENT << ": " << this_device_id << std::endl;
+    // deviceId is preloaded in writer handle lookup loop
+    retcode = myWriters[tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM]->write(* myWriterDataInstances[tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM], DDS_HANDLE_NIL);
+    if (retcode != DDS_RETCODE_OK) {
+        std::cerr << "product_info: Dynamic Data Set Error " << std::endl << std::flush;
+        goto tms_app_main_end;
+    }
 
     // configure a request to join microgrid  - once configured - update the requestId.sequenceNumber and issue via the write below at will (not durable)
     retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_octet_array

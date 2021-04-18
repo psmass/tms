@@ -539,6 +539,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                 if (received_device_announcement) {  // if we receive a new DA, Device reset
                     received_device_announcement = false;
                     internal_membership_request.result = MMR_UNINITIALIZED;
+                    external_tms_membership_result = MMR_UNINITIALIZED;
                     internal_source_transition_state = ST_UNINITIALIZED;
                     app_state_device = INIT;
                 }
