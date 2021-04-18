@@ -142,6 +142,7 @@ PeriodicWriterHandlerPtr periodic_handler_ptrs[] = {
 // handler can then detect dead processes.
 ThreadHeartbeatSem thread_heartbeat_semaphores[tms_TOPIC_LAST_SENTINEL_ENUM] = {{0}};
 
+
 void GenericDefaultReaderHandler(ReaderThreadInfo * myReaderThreadInfo) {
     //ReaderThreadInfo * myReaderThreadInfo = (ReaderThreadInfo *) infoBlck; 
     std::cout << "No Handler attatched to topic: " << MY_READER_TOPIC_NAME << std::endl;
@@ -251,6 +252,8 @@ void ReaderHandler_tms_TOPIC_DEVICE_ANNOUNCEMENT (ReaderThreadInfo * myReaderThr
     DDS_UnsignedLong fingerprint_len = (DDS_UnsignedLong) tms_LEN_Fingerprint;
     tms_SampleId tms_sample_id; // use microgrid def from model tmsTestExample.h
     DDS_ReturnCode_t  retcode;
+
+    received_device_announcement = true; // MSM State Machine reset if in STEADY_STATE
 
     std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << std::endl;
     retcode = myReaderThreadInfo->dataSeqInstance->get_octet_array(

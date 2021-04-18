@@ -35,6 +35,7 @@
 #include "tmsCommon.h"
 #include "tmsCommPatterns.h"
 
+extern bool received_device_announcement;
 
 void GenericDefaultReaderHandler(ReaderThreadInfo * );          // Default Reader handler used to initialize array of handlers
 void GenericDefaultPeriodicWriterHandler(PeriodicWriterThreadInfo * );  // Default Periodic Writer handler used to initialize array of handlers

@@ -53,7 +53,6 @@ extern ReaderHandlerPtr reader_handler_ptrs[]; // list of Reader topic handlers
 extern PeriodicWriterHandlerPtr periodic_handler_ptrs[]; // list of Reader topic handlers
 extern ThreadHeartbeatSem thread_heartbeat_semaphores[]; 
 
-
 /* This Interface provides threads for tms Communications Patterns
    (tms Microgrid Standard section 4.9.2)
 

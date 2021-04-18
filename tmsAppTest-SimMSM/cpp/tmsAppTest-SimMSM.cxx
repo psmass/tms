@@ -29,6 +29,10 @@ bool run_flag = true;
 // should tuck this var into the RequestSequenceNumber class and make that Class a singlton pattern
 unsigned long long sequence_number=0; // ever monotonically increasing for each request sent
 
+// used to reset the MSM App State Machine if the device reset 
+// (In a real MSM also lack of hearbeat should reset the MSM App state machine)
+bool received_device_announcement = false;
+
 // Variable associated with Source Transition Request - note the TMS topic struct holds both present and future state
 // so we should be able to leverage the state within the topic
 // Also a real MSM would need to keep these in arrays for the maximum number of devices allowed on a Microgrid
@@ -292,19 +296,19 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
 
     /* To customize participant QoS, use 
     the configuration file USER_QOS_PROFILES.xml */
-    std::cout << "Starting tms SIM MSM application\n" << std::flush;
+    std::cout << "Starting tms SIM MSM application" << std::endl;
 
     participant = DDSTheParticipantFactory->
             create_participant_from_config(
                                 "TMS_ParticipantLibrary1::TMS MSM-Simulation Participant1");
     if (participant == NULL) {
-        std::cerr << "create_participant_from_config error " << std::endl << std::flush;
+        std::cerr << "create_participant_from_config error " << std::endl;
         participant_shutdown(participant);
         goto tms_app__test_MSM_main_just_return;
     }
     
     std::cout << "Successfully Created Tactical Microgrid TMS Simulation Participant from the System Designer config file"
-     << std::endl << std::flush;
+     << std::endl;
 
     // **** FIND DATA WRITERS AND READERS ****** CREATE DATA w/WRITERS
     //
@@ -351,7 +355,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
 		    goto tms_app_test_MSM_main_end;
         }
         std::cout << "Successfully Found: " << readerName 
-            << std::endl << std::flush;
+            << std::endl;
 
     } 
 
@@ -483,6 +487,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                 // Look to see if a device internal approval was recently granted (upon request)
                 // (via a device sent MicrogridMembershipRequest). If so publish the outcome and
                 // set the external = internal variable.
+                received_device_announcement = false;  // we've already received the first DA
                 if (external_tms_membership_result != internal_membership_request.result) {
                     // first populate the outcome with the device we are approving
                     retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM]->set_octet_array
@@ -500,7 +505,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                             std::cerr << "Main membership outcome: Write Data Set Error " << std::endl << std::flush;
                             break;
                         }
-                app_state_device = POWER_UP; // approval granted ask to power up
+                    app_state_device = POWER_UP; // approval granted ask to power up
                 }   
                 NDDSUtility::sleep(send_period); // save the cpu - wait in between checks
                 break;
@@ -531,6 +536,12 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                 break;
             case STEADY_STATE:
                 std::cout << ". " << std::flush; // background idle
+                if (received_device_announcement) {  // if we receive a new DA, Device reset
+                    received_device_announcement = false;
+                    internal_membership_request.result = MMR_UNINITIALIZED;
+                    internal_source_transition_state = ST_UNINITIALIZED;
+                    app_state_device = INIT;
+                }
                 NDDSUtility::sleep(send_period);  // remove eventually 
                 break;
             case SHUT_DOWN:

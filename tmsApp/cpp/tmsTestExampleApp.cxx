@@ -28,6 +28,10 @@ bool run_flag = true;
 // should tuck this var into the RequestSequenceNumber class and make that Class a singlton pattern
 unsigned long long sequence_number=0; // ever monotonically increasing for each request sent
 
+// used to reset the MSM App State Machine if the device reset 
+// (In a real MSM also lack of hearbeat should reset the MSM App state machine)
+bool received_device_announcement = false;
+
 // Variable associated with Source Transition Request - note the TMS topic struct holds both present and future state
 // so we should be able to leverage the state within the topic
 // Also a real MSM would need to keep these in arrays for the maximum number of devices allowed on a Microgrid
@@ -251,16 +255,23 @@ extern "C" int tms_app_main(int sample_count) {
 
     // local reqQaccess object
     RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
- 
-    // Array of writer enum TOPIC_E - enter the writers defined in System Designer XML file
-    TOPICS_E myWritersIndx [] = {
-        tms_TOPIC_HEARTBEAT_ENUM, 
-        tms_TOPIC_REQUEST_RESPONSE_ENUM,
-        tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM,
-        tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM,
-        tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM
-    }; 
-    size_t mwIndx = sizeof(myWritersIndx) / sizeof(TOPICS_E); // actual number of writers
+
+   struct WrtrTopicAndFillDevId {
+        TOPICS_E wrtTopic;
+        bool prefillDevIdField;  // tells us to prefill DeviceID
+    };
+
+    // Array of writer topics and if we prefill the deviceId with "this_device_id"
+    // Most topics require a DeviceId filed to be filled out so do this in the writer lookup loop.
+    WrtrTopicAndFillDevId myWritersIndx [] = {
+        {.wrtTopic = tms_TOPIC_HEARTBEAT_ENUM, .prefillDevIdField = true},
+        {.wrtTopic = tms_TOPIC_REQUEST_RESPONSE_ENUM, .prefillDevIdField = false},
+        {.wrtTopic = tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, .prefillDevIdField = true},
+        {.wrtTopic = tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, .prefillDevIdField = true},
+        {.wrtTopic = tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, .prefillDevIdField = true}
+    };
+
+    size_t mwIndx = sizeof(myWritersIndx) / sizeof(WrtrTopicAndFillDevId); // actual number of writers
 
     // Array of Writer Handles - filled out by our Lookup loop below    
     DDSDynamicDataWriter * myWriters[tms_TOPIC_LAST_SENTINEL_ENUM] = { // Maximum # writers possible
@@ -292,18 +303,26 @@ extern "C" int tms_app_main(int sample_count) {
     DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
 
     // Declare Reader and Writer thread Information structs
-    PeriodicWriterThreadInfo * myHeartbeatThreadInfo = new PeriodicWriterThreadInfo(tms_TOPIC_HEARTBEAT_ENUM, heartbeat_period);
-    WriterEventsThreadInfo * myDeviceAnnouncementEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, hb_deadman_period); 
-	WriterEventsThreadInfo * myMicrogridMembershipRequestEventThreadInfo = new WriterEventsThreadInfo (tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, hb_deadman_period);
-    WriterEventsThreadInfo * myRequestResponseEventThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM, hb_deadman_period);
-    WriterEventsThreadInfo * mySourceTransitionStateThreadInfo = new WriterEventsThreadInfo(tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, hb_deadman_period);
-    ReaderThreadInfo * myMicrogridMembershipOutcomeReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM, hb_deadman_period );
-    ReaderThreadInfo * myRequestResponseReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM, hb_deadman_period );
-    ReaderThreadInfo * mySourceTransitionRequestReaderThreadInfo = new ReaderThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM, hb_deadman_period, ECHO_RQST_RESPONSE);
+    PeriodicWriterThreadInfo * myHeartbeatThreadInfo = 
+        new PeriodicWriterThreadInfo(tms_TOPIC_HEARTBEAT_ENUM, heartbeat_period);
+    WriterEventsThreadInfo * myDeviceAnnouncementEventThreadInfo = 
+        new WriterEventsThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, hb_deadman_period); 
+	WriterEventsThreadInfo * myMicrogridMembershipRequestEventThreadInfo = 
+        new WriterEventsThreadInfo (tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, hb_deadman_period);
+    WriterEventsThreadInfo * myRequestResponseEventThreadInfo = 
+        new WriterEventsThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM, hb_deadman_period);
+    WriterEventsThreadInfo * mySourceTransitionStateThreadInfo = 
+        new WriterEventsThreadInfo(tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, hb_deadman_period);
+    ReaderThreadInfo * myMicrogridMembershipOutcomeReaderThreadInfo = 
+        new ReaderThreadInfo(tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM, hb_deadman_period );
+    ReaderThreadInfo * myRequestResponseReaderThreadInfo = 
+        new ReaderThreadInfo(tms_TOPIC_REQUEST_RESPONSE_ENUM, hb_deadman_period );
+    ReaderThreadInfo * mySourceTransitionRequestReaderThreadInfo = 
+        new ReaderThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM, hb_deadman_period, ECHO_RQST_RESPONSE);
 
     /* To customize participant QoS, use 
     the configuration file USER_QOS_PROFILES.xml */
-    std::cout << "Starting tms application\n" << std::flush;
+    std::cout << "Starting tms application" << std::endl;
 
     participant = DDSTheParticipantFactory->
             create_participant_from_config(
@@ -315,9 +334,10 @@ extern "C" int tms_app_main(int sample_count) {
     }
     
     std::cout << "Successfully Created Tactical Microgrid Participant from the System Designer config file"
-     << std::endl << std::flush;
+     << std::endl;
 
     // **** FIND DATA WRITERS AND READERS ****** CREATE DATA w/WRITERS
+    //      Also prefill DeviceId = this_device_id for most writer topics
     //
     // Care must be taken to ensure the System Designer Writer/Reader Names match the names
     // in the topic names defined in tmsTestExamples.h which was directly generated via 
@@ -327,26 +347,38 @@ extern "C" int tms_app_main(int sample_count) {
     // If the loop throws an error likey these did not match as expected
     for (int i=0; i<mwIndx; i++) {
         writerName = "TMS Device Publisher1::";
-        writerName.append(topic_name_array[myWritersIndx[i]]);
+        writerName.append(topic_name_array[myWritersIndx[i].wrtTopic]);
         writerName.append("Writer");
         // Lookup writer handles and put them in myWriters[this_topic_enum]
-        myWriters[myWritersIndx[i]] = DDSDynamicDataWriter::narrow(
+        myWriters[myWritersIndx[i].wrtTopic] = DDSDynamicDataWriter::narrow(
             participant->lookup_datawriter_by_name(writerName.c_str()));
-        if (myWriters[myWritersIndx[i]] == NULL) {
+        if (myWriters[myWritersIndx[i].wrtTopic] == NULL) {
             std::cerr << writerName << ": lookup_datawriter_by_name error "
-                << retcode << std::endl << std::flush; 
+                << retcode << std::endl; 
 		    goto tms_app_main_end;
         }
         std::cout << "Successfully Found: " << writerName 
             << std::endl << std::flush;
-        myWriterDataInstances[myWritersIndx[i]] = myWriters[myWritersIndx[i]]->create_data(DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
-        if (myWriterDataInstances[myWritersIndx[i]]  == NULL) {
-            std::cerr << topic_name_array[myWritersIndx[i]] << ": create_data error"
+        myWriterDataInstances[myWritersIndx[i].wrtTopic] = 
+            myWriters[myWritersIndx[i].wrtTopic]->create_data(DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
+        if (myWriterDataInstances[myWritersIndx[i].wrtTopic]  == NULL) {
+            std::cerr << topic_name_array[myWritersIndx[i].wrtTopic] << ": create_data error"
                 << retcode << std::endl << std::flush;
             goto tms_app_main_end;
         } 
-        std::cout << "Successfully created Data for: " << topic_name_array[myWritersIndx[i]]
-            << std::endl << std::flush;  
+        std::cout << "Successfully created Data for: " << topic_name_array[myWritersIndx[i].wrtTopic]
+            << std::endl; 
+
+        if (myWritersIndx[i].prefillDevIdField) {
+            // Pre-set static this_device_id in the DeviceId field for this topic  
+            myWriterDataInstances[myWritersIndx[i].wrtTopic]->set_octet_array
+                ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
+            retcode = myWriters[myWritersIndx[i].wrtTopic]->write(* myWriterDataInstances[myWritersIndx[i].wrtTopic], DDS_HANDLE_NIL);
+            if (retcode != DDS_RETCODE_OK) {
+                std::cerr << "product_info: Dynamic Data Set Error " << std::endl << std::flush;
+                goto tms_app_main_end;
+            }
+        }
     }
 
     for (int i=0; i<mrIndx; i++) {
@@ -461,31 +493,13 @@ extern "C" int tms_app_main(int sample_count) {
     */
     std::cout <<  std::endl << tms_TOPIC_DEVICE_ANNOUNCEMENT << ": " << this_device_id << std::endl;
 
-    // Pre-set static data in topics (fill dynamic data in the main_loop or handler) 
-    myWriterDataInstances[tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM]->set_octet_array
-        ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
-    retcode = myWriters[tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM]->write(* myWriterDataInstances[tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM], DDS_HANDLE_NIL);
-    if (retcode != DDS_RETCODE_OK) {
-        std::cerr << "product_info: Dynamic Data Set Error " << std::endl << std::flush;
-        goto tms_app_main_end;
-    }
-
-    retcode = myWriterDataInstances[tms_TOPIC_HEARTBEAT_ENUM]->set_octet_array
-        ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
-    if (retcode != DDS_RETCODE_OK) {
-        std::cerr << "heartbeat: Dynamic Data Set Error" << std::endl << std::flush;
-        goto tms_app_main_end;
-    }
-
     // configure a request to join microgrid  - once configured - update the requestId.sequenceNumber and issue via the write below at will (not durable)
     retcode = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_octet_array
         ("requestId.deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
-    retcode1 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_octet_array
-        ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
     // note enums are compiler dependent and here seem to be 4 bytes long (the compiler will tell you- and you can always printf sizeof(MM_JOIN))
-    retcode2 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_long
+    retcode1 = myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->set_long
         ("membership", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) MM_JOIN);
-    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK ) {
+    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK) {
         std::cerr << "microgrid_membership_request: Dynamic Data Set Error" << std::endl << std::flush;
         goto tms_app_main_end;
     }
