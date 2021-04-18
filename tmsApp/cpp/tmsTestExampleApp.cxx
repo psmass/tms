@@ -563,6 +563,7 @@ extern "C" int tms_app_main(int sample_count) {
                         std::cerr << "Main Source State: Request: Write Error \n" << std::endl;
                         app_state = SHUT_DOWN;
                     }
+                    app_state = STEADY_STATE;
                 }
                 NDDSUtility::sleep(send_period); // save the cpu - wait in between checks
                 break;
