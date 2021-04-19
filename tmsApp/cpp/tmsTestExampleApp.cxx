@@ -527,9 +527,21 @@ extern "C" int tms_app_main(int sample_count) {
                         std::cerr << "Microgrid Request Sequence number: Dynamic Data Set Error" << std::endl;
                         app_state = SHUT_DOWN;
                     }
+                    // we unregister and dispose of this topic instance since each SampleId is unique and will
+                    // consume resources.  In reality one (or very few request to join the microgrid should be
+                    // generated so we could skip this. 
+                    // dispose API: "The actual deletion is postponed until there is no more
+                    // use for that data in the whole system". So if we use Reliable reliabily we can dispose of
+                    // the data immediately else we should move the unregister and dispose operations to the
+                    // req/response lookup and place a switch statement in the lookup, unregistering and disposing
+                    // of the instance there.
                     retcode = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->write
                         (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM], DDS_HANDLE_NIL);
-                    if (retcode != DDS_RETCODE_OK) {
+                    retcode1 = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->unregister_instance
+                        (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM], DDS_HANDLE_NIL);
+                    retcode2 = myWriters[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM]->dispose
+                        (* myWriterDataInstances[tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM], DDS_HANDLE_NIL);
+                    if (retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK) {
                         std::cerr << "Micrgrid Membership Request: Write Error " << std::endl;
                         app_state = SHUT_DOWN;
                     }

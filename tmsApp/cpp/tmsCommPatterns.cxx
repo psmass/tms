@@ -211,13 +211,16 @@ void*  pthreadToProcReaderEvents(void *reader_thread_info) {
                                     std::cout << "Reader Thread: set_data error\n" << std::endl;
                                     goto end_reader_thread;
                                 }
-                                myReaderThreadInfo->reqRspWriter->write(* request_response_data, DDS_HANDLE_NIL);
-                                if (retcode != DDS_RETCODE_OK) {
+                                retcode = myReaderThreadInfo->reqRspWriter->write(* request_response_data, DDS_HANDLE_NIL);
+                                // RequestRespones are key'd by sample id which will each use dds resources and essentiall be 
+                                // memory leak. Dispose of the topic after writing and use QoS of Reliable Reliabilty
+                                retcode1 = myReaderThreadInfo->reqRspWriter->unregister_instance(* request_response_data, DDS_HANDLE_NIL);
+                                retcode2 = myReaderThreadInfo->reqRspWriter->dispose(* request_response_data, DDS_HANDLE_NIL);
+                                if ( retcode != DDS_RETCODE_OK || retcode1 != DDS_RETCODE_OK || retcode2 != DDS_RETCODE_OK) {
                                     std::cerr << "Reader Thread: " << MY_READER_TOPIC_NAME
-                                        << " write Error " << std::endl << std::flush;
+                                        << " write Error " << std::endl;
                                     goto end_reader_thread;
                                 }
-						
 						    }
                         }
 					}
