@@ -1035,7 +1035,6 @@
             <datareader_qos>
               <reliability>
                 <kind>RELIABLE_RELIABILITY_QOS</kind>
-                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
               </reliability>
             </datareader_qos>
           </data_reader>
@@ -1052,7 +1051,6 @@
             <datareader_qos>
               <reliability>
                 <kind>RELIABLE_RELIABILITY_QOS</kind>
-                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
               </reliability>
             </datareader_qos>
           </data_reader>
@@ -1069,7 +1067,6 @@
             <datareader_qos>
               <reliability>
                 <kind>RELIABLE_RELIABILITY_QOS</kind>
-                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
               </reliability>
             </datareader_qos>
           </data_reader>
@@ -1088,7 +1085,6 @@
             <datareader_qos>
               <reliability>
                 <kind>RELIABLE_RELIABILITY_QOS</kind>
-                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
               </reliability>
             </datareader_qos>
           </data_reader>
@@ -1107,7 +1103,6 @@
             <datareader_qos>
               <reliability>
                 <kind>RELIABLE_RELIABILITY_QOS</kind>
-                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
               </reliability>
             </datareader_qos>
           </data_reader>
@@ -1115,7 +1110,6 @@
             <datareader_qos>
               <reliability>
                 <kind>RELIABLE_RELIABILITY_QOS</kind>
-                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
               </reliability>
             </datareader_qos>
           </data_reader>
