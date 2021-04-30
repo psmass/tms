@@ -545,7 +545,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                 }
                 NDDSUtility::sleep(send_period);  // remove eventually 
                 break;
-            case SHUT_DOWN:
+            case SHUT_DOWN:      
                 /* Do any app level shutdown  here */
                 shut_down = true; // exit main loop
                 break;

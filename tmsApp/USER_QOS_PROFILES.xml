@@ -1032,6 +1032,12 @@
                 <param>48</param>
               </parameter_list>
             </filter>
+            <datareader_qos>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+              </reliability>
+            </datareader_qos>
           </data_reader>
           <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
             <filter name="MyFilter" kind="builtin.sql">
@@ -1043,6 +1049,12 @@
                 <param>48</param>
               </parameter_list>
             </filter>
+            <datareader_qos>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+              </reliability>
+            </datareader_qos>
           </data_reader>
           <data_reader name="SourceTransitionRequestReader" topic_ref="SourceTransitionRequest">
             <filter name="MyFilter" kind="builtin.sql">
@@ -1054,6 +1066,12 @@
                 <param>48</param>
               </parameter_list>
             </filter>
+            <datareader_qos>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+              </reliability>
+            </datareader_qos>
           </data_reader>
         </subscriber>
       </domain_participant>
@@ -1066,7 +1084,14 @@
         <!--SIM  MSM since we want to receive all requests and state changes readers so only filter is ReqResponse )
       -->
         <subscriber name="TMS MSM-Simulation Subscriber1">
-          <data_reader name="MicrogridMembershipRequestReader" topic_ref="MicrogridMembershipRequest"/>
+          <data_reader name="MicrogridMembershipRequestReader" topic_ref="MicrogridMembershipRequest">
+            <datareader_qos>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+              </reliability>
+            </datareader_qos>
+          </data_reader>
           <!--Filter on Request Response - we can statically set the device Id for the SIM MSM to all 0s
 -->
           <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
@@ -1079,13 +1104,29 @@
                 <param>48</param>
               </parameter_list>
             </filter>
+            <datareader_qos>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+              </reliability>
+            </datareader_qos>
           </data_reader>
-          <data_reader name="SourceTransitionStateReader" topic_ref="SourceTransitionState"/>
+          <data_reader name="SourceTransitionStateReader" topic_ref="SourceTransitionState">
+            <datareader_qos>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                <acknowledgment_kind>PROTOCOL_ACKNOWLEDGMENT_MODE</acknowledgment_kind>
+              </reliability>
+            </datareader_qos>
+          </data_reader>
           <data_reader name="DeviceAnnouncementReader" topic_ref="DeviceAnnouncement">
             <datareader_qos>
               <durability>
                 <kind>TRANSIENT_LOCAL_DURABILITY_QOS</kind>
               </durability>
+              <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+              </reliability>
             </datareader_qos>
           </data_reader>
         </subscriber>
