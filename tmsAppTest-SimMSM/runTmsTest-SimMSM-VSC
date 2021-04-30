@@ -3,8 +3,13 @@ export TMS_TOP_LEVEL_REPO=~/Github/tms
 if [[ -z "${TMS_TOP_LEVEL_REPO}" ]];
 then
      echo "Error:  Env variable TMS_TOP_LEVEL_REPO: must be set to the top level tms directory (where tms has been cloned) "
-     echo "     kill `ps axw|grep 'tmsAppTest-SimMSM'|awk '{$1=$1}1'|cut -d ' ' -f 1|head -n 1`"
      exit
+fi
+if [ `ps axw | grep 'tmsAppTest-SimMSM' | wc -l` -eq 2 ];
+then
+    echo "It looks like the process is already runing:"
+    echo "      kill `ps axw|grep 'tmsTestExampleApp'| awk '{$1=$1}1'|cut -d ' ' -f 1 | head -n 1`"
+    exit
 fi
 export NDDS_QOS_PROFILES=file://$TMS_TOP_LEVEL_REPO/tmsApp/model/tmsTestApp.xml
 echo "Script kicking off tmsAppTest-SimMSM"
