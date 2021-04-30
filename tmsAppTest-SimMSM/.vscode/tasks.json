@@ -24,7 +24,7 @@
         {
             "label": "Run tmsAppTest-SimMSM",
             "type": "shell",
-            "command": "./objs/x64Darwin17Clang9.0/tmsAppTest-SimMSM",
+            "command": "./runTmsTest-SimMSM-VSC",
             "dependsOn": [
                 "Build All"
             ],
@@ -37,7 +37,7 @@
         {
             "label": "Build/Run tmsAppTest-SimMSM",
             "type": "shell",
-            "command": "./objs/x64Darwin17Clang9.0/tmsAppTest-SimMSM",
+            "command": "./runTmsTest-SimMSM-VSC",
             "dependsOn": [
                 "Build Clean",
                 "Build All"
@@ -51,7 +51,7 @@
         {
             "label": "Build/Debug tmsAppTest-SimMSM",
             "type": "shell",
-            "command": "./objs/x64Darwin17Clang9.0/tmsAppTest-SimMSM",
+            "command": "./runTmsTest-SimMSM-VSC",
             "dependsOn": [
                 "Build Clean",
                 "Build Debug"

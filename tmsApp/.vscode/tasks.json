@@ -24,7 +24,7 @@
         {
             "label": "Run tmsApp",
             "type": "shell",
-            "command": "./objs/x64Darwin17Clang9.0/tmsTestExampleApp",
+            "command": "./runTestExampleVSC",
             "dependsOn": [
                 "Build All"
             ],
@@ -37,7 +37,7 @@
         {
             "label": "Build/Run tmsTestExampleApp",
             "type": "shell",
-            "command": "./objs/x64Darwin17Clang9.0/tmsTestExampleApp",
+            "command": "./runTestExampleVSC",
             "dependsOn": [
                 "Build Clean",
                 "Build All"
@@ -51,7 +51,7 @@
         {
             "label": "Build/Debug tmsTestExampleApp",
             "type": "shell",
-            "command": "./objs/x64Darwin17Clang9.0/tmsTestExampleApp",
+            "command": "./runTestExampleVSC",
             "dependsOn": [
                 "Build Clean",
                 "Build Debug"
