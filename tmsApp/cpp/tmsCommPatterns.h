@@ -75,13 +75,6 @@ class WriterTopic : public Topic {
         DDS_DynamicData * myData; 
 };
 
-class ReaderTopic : public Topic {
-    public:
-        ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum);
-
-
-};
-
 class NormalWriterTopic : public WriterTopic {
     public:
         NormalWriterTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId=true);
@@ -97,7 +90,7 @@ class NormalWriterTopic : public WriterTopic {
 class PeriodicTopic : public WriterTopic {
     public:
         PeriodicTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, DDS_Duration_t ratePeriod, bool prefillDevId=true);
-        ~PeriodicTopic();
+        ~PeriodicTopic(void);
 
         void enable(void);
         void disable(void);
@@ -106,6 +99,17 @@ class PeriodicTopic : public WriterTopic {
         PeriodicWriterThreadInfo * myPeriodicWriterThreadInfo;
 
 };
+
+class ReaderTopic : public Topic {
+    public:
+        ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, NormalWriterTopic * echoResponse = NULL );
+        ~ReaderTopic(void);
+    
+    private:
+        ReaderThreadInfo * myReaderThreadInfo;
+        DDS_StringSeq parameters; // need unique sets of parameters for each reader Topic
+};
+
 
 /* This Interface provides threads for tms Communications Patterns
    (tms Microgrid Standard section 4.9.2)
@@ -126,9 +130,8 @@ class ReaderThreadInfo {
     // C'tor has Echo Response flag to handle Rcv'd Command Requests and all
     // Response 
     public:
-        ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod = DDS_DURATION_INFINITE, bool echoResponse = false ); 
+        ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod = DDS_DURATION_INFINITE); 
         enum TOPICS_E topic_enum();
-        bool echoReqResponse();
         DDS_Duration_t hbDeadmanPeriod();
 
         DDSDynamicDataReader * reader;
