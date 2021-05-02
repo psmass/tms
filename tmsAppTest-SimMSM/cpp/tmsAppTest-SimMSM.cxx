@@ -540,7 +540,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                     received_device_announcement = false;
                     internal_membership_request.result = MMR_UNINITIALIZED;
                     external_tms_membership_result = MMR_UNINITIALIZED;
-                    internal_source_transition_state = ST_UNINITIALIZED;
+                    external_tms_source_transition_state = ST_UNINITIALIZED;
                     app_state_device = INIT;
                 }
                 NDDSUtility::sleep(send_period);  // remove eventually 

@@ -20,7 +20,9 @@
 #define MY_PERIODIC_TOPIC_NAME topic_name_array[myPeriodicWriterThreadInfo->topic_enum()]
 
 class ReaderThreadInfo;
+class WriterEventsThreadInfo;
 class PeriodicWriterThreadInfo;
+
 
 struct ThreadHeartbeatSem {
     bool topic_thread_active;
@@ -77,6 +79,18 @@ class ReaderTopic : public Topic {
     public:
         ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum);
 
+
+};
+
+class NormalWriterTopic : public WriterTopic {
+    public:
+        NormalWriterTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId=true);
+        ~NormalWriterTopic();
+        DDSDynamicDataWriter * getMyWriter();  // needed for Requests to get the response writer
+        DDS_DynamicData * getMyDataInstance();
+    
+    private:
+        WriterEventsThreadInfo * myWriterEventsThreadInfo;
 
 };
 
