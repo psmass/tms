@@ -250,6 +250,12 @@ extern "C" int tms_app_main(int sample_count) {
     enum APP_STATE_E app_state = INIT;  // application main loop state machine
     bool shut_down = false;
 
+    DDS_Duration_t send_period = {1,0};
+    DDS_Duration_t heartbeat_period = HEARTBEAT_PERIOD;
+    DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
+
+    PeriodicTopic * heartbeat;
+
     DDS_StringSeq parameters[tms_TOPIC_LAST_SENTINEL_ENUM]; // need unique sets of parameters for each reader Topic
     char paramId[4][3] = {{'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}};
 
@@ -298,9 +304,6 @@ extern "C" int tms_app_main(int sample_count) {
     std::string writerName;
     std::string readerName;
 
-    DDS_Duration_t send_period = {1,0};
-    DDS_Duration_t heartbeat_period = HEARTBEAT_PERIOD;
-    DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
 
     // Declare Reader and Writer thread Information structs
     PeriodicWriterThreadInfo * myHeartbeatThreadInfo = 
@@ -320,6 +323,7 @@ extern "C" int tms_app_main(int sample_count) {
     ReaderThreadInfo * mySourceTransitionRequestReaderThreadInfo = 
         new ReaderThreadInfo(tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM, hb_deadman_period, ECHO_RQST_RESPONSE);
 
+
     /* To customize participant QoS, use 
     the configuration file USER_QOS_PROFILES.xml */
     std::cout << "Starting tms application" << std::endl;
@@ -328,13 +332,21 @@ extern "C" int tms_app_main(int sample_count) {
             create_participant_from_config(
                                 "TMS_ParticipantLibrary1::TMS Device Participant1");
     if (participant == NULL) {
-        std::cerr << "create_participant_from_config error " << std::endl << std::flush;
+        std::cerr << "create_participant_from_config error " << std::endl;
         participant_shutdown(participant);
         goto tms_app_main_just_return;
     }
     
     std::cout << "Successfully Created Tactical Microgrid Participant from the System Designer config file"
      << std::endl;
+
+    try {
+    heartbeat = new PeriodicTopic (participant, tms_TOPIC_HEARTBEAT_ENUM, heartbeat_period);
+    } catch (const char* msg) {
+        std::cerr << msg << std::endl;
+        goto tms_app_main_just_return;
+    }
+    
 
     // **** FIND DATA WRITERS AND READERS ****** CREATE DATA w/WRITERS
     //      Also prefill DeviceId = this_device_id for most writer topics
@@ -371,9 +383,14 @@ extern "C" int tms_app_main(int sample_count) {
 
         if (myWritersIndx[i].prefillDevIdField) {
             // Pre-set static this_device_id in the DeviceId field for this topic  
-            myWriterDataInstances[myWritersIndx[i].wrtTopic]->set_octet_array
+            retcode = myWriterDataInstances[myWritersIndx[i].wrtTopic]->set_octet_array
                 ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
         }
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << topic_name_array[myWritersIndx[i].wrtTopic] << ": set_data error" << std::endl;
+            goto tms_app_main_end;
+        }
+            
     }
 
     for (int i=0; i<mrIndx; i++) {
@@ -384,12 +401,10 @@ extern "C" int tms_app_main(int sample_count) {
         myReaders[myReadersIndx[i]] = DDSDynamicDataReader::narrow(
             participant->lookup_datareader_by_name(readerName.c_str()));
         if (myReaders[myReadersIndx[i]] == NULL) {
-            std::cerr << readerName << ": lookup_datawreader_by_name error "
-                << retcode << std::endl << std::flush; 
+            std::cerr << readerName << ": lookup_datawreader_by_name error " << std::endl; 
 		    goto tms_app_main_end;
         }
-        std::cout << "Successfully Found: " << readerName 
-            << std::endl << std::flush;
+        std::cout << "Successfully Found: " << readerName << std::endl;
 
         // Add this_device_id filter to reader topics so that we only receive the ones targeted to 
         // this device. This can be done in a loop  since the expression is in the xml and the params
@@ -398,21 +413,21 @@ extern "C" int tms_app_main(int sample_count) {
         topic_des_to_mod_cft = myReaders[myReadersIndx[i]]->get_topicdescription();
         if (topic_des_to_mod_cft == NULL) {
             std::cerr << "Error: " << topic_name_array[myReadersIndx[i]] << " get_topicdescription failure "
-                    << retcode << std::endl << std::flush; 
-                goto tms_app_main_end;
+                << std::endl; 
+            goto tms_app_main_end;
         }
         // Narrow down it down to the topic filter (filters are subclass of the topic they are filtering)
         topic_handle_to_mod_cft = DDSContentFilteredTopic::narrow(topic_des_to_mod_cft);
         if (topic_handle_to_mod_cft == NULL) {
-            std::cerr << "Error: " << topic_name_array[myReadersIndx[i]] << " narrow topic failure "
-                    << retcode << std::endl << std::flush; 
+            std::cerr << "Error: " << topic_name_array[myReadersIndx[i]] << " narrow topic failure " 
+                << std::endl; 
             goto tms_app_main_end;
         }
         // now get the parameters we want to modify
         retcode = topic_handle_to_mod_cft->get_expression_parameters(parameters[myReadersIndx[i]]);
         if (retcode != DDS_RETCODE_OK) {
             std::cerr << "Error: " << topic_name_array[myReadersIndx[i]] << " set_parameters failure "
-                    << retcode << std::endl << std::flush; 
+                    << std::endl; 
             goto tms_app_main_end;
         }
 
@@ -431,8 +446,8 @@ extern "C" int tms_app_main(int sample_count) {
         retcode = topic_handle_to_mod_cft->set_expression_parameters(parameters[myReadersIndx[i]]);
         if (retcode != DDS_RETCODE_OK) {
             std::cerr << "Error: REQUEST_RESPONSE set_parameters failure "
-                    << retcode << std::endl << std::flush; 
-                goto tms_app_main_end;
+                << std::endl; 
+            goto tms_app_main_end;
         }
     }
 

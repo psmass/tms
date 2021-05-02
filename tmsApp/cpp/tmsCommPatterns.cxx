@@ -21,6 +21,67 @@
 
 #include "tmsCommPatterns.h"
 
+/* Topic Pattern Objects */
+Topic::Topic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum) {
+    std::cout << "Topic C'tor" << std::endl;
+    myTopicEnum = topicEnum;
+    myParticipant = participant;
+}
+
+WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId) 
+        : Topic(participant, topicEnum) 
+{
+    std::cout << "WriterTopic C'tor" << std::endl;
+    std::string writerName;
+    DDS_ReturnCode_t retcode;
+
+    writerName = "TMS Device Publisher1::";
+    writerName.append(topic_name_array[Topic::myTopicEnum]);
+    writerName.append("Writer");
+    myWriter=DDSDynamicDataWriter::narrow(
+        participant->lookup_datawriter_by_name(writerName.c_str()));
+    if (myWriter == NULL) {
+        std::cerr << writerName << ": lookup_datawriter_by_name error " << std::endl; 
+        throw "ERROR: Create Writer Topic - Lookup Failure";
+    }
+    std::cout << "Successfully Found: " << writerName << std::endl;
+    myData = myWriter->create_data(DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
+    if (myData  == NULL) {
+        std::cerr << topic_name_array[Topic::myTopicEnum] << ": create_data error" << std::endl;
+        throw "ERROR: Create Writer Topic - Create Data Failure";
+    } 
+    std::cout << "Successfully created Data for: " << topic_name_array[Topic::myTopicEnum] << std::endl; 
+
+    if (prefillDevId) {
+        // Pre-set static this_device_id in the DeviceId field for this topic  
+        retcode = myData->set_octet_array
+            ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "WriterTopic: set deviceId error" << std::endl;
+            throw "ERROR: Create Writer Topic - Prefill Device ID Failure";
+        }   
+    }
+}
+
+PeriodicTopic::PeriodicTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, DDS_Duration_t period, 
+    bool prefillDevId) : WriterTopic(participant, topicEnum, prefillDevId) 
+{
+    std::cout << "PeriodicTopic C'tor" << std::endl;
+    enabled = false; //initialize disabled
+    myPeriod = period;
+
+    PeriodicWriterThreadInfo * myPeriodicThreadInfo = 
+        new PeriodicWriterThreadInfo(Topic::myTopicEnum, myPeriod);
+
+    // Turn up Periodic Writer Event thread - Event threads do nothing but hang on events (no data)
+    myPeriodicThreadInfo->writer = myWriter;
+    myPeriodicThreadInfo->enabled=true; // enable topic when Membership approved
+    myPeriodicThreadInfo->periodicData=myData; 
+    pthread_create(&tid, NULL, pthreadPeriodicWriter, (void*) myPeriodicThreadInfo);
+}
+
+
+
 DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
 
 ReaderThreadInfo::ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod, bool echoResponse) 

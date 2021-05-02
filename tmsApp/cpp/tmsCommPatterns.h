@@ -13,6 +13,7 @@
 
 #include "tmsTestExample.h"
 #include "tmsCommon.h"
+#include <pthread.h>
 
 #define MY_READER_TOPIC_NAME topic_name_array[myReaderThreadInfo->topic_enum()]
 #define MY_WRITER_TOPIC_NAME topic_name_array[myWriterEventsThreadInfo->topic_enum()]
@@ -52,6 +53,41 @@ extern const DDS_Char * const topic_name_array[];
 extern ReaderHandlerPtr reader_handler_ptrs[]; // list of Reader topic handlers
 extern PeriodicWriterHandlerPtr periodic_handler_ptrs[]; // list of Reader topic handlers
 extern ThreadHeartbeatSem thread_heartbeat_semaphores[]; 
+
+
+/****************** Object Patterns ***************************/
+class Topic {
+    public:
+        Topic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum);
+
+        pthread_t tid; // thread id
+        enum TOPICS_E myTopicEnum;
+        DDSDomainParticipant * myParticipant;
+};
+
+class WriterTopic : public Topic {
+    public:
+        WriterTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId=true);
+
+        DDSDynamicDataWriter * myWriter;
+        DDS_DynamicData * myData; 
+};
+
+class ReaderTopic : public Topic {
+    public:
+        ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum);
+
+
+};
+
+class PeriodicTopic : public WriterTopic {
+    public:
+        PeriodicTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, DDS_Duration_t ratePeriod, bool prefillDevId=true);
+    
+    private:
+        bool enabled;
+        DDS_Duration_t myPeriod;
+};
 
 /* This Interface provides threads for tms Communications Patterns
    (tms Microgrid Standard section 4.9.2)
