@@ -270,7 +270,6 @@ extern "C" int tms_app_main(int sample_count) {
     // Array of writer topics and if we prefill the deviceId with "this_device_id"
     // Most topics require a DeviceId filed to be filled out so do this in the writer lookup loop.
     WrtrTopicAndFillDevId myWritersIndx [] = {
-        {.wrtTopic = tms_TOPIC_HEARTBEAT_ENUM, .prefillDevIdField = true},
         {.wrtTopic = tms_TOPIC_REQUEST_RESPONSE_ENUM, .prefillDevIdField = false},
         {.wrtTopic = tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, .prefillDevIdField = true},
         {.wrtTopic = tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, .prefillDevIdField = true},
@@ -304,10 +303,7 @@ extern "C" int tms_app_main(int sample_count) {
     std::string writerName;
     std::string readerName;
 
-
     // Declare Reader and Writer thread Information structs
-    PeriodicWriterThreadInfo * myHeartbeatThreadInfo = 
-        new PeriodicWriterThreadInfo(tms_TOPIC_HEARTBEAT_ENUM, heartbeat_period);
     WriterEventsThreadInfo * myDeviceAnnouncementEventThreadInfo = 
         new WriterEventsThreadInfo(tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, hb_deadman_period); 
 	WriterEventsThreadInfo * myMicrogridMembershipRequestEventThreadInfo = 
@@ -346,7 +342,6 @@ extern "C" int tms_app_main(int sample_count) {
         std::cerr << msg << std::endl;
         goto tms_app_main_just_return;
     }
-    
 
     // **** FIND DATA WRITERS AND READERS ****** CREATE DATA w/WRITERS
     //      Also prefill DeviceId = this_device_id for most writer topics
@@ -380,15 +375,15 @@ extern "C" int tms_app_main(int sample_count) {
         } 
         std::cout << "Successfully created Data for: " << topic_name_array[myWritersIndx[i].wrtTopic]
             << std::endl; 
-
+            
         if (myWritersIndx[i].prefillDevIdField) {
             // Pre-set static this_device_id in the DeviceId field for this topic  
             retcode = myWriterDataInstances[myWritersIndx[i].wrtTopic]->set_octet_array
                 ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
-        }
-        if (retcode != DDS_RETCODE_OK) {
-            std::cerr << topic_name_array[myWritersIndx[i].wrtTopic] << ": set_data error" << std::endl;
-            goto tms_app_main_end;
+            if (retcode != DDS_RETCODE_OK) {
+                std::cerr << topic_name_array[myWritersIndx[i].wrtTopic] << ": set_data error" << std::endl;
+                goto tms_app_main_end;
+            }
         }
             
     }
@@ -454,11 +449,6 @@ extern "C" int tms_app_main(int sample_count) {
 	// Turn up threads - the Event threads do nothing but hang on events (no data)
     // Like to put the following in an itterator creating all the pthreads but the 
     // topicThreadInfo's are somewhat different depending upon the communications pattern
-    myHeartbeatThreadInfo->writer = myWriters[tms_TOPIC_HEARTBEAT_ENUM];
-    myHeartbeatThreadInfo->enabled=false; // enable topic when Membership approved
-    myHeartbeatThreadInfo->periodicData=myWriterDataInstances[tms_TOPIC_HEARTBEAT_ENUM]; 
-    pthread_t whb_tid; // writer device_announcement tid
-    pthread_create(&whb_tid, NULL, pthreadPeriodicWriter, (void*) myHeartbeatThreadInfo);
     
     // myOnChangeWriterSourceTransitionStateThreadInfo->writer = source_transition_state_writer;
     mySourceTransitionStateThreadInfo->writer = myWriters[tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM];
@@ -562,7 +552,7 @@ extern "C" int tms_app_main(int sample_count) {
                     }
                 } else {
                     // Upon approval enable heartbeat
-                    myHeartbeatThreadInfo->enabled=true;  
+                    heartbeat->enable(); 
                     app_state = POWER_UP;
                 }
                 NDDSUtility::sleep(send_period); // don't flood requests 
@@ -611,7 +601,7 @@ extern "C" int tms_app_main(int sample_count) {
 
     tms_app_main_end:
     std::cout << "Stopping - shutting down participant\n";
-    pthread_cancel(whb_tid); 
+    delete heartbeat;
     pthread_cancel(wstc_tid);
     pthread_cancel(wda_tid); 
     pthread_cancel(wmmr_tid); 

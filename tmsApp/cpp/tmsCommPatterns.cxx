@@ -23,7 +23,6 @@
 
 /* Topic Pattern Objects */
 Topic::Topic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum) {
-    std::cout << "Topic C'tor" << std::endl;
     myTopicEnum = topicEnum;
     myParticipant = participant;
 }
@@ -31,7 +30,6 @@ Topic::Topic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum) {
 WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId) 
         : Topic(participant, topicEnum) 
 {
-    std::cout << "WriterTopic C'tor" << std::endl;
     std::string writerName;
     DDS_ReturnCode_t retcode;
 
@@ -66,21 +64,20 @@ WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topi
 PeriodicTopic::PeriodicTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, DDS_Duration_t period, 
     bool prefillDevId) : WriterTopic(participant, topicEnum, prefillDevId) 
 {
-    std::cout << "PeriodicTopic C'tor" << std::endl;
-    enabled = false; //initialize disabled
-    myPeriod = period;
-
-    PeriodicWriterThreadInfo * myPeriodicThreadInfo = 
-        new PeriodicWriterThreadInfo(Topic::myTopicEnum, myPeriod);
+    myPeriodicWriterThreadInfo = 
+        new PeriodicWriterThreadInfo(Topic::myTopicEnum, period);
 
     // Turn up Periodic Writer Event thread - Event threads do nothing but hang on events (no data)
-    myPeriodicThreadInfo->writer = myWriter;
-    myPeriodicThreadInfo->enabled=true; // enable topic when Membership approved
-    myPeriodicThreadInfo->periodicData=myData; 
-    pthread_create(&tid, NULL, pthreadPeriodicWriter, (void*) myPeriodicThreadInfo);
+    myPeriodicWriterThreadInfo->writer = myWriter;
+    myPeriodicWriterThreadInfo->enabled = false; // enable topic when Membership approved
+    myPeriodicWriterThreadInfo->periodicData = myData; 
+    pthread_create(&tid, NULL, pthreadPeriodicWriter, (void*) myPeriodicWriterThreadInfo);
 }
 
+PeriodicTopic::~PeriodicTopic() { pthread_cancel(WriterTopic::Topic::tid); }
 
+void PeriodicTopic::enable()  { myPeriodicWriterThreadInfo->enabled=true; }
+void PeriodicTopic::disable() { myPeriodicWriterThreadInfo->enabled=false; }
 
 DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
 

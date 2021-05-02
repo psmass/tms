@@ -83,10 +83,14 @@ class ReaderTopic : public Topic {
 class PeriodicTopic : public WriterTopic {
     public:
         PeriodicTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, DDS_Duration_t ratePeriod, bool prefillDevId=true);
+        ~PeriodicTopic();
+
+        void enable(void);
+        void disable(void);
     
     private:
-        bool enabled;
-        DDS_Duration_t myPeriod;
+        PeriodicWriterThreadInfo * myPeriodicWriterThreadInfo;
+
 };
 
 /* This Interface provides threads for tms Communications Patterns
