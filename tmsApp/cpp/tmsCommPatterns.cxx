@@ -26,6 +26,7 @@ Topic::Topic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum) {
     myTopicEnum = topicEnum;
     myParticipant = participant;
 }
+Topic::~Topic(){}
 
 WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId) 
         : Topic(participant, topicEnum) 
@@ -60,6 +61,7 @@ WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topi
         }   
     }
 }
+WriterTopic::~WriterTopic(){}
 
 ReaderTopic::ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, NormalWriterTopic * echoResponse ) 
     : Topic(participant, topicEnum) 
@@ -398,7 +400,6 @@ WriterEventsThreadInfo::WriterEventsThreadInfo(enum TOPICS_E topicEnum, DDS_Dura
 enum TOPICS_E WriterEventsThreadInfo::topic_enum() {return myTopicEnum; };
 DDS_Duration_t WriterEventsThreadInfo::hbDeadmanPeriod() { return myHbDeadmanPeriod; }
 
-
 void*  pthreadToProcWriterEvents(void  * writerEventsThreadInfo) {
 	WriterEventsThreadInfo * myWriterEventsThreadInfo;
     myWriterEventsThreadInfo = (WriterEventsThreadInfo *)writerEventsThreadInfo;
@@ -489,7 +490,6 @@ PeriodicWriterThreadInfo::PeriodicWriterThreadInfo (enum TOPICS_E topicEnum, DDS
 
 DDS_Duration_t PeriodicWriterThreadInfo::pubRatePeriod() { return myRatePeriod; };
 enum TOPICS_E PeriodicWriterThreadInfo::topic_enum() {return myTopicEnum; };
-
 
 void*  pthreadPeriodicWriter(void  * periodic_writer_thread_info) {
 	PeriodicWriterThreadInfo * myPeriodicWriterThreadInfo;

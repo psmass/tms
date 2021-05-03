@@ -56,12 +56,11 @@ extern ReaderHandlerPtr reader_handler_ptrs[]; // list of Reader topic handlers
 extern PeriodicWriterHandlerPtr periodic_handler_ptrs[]; // list of Reader topic handlers
 extern ThreadHeartbeatSem thread_heartbeat_semaphores[]; 
 
-
-/****************** Object Patterns ***************************/
+/****************** Topic Objects ***************************/
 class Topic {
     public:
         Topic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum);
-
+        virtual ~Topic(void) = 0; // Abstract base class
         pthread_t tid; // thread id
         enum TOPICS_E myTopicEnum;
         DDSDomainParticipant * myParticipant;
@@ -70,6 +69,7 @@ class Topic {
 class WriterTopic : public Topic {
     public:
         WriterTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId=true);
+        virtual ~WriterTopic(void) = 0;  // Abstract base class
 
         DDSDynamicDataWriter * myWriter;
         DDS_DynamicData * myData; 
@@ -109,7 +109,6 @@ class ReaderTopic : public Topic {
         ReaderThreadInfo * myReaderThreadInfo;
         DDS_StringSeq parameters; // need unique sets of parameters for each reader Topic
 };
-
 
 /* This Interface provides threads for tms Communications Patterns
    (tms Microgrid Standard section 4.9.2)
@@ -152,7 +151,6 @@ class ReaderThreadInfo {
 };
 void*  pthreadToProcReaderEvents(void  * readerThreadInfo);
 
-
 class WriterEventsThreadInfo {
     // Optional - for topics you wish to monitor writer status events 
     // Only triggers on writer event - refer to enum DDS_StatusKind
@@ -189,6 +187,5 @@ class PeriodicWriterThreadInfo {
         enum TOPICS_E myTopicEnum;
 };
 void*  pthreadPeriodicWriter(void  * periodic_writer_thread_info);
-
 
 #endif
