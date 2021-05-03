@@ -13,13 +13,16 @@
 
 #include "tmsTestExample.h"
 #include "tmsCommon.h"
+#include <pthread.h>
 
 #define MY_READER_TOPIC_NAME topic_name_array[myReaderThreadInfo->topic_enum()]
 #define MY_WRITER_TOPIC_NAME topic_name_array[myWriterEventsThreadInfo->topic_enum()]
 #define MY_PERIODIC_TOPIC_NAME topic_name_array[myPeriodicWriterThreadInfo->topic_enum()]
 
 class ReaderThreadInfo;
+class WriterEventsThreadInfo;
 class PeriodicWriterThreadInfo;
+
 
 struct ThreadHeartbeatSem {
     bool topic_thread_active;
@@ -31,6 +34,7 @@ typedef void (*ReaderHandlerPtr)(ReaderThreadInfo *); // ptr to void ReaderFunc(
 typedef void (*PeriodicWriterHandlerPtr)(PeriodicWriterThreadInfo *); 
 
 extern bool run_flag;
+extern std::string participant_name;
 
 extern char this_device_id[]; // this_device is defined in the main app file (for each device/app instance)
 extern char that_device_id[]; // place to stick a device announcment - in real MSM this would be an array of devices
@@ -53,6 +57,63 @@ extern ReaderHandlerPtr reader_handler_ptrs[]; // list of Reader topic handlers
 extern PeriodicWriterHandlerPtr periodic_handler_ptrs[]; // list of Reader topic handlers
 extern ThreadHeartbeatSem thread_heartbeat_semaphores[]; 
 
+/****************** Topic Objects ***************************/
+class Topic {
+    public:
+        Topic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum);
+        virtual ~Topic(void) = 0; // Abstract base class
+        pthread_t tid; // thread id
+        enum TOPICS_E myTopicEnum;
+        DDSDomainParticipant * myParticipant;
+};
+
+class WriterTopic : public Topic {
+    public:
+        WriterTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId=true);
+        virtual ~WriterTopic(void) = 0;  // Abstract base class
+
+        DDSDynamicDataWriter * myWriter;
+        DDS_DynamicData * myData; 
+};
+
+class NormalWriterTopic : public WriterTopic {
+    public:
+        NormalWriterTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId=true);
+        ~NormalWriterTopic();
+        DDSDynamicDataWriter * getMyWriter();  // needed for Requests to get the response writer
+        DDS_DynamicData * getMyDataInstance();
+    
+    private:
+        WriterEventsThreadInfo * myWriterEventsThreadInfo;
+
+};
+
+class PeriodicTopic : public WriterTopic {
+    public:
+        PeriodicTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, DDS_Duration_t ratePeriod, bool prefillDevId=true);
+        ~PeriodicTopic(void);
+
+        void enable(void);
+        void disable(void);
+    
+    private:
+        PeriodicWriterThreadInfo * myPeriodicWriterThreadInfo;
+
+};
+
+class ReaderTopic : public Topic {
+    public:
+        ReaderTopic( DDSDomainParticipant * participant, 
+                    enum TOPICS_E topicEnum, 
+                    NormalWriterTopic * echoResponse = NULL, 
+                    bool installFilter = true );
+        ~ReaderTopic(void);
+    
+    private:
+        ReaderThreadInfo * myReaderThreadInfo;
+        DDS_StringSeq parameters; // need unique sets of parameters for each reader Topic
+};
+
 /* This Interface provides threads for tms Communications Patterns
    (tms Microgrid Standard section 4.9.2)
 
@@ -72,9 +133,8 @@ class ReaderThreadInfo {
     // C'tor has Echo Response flag to handle Rcv'd Command Requests and all
     // Response 
     public:
-        ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod = DDS_DURATION_INFINITE, bool echoResponse = false ); 
+        ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod = DDS_DURATION_INFINITE); 
         enum TOPICS_E topic_enum();
-        bool echoReqResponse();
         DDS_Duration_t hbDeadmanPeriod();
 
         DDSDynamicDataReader * reader;
@@ -94,7 +154,6 @@ class ReaderThreadInfo {
 
 };
 void*  pthreadToProcReaderEvents(void  * readerThreadInfo);
-
 
 class WriterEventsThreadInfo {
     // Optional - for topics you wish to monitor writer status events 
@@ -132,6 +191,5 @@ class PeriodicWriterThreadInfo {
         enum TOPICS_E myTopicEnum;
 };
 void*  pthreadPeriodicWriter(void  * periodic_writer_thread_info);
-
 
 #endif

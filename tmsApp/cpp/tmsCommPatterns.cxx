@@ -21,19 +21,173 @@
 
 #include "tmsCommPatterns.h"
 
-DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
+/* Topic Pattern Objects */
+Topic::Topic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum) {
+    myTopicEnum = topicEnum;
+    myParticipant = participant;
+}
+Topic::~Topic(){}
 
-ReaderThreadInfo::ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod, bool echoResponse) 
+WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topicEnum, bool prefillDevId) 
+        : Topic(participant, topicEnum) 
+{
+    std::string writerName;
+    DDS_ReturnCode_t retcode;
+
+    writerName = participant_name;
+    writerName.append(" Publisher1::");
+    writerName.append(topic_name_array[Topic::myTopicEnum]);
+    writerName.append("Writer");
+    myWriter=DDSDynamicDataWriter::narrow(
+        participant->lookup_datawriter_by_name(writerName.c_str()));
+    if (myWriter == NULL) {
+        std::cerr << writerName << ": lookup_datawriter_by_name error " << std::endl; 
+        throw "ERROR: Create Writer Topic - Lookup Failure";
+    }
+    std::cout << "Successfully Found: " << writerName << std::endl;
+    myData = myWriter->create_data(DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
+    if (myData  == NULL) {
+        std::cerr << topic_name_array[Topic::myTopicEnum] << ": create_data error" << std::endl;
+        throw "ERROR: Create Writer Topic - Create Data Failure";
+    } 
+    std::cout << "Successfully created Data for: " << topic_name_array[Topic::myTopicEnum] << std::endl; 
+
+    if (prefillDevId) {
+        // Pre-set static this_device_id in the DeviceId field for this topic  
+        retcode = myData->set_octet_array
+            ("deviceId", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, tms_LEN_Fingerprint, (const DDS_Octet *)&this_device_id); 
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "WriterTopic: set deviceId error" << std::endl;
+            throw "ERROR: Create Writer Topic - Prefill Device ID Failure";
+        }   
+    }
+}
+WriterTopic::~WriterTopic(){}
+
+ReaderTopic::ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, NormalWriterTopic * echoResponse, bool installFilter ) 
+    : Topic(participant, topicEnum) 
+{
+    DDSTopicDescription * topic_des_to_mod_cft = NULL; // we need to modify cft for reader topics
+    DDSContentFilteredTopic * topic_handle_to_mod_cft = NULL;
+    char paramId[4][3] = {{'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}};
+
+    DDS_Duration_t delay_period = {5,0};
+
+    std::string readerName;
+    DDS_ReturnCode_t retcode;
+    DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
+    
+    myReaderThreadInfo = new ReaderThreadInfo(Topic::myTopicEnum, hb_deadman_period);
+
+    readerName = participant_name;
+    readerName.append(" Subscriber1::");
+    readerName.append(topic_name_array[Topic::myTopicEnum]);
+    readerName.append("Reader");
+
+    // Lookup reader handles and put them in myReaders[this_topic_enum]
+    myReaderThreadInfo->reader = DDSDynamicDataReader::narrow(
+        participant->lookup_datareader_by_name(readerName.c_str()));
+    if (myReaderThreadInfo->reader == NULL) {
+        std::cerr << readerName << ": lookup_datawreader_by_name error " << std::endl; 
+        throw "ERROR: Create Reader Topic - Lookup Failure";
+    }
+    std::cout << "Successfully Found: " << readerName << std::endl;
+
+    if (installFilter) {
+        // Add this_device_id filter to reader topics so that we only receive the ones targeted to 
+        // this device. This can be done in a loop  since the expression is in the xml and the params
+        // (which are always the same) are in the actual deviceId.
+        // First Find the filter from the reader
+        topic_des_to_mod_cft = myReaderThreadInfo->reader->get_topicdescription();
+        if (topic_des_to_mod_cft == NULL) {
+            std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
+                << " get_topicdescription failure " << std::endl; 
+            throw "ERROR: Create Reader Topic - get_topicdescription failure";
+        }
+        // Narrow down it down to the topic filter (filters are subclass of the topic they are filtering)
+        topic_handle_to_mod_cft = DDSContentFilteredTopic::narrow(topic_des_to_mod_cft);
+        if (topic_handle_to_mod_cft == NULL) {
+            std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
+                << " narrow topic failure " << std::endl; 
+            throw "ERROR: Create Reader Topic - narrow topic failure";
+        }
+        
+        // now get the parameters we want to modify
+        retcode = topic_handle_to_mod_cft->get_expression_parameters(parameters);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
+                << " get expression parameters failure" << std::endl; 
+            throw "ERROR: Create Reader Topic - get expression parameters failure";
+        }
+
+        // parmeters are a essentially a list of char * so we need a separate allocation for each parameter
+        // of the sequence. We then point each parameter at the allocation once set to the right value. The 
+        // value must be the ascii of each nibble of the deviceId terminated with '\0'
+        sprintf(paramId[0], "%d", this_device_id[28]);
+        parameters[0]=paramId[0];
+        sprintf(paramId[1], "%d", this_device_id[29]);
+        parameters[1]=paramId[1];
+        sprintf(paramId[2], "%d", this_device_id[30]);
+        parameters[2]=paramId[2];
+        sprintf(paramId[3], "%d", this_device_id[31]);
+        parameters[3]=paramId[3];
+
+        retcode = topic_handle_to_mod_cft->set_expression_parameters(parameters);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "ERROR: Create Reader Topic set_parameters failure"
+                << std::endl; 
+            throw "ERROR: Create Reader Topic - set_parameters failure";
+        }
+    }
+
+    if (echoResponse != NULL)
+        myReaderThreadInfo->reqRspWriter = echoResponse->getMyWriter();
+
+    pthread_create(&(Topic::tid), NULL, pthreadToProcReaderEvents, (void*) myReaderThreadInfo);
+}
+
+ReaderTopic::~ReaderTopic() { pthread_cancel(Topic::tid); }
+
+NormalWriterTopic::NormalWriterTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum,  
+    bool prefillDevId) : WriterTopic(participant, topicEnum, prefillDevId) 
+{
+    DDS_Duration_t hb_deadman_period = HB_DEADMAN_PERIOD;
+    myWriterEventsThreadInfo  = new WriterEventsThreadInfo(Topic::myTopicEnum, hb_deadman_period); 
+
+    // Turn up Periodic Writer Event thread - Event threads do nothing but hang on events (no data)
+    myWriterEventsThreadInfo->writer = WriterTopic::myWriter;
+    pthread_create(&(WriterTopic::Topic::tid), NULL, pthreadToProcWriterEvents, (void*) myWriterEventsThreadInfo);
+}
+
+NormalWriterTopic::~NormalWriterTopic() { pthread_cancel(WriterTopic::Topic::tid); }
+DDSDynamicDataWriter * NormalWriterTopic::getMyWriter() { return WriterTopic::myWriter; }
+DDS_DynamicData *  NormalWriterTopic::getMyDataInstance() { return WriterTopic::myData; }
+
+PeriodicTopic::PeriodicTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, DDS_Duration_t period, 
+    bool prefillDevId) : WriterTopic(participant, topicEnum, prefillDevId) 
+{
+    myPeriodicWriterThreadInfo = new PeriodicWriterThreadInfo(Topic::myTopicEnum, period);
+
+    // Turn up Periodic Writer Event thread - Event threads do nothing but hang on events (no data)
+    myPeriodicWriterThreadInfo->writer = WriterTopic::myWriter;
+    myPeriodicWriterThreadInfo->enabled = false; // enable topic when Membership approved
+    myPeriodicWriterThreadInfo->periodicData = WriterTopic::myData; 
+    pthread_create(&(WriterTopic::Topic::tid), NULL, pthreadPeriodicWriter, (void*) myPeriodicWriterThreadInfo);
+}
+
+PeriodicTopic::~PeriodicTopic() { pthread_cancel(WriterTopic::Topic::tid); }
+
+void PeriodicTopic::enable()  { myPeriodicWriterThreadInfo->enabled=true; }
+void PeriodicTopic::disable() { myPeriodicWriterThreadInfo->enabled=false; }
+
+ReaderThreadInfo::ReaderThreadInfo(enum TOPICS_E topicEnum, DDS_Duration_t hbDeadmanPeriod) 
 {
     myTopicEnum = topicEnum;
-    echo_response = echoResponse; // default not to echo a response (rcv'd type not a request) 
     reqRspWriter = NULL;  // initialize to NULL and perform a checks if the user requres an echoResponse
     tms_REPLY_code = tms_REPLY_OK; // default to ok
     strncpy (reason, "Hello World", tms_MAXLEN_reason); // default reason
     myHbDeadmanPeriod = hbDeadmanPeriod;
 }
-
-bool    ReaderThreadInfo::echoReqResponse() { return echo_response; }
 
 DDS_Duration_t ReaderThreadInfo::hbDeadmanPeriod() { return myHbDeadmanPeriod; }
 
@@ -153,11 +307,7 @@ void*  pthreadToProcReaderEvents(void *reader_thread_info) {
                             // To Do: If you require context then you'll need to do this in the specific handler and
                             // create and use a 'specific Response flag' to skip the generic handler - seems like
                             // an inheritance of a genericHandler::specificHandler would be the way to go.
-                            if (myReaderThreadInfo->echoReqResponse()) {  // If response enabled, create the writer data
-                                if (myReaderThreadInfo->reqRspWriter == NULL) {
-                                    std::cerr << "Reader thread: Response enabled, but no writer assigned"  << std::endl;
-                                    goto end_reader_thread;
-                                }
+                            if (myReaderThreadInfo->reqRspWriter !=NULL) {  // Response enabled, create the writer data
 
                                 // Send the Request Response here while we have context of the request
                                 // Get the SampleID and build and send RequestResponse here
@@ -254,7 +404,6 @@ WriterEventsThreadInfo::WriterEventsThreadInfo(enum TOPICS_E topicEnum, DDS_Dura
 enum TOPICS_E WriterEventsThreadInfo::topic_enum() {return myTopicEnum; };
 DDS_Duration_t WriterEventsThreadInfo::hbDeadmanPeriod() { return myHbDeadmanPeriod; }
 
-
 void*  pthreadToProcWriterEvents(void  * writerEventsThreadInfo) {
 	WriterEventsThreadInfo * myWriterEventsThreadInfo;
     myWriterEventsThreadInfo = (WriterEventsThreadInfo *)writerEventsThreadInfo;
@@ -345,7 +494,6 @@ PeriodicWriterThreadInfo::PeriodicWriterThreadInfo (enum TOPICS_E topicEnum, DDS
 
 DDS_Duration_t PeriodicWriterThreadInfo::pubRatePeriod() { return myRatePeriod; };
 enum TOPICS_E PeriodicWriterThreadInfo::topic_enum() {return myTopicEnum; };
-
 
 void*  pthreadPeriodicWriter(void  * periodic_writer_thread_info) {
 	PeriodicWriterThreadInfo * myPeriodicWriterThreadInfo;

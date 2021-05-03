@@ -15,6 +15,12 @@
 #define HEARTBEAT_PERIOD {1, 0} // DDS_Duratio_t = 1 second
 #define HB_DEADMAN_PERIOD {0, 500000000} // DDS_Duratio_t = 500 000 000 ns = .5 second
 
+#define NO_ECHO_RQST_RESPONSE NULL
+#define INSTALL_FILTER true
+#define NO_FILTER !INSTALL_FILTER
+#define PREFILL_DEVID true
+#define NO_PREFILL_DEVID !PREFILL_DEVID
+
 struct Internal_membership_request {
     tms_Fingerprint requesterId;
     enum tms_MicrogridMembershipResult result;
