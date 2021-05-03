@@ -34,6 +34,7 @@ typedef void (*ReaderHandlerPtr)(ReaderThreadInfo *); // ptr to void ReaderFunc(
 typedef void (*PeriodicWriterHandlerPtr)(PeriodicWriterThreadInfo *); 
 
 extern bool run_flag;
+extern std::string participant_name;
 
 extern char this_device_id[]; // this_device is defined in the main app file (for each device/app instance)
 extern char that_device_id[]; // place to stick a device announcment - in real MSM this would be an array of devices
@@ -102,7 +103,10 @@ class PeriodicTopic : public WriterTopic {
 
 class ReaderTopic : public Topic {
     public:
-        ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, NormalWriterTopic * echoResponse = NULL );
+        ReaderTopic( DDSDomainParticipant * participant, 
+                    enum TOPICS_E topicEnum, 
+                    NormalWriterTopic * echoResponse = NULL, 
+                    bool installFilter = true );
         ~ReaderTopic(void);
     
     private:

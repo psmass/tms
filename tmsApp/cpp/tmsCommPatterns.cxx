@@ -34,7 +34,8 @@ WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topi
     std::string writerName;
     DDS_ReturnCode_t retcode;
 
-    writerName = "TMS Device Publisher1::";
+    writerName = participant_name;
+    writerName.append(" Publisher1::");
     writerName.append(topic_name_array[Topic::myTopicEnum]);
     writerName.append("Writer");
     myWriter=DDSDynamicDataWriter::narrow(
@@ -63,7 +64,7 @@ WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topi
 }
 WriterTopic::~WriterTopic(){}
 
-ReaderTopic::ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, NormalWriterTopic * echoResponse ) 
+ReaderTopic::ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topicEnum, NormalWriterTopic * echoResponse, bool installFilter ) 
     : Topic(participant, topicEnum) 
 {
     DDSTopicDescription * topic_des_to_mod_cft = NULL; // we need to modify cft for reader topics
@@ -78,7 +79,8 @@ ReaderTopic::ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topic
     
     myReaderThreadInfo = new ReaderThreadInfo(Topic::myTopicEnum, hb_deadman_period);
 
-    readerName = "TMS Device Subscriber1::";
+    readerName = participant_name;
+    readerName.append(" Subscriber1::");
     readerName.append(topic_name_array[Topic::myTopicEnum]);
     readerName.append("Reader");
 
@@ -91,49 +93,51 @@ ReaderTopic::ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topic
     }
     std::cout << "Successfully Found: " << readerName << std::endl;
 
-    // Add this_device_id filter to reader topics so that we only receive the ones targeted to 
-    // this device. This can be done in a loop  since the expression is in the xml and the params
-    // (which are always the same) are in the actual deviceId.
-    // First Find the filter from the reader
-    topic_des_to_mod_cft = myReaderThreadInfo->reader->get_topicdescription();
-    if (topic_des_to_mod_cft == NULL) {
-        std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
-            << " get_topicdescription failure " << std::endl; 
-        throw "ERROR: Create Reader Topic - get_topicdescription failure";
-    }
-    // Narrow down it down to the topic filter (filters are subclass of the topic they are filtering)
-    topic_handle_to_mod_cft = DDSContentFilteredTopic::narrow(topic_des_to_mod_cft);
-    if (topic_handle_to_mod_cft == NULL) {
-        std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
-            << " narrow topic failure " << std::endl; 
-        throw "ERROR: Create Reader Topic - narrow topic failure";
-    }
-    
-    // now get the parameters we want to modify
-    retcode = topic_handle_to_mod_cft->get_expression_parameters(parameters);
-    if (retcode != DDS_RETCODE_OK) {
-        std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
-            << " get expression parameters failure" << std::endl; 
-        throw "ERROR: Create Reader Topic - get expression parameters failure";
-    }
+    if (installFilter) {
+        // Add this_device_id filter to reader topics so that we only receive the ones targeted to 
+        // this device. This can be done in a loop  since the expression is in the xml and the params
+        // (which are always the same) are in the actual deviceId.
+        // First Find the filter from the reader
+        topic_des_to_mod_cft = myReaderThreadInfo->reader->get_topicdescription();
+        if (topic_des_to_mod_cft == NULL) {
+            std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
+                << " get_topicdescription failure " << std::endl; 
+            throw "ERROR: Create Reader Topic - get_topicdescription failure";
+        }
+        // Narrow down it down to the topic filter (filters are subclass of the topic they are filtering)
+        topic_handle_to_mod_cft = DDSContentFilteredTopic::narrow(topic_des_to_mod_cft);
+        if (topic_handle_to_mod_cft == NULL) {
+            std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
+                << " narrow topic failure " << std::endl; 
+            throw "ERROR: Create Reader Topic - narrow topic failure";
+        }
+        
+        // now get the parameters we want to modify
+        retcode = topic_handle_to_mod_cft->get_expression_parameters(parameters);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "ERROR: " << topic_name_array[Topic::myTopicEnum] 
+                << " get expression parameters failure" << std::endl; 
+            throw "ERROR: Create Reader Topic - get expression parameters failure";
+        }
 
-    // parmeters are a essentially a list of char * so we need a separate allocation for each parameter
-    // of the sequence. We then point each parameter at the allocation once set to the right value. The 
-    // value must be the ascii of each nibble of the deviceId terminated with '\0'
-    sprintf(paramId[0], "%d", this_device_id[28]);
-    parameters[0]=paramId[0];
-    sprintf(paramId[1], "%d", this_device_id[29]);
-    parameters[1]=paramId[1];
-    sprintf(paramId[2], "%d", this_device_id[30]);
-    parameters[2]=paramId[2];
-    sprintf(paramId[3], "%d", this_device_id[31]);
-    parameters[3]=paramId[3];
+        // parmeters are a essentially a list of char * so we need a separate allocation for each parameter
+        // of the sequence. We then point each parameter at the allocation once set to the right value. The 
+        // value must be the ascii of each nibble of the deviceId terminated with '\0'
+        sprintf(paramId[0], "%d", this_device_id[28]);
+        parameters[0]=paramId[0];
+        sprintf(paramId[1], "%d", this_device_id[29]);
+        parameters[1]=paramId[1];
+        sprintf(paramId[2], "%d", this_device_id[30]);
+        parameters[2]=paramId[2];
+        sprintf(paramId[3], "%d", this_device_id[31]);
+        parameters[3]=paramId[3];
 
-    retcode = topic_handle_to_mod_cft->set_expression_parameters(parameters);
-    if (retcode != DDS_RETCODE_OK) {
-        std::cerr << "ERROR: Create Reader Topic set_parameters failure"
-            << std::endl; 
-        throw "ERROR: Create Reader Topic - set_parameters failure";
+        retcode = topic_handle_to_mod_cft->set_expression_parameters(parameters);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "ERROR: Create Reader Topic set_parameters failure"
+                << std::endl; 
+            throw "ERROR: Create Reader Topic - set_parameters failure";
+        }
     }
 
     if (echoResponse != NULL)

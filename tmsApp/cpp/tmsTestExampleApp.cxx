@@ -23,6 +23,8 @@
 
 bool run_flag = true;
 
+std::string participant_name = "TMS Device";  // To Do - make participant names less hardwired 
+
 // should tuck this var into the RequestSequenceNumber class and make that Class a singlton pattern
 unsigned long long sequence_number=0; // ever monotonically increasing for each request sent
 
