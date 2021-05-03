@@ -18,6 +18,8 @@
 #define NO_ECHO_RQST_RESPONSE NULL
 #define INSTALL_FILTER true
 #define NO_FILTER !INSTALL_FILTER
+#define PREFILL_DEVID true
+#define NO_PREFILL_DEVID !PREFILL_DEVID
 
 struct Internal_membership_request {
     tms_Fingerprint requesterId;

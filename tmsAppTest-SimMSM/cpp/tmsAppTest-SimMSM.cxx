@@ -244,9 +244,6 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     enum APP_STATE_E app_state_device = INIT;  // application main loop state machine for a device
     bool shut_down = false;
 
-    DDS_StringSeq parameters[tms_TOPIC_LAST_SENTINEL_ENUM]; // need unique sets of parameters for each reader Topic
-    char paramId[4][3] = {{'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}, {'\0','\0','\0'}};
-
     internal_membership_request.result = MMR_UNINITIALIZED;
 
     DDS_Duration_t send_period = {1,0};
@@ -280,7 +277,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
      // Create Topic Objects (each contains & runs a thread)
     try {
         microgrid_membership_outcome = new NormalWriterTopic (participant, tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM);
-        request_response_w = new NormalWriterTopic (participant, tms_TOPIC_REQUEST_RESPONSE_ENUM, false);
+        request_response_w = new NormalWriterTopic (participant, tms_TOPIC_REQUEST_RESPONSE_ENUM, NO_PREFILL_DEVID);
         source_transition_request = new NormalWriterTopic (participant, tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM);
         device_announcement = new ReaderTopic(participant, tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, NO_ECHO_RQST_RESPONSE, NO_FILTER);
         request_response_r = new ReaderTopic(participant, tms_TOPIC_REQUEST_RESPONSE_ENUM);

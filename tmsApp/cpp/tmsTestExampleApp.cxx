@@ -284,10 +284,10 @@ extern "C" int tms_app_main(int sample_count) {
     // Create Topic Objects (each contains & runs a thread)
     try {
         heartbeat = new PeriodicTopic (participant, tms_TOPIC_HEARTBEAT_ENUM, heartbeat_period);
-        request_response_w = new NormalWriterTopic (participant, tms_TOPIC_REQUEST_RESPONSE_ENUM, false);
-        source_transition_state = new NormalWriterTopic (participant, tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, true);
-        device_announcement = new NormalWriterTopic (participant, tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, true);
-        microgrid_membership_request = new NormalWriterTopic (participant, tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, true);
+        request_response_w = new NormalWriterTopic (participant, tms_TOPIC_REQUEST_RESPONSE_ENUM, NO_PREFILL_DEVID);
+        source_transition_state = new NormalWriterTopic (participant, tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, PREFILL_DEVID);
+        device_announcement = new NormalWriterTopic (participant, tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, PREFILL_DEVID);
+        microgrid_membership_request = new NormalWriterTopic (participant, tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, PREFILL_DEVID);
         microgrid_membership_outcome = new ReaderTopic(participant, tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME_ENUM);
         request_response_r = new ReaderTopic(participant, tms_TOPIC_REQUEST_RESPONSE_ENUM);
         source_transition_request = new ReaderTopic(participant, tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM, request_response_w);
