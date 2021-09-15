@@ -24,7 +24,7 @@
 
 # If undefined in the environment default NDDSHOME to install dir
 ifndef NDDSHOME
-NDDSHOME := "/Applications/rti_connext_dds-6.0.1"
+NDDSHOME := "/Applications/rti_connext_dds-6.1.0"
 endif
 
 SOURCE_DIR = ./cpp/

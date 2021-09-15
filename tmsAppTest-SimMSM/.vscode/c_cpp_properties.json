@@ -12,9 +12,9 @@
             "intelliSenseMode": "clang-x64",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/Applications/rti_connext_dds-6.0.1/include",
-                "/Applications/rti_connext_dds-6.0.1/include/ndds",
-                "/Applications/rti_connext_dds-6.0.1/include/ndds/hpp"
+                "/Applications/rti_connext_dds-6.1.0/include",
+                "/Applications/rti_connext_dds-6.1.0/include/ndds",
+                "/Applications/rti_connext_dds-6.1.0/include/ndds/hpp"
                 
             ],
             "compilerArgs": []
