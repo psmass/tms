@@ -35,7 +35,7 @@ WriterTopic::WriterTopic (DDSDomainParticipant * participant, enum TOPICS_E topi
     DDS_ReturnCode_t retcode;
 
     writerName = participant_name;
-    writerName.append(" Publisher1::");
+    writerName.append("Publisher1::");
     writerName.append(topic_name_array[Topic::myTopicEnum]);
     writerName.append("Writer");
     myWriter=DDSDynamicDataWriter::narrow(
@@ -80,7 +80,7 @@ ReaderTopic::ReaderTopic(DDSDomainParticipant * participant, enum TOPICS_E topic
     myReaderThreadInfo = new ReaderThreadInfo(Topic::myTopicEnum, hb_deadman_period);
 
     readerName = participant_name;
-    readerName.append(" Subscriber1::");
+    readerName.append("Subscriber1::");
     readerName.append(topic_name_array[Topic::myTopicEnum]);
     readerName.append("Reader");
 

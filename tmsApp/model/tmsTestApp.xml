@@ -981,6 +981,13 @@
       </qos_profile>
       <qos_profile name="Base_Participant_QoS">
       </qos_profile>
+      <qos_profile name="NewQosMaxTypeObjProfile1">
+        <domain_participant_qos>
+          <resource_limits>
+            <type_object_max_serialized_length>32000</type_object_max_serialized_length>
+          </resource_limits>
+        </domain_participant_qos>
+      </qos_profile>
     </qos_library>
 
     <domain_library name="TMS_DomainLibrary1">
@@ -1003,8 +1010,8 @@
     </domain_library>
 
     <domain_participant_library name="TMS_ParticipantLibrary1">
-      <domain_participant name="TMS Device Participant1" domain_ref="TMS_DomainLibrary1::TMS_Domain0">
-        <publisher name="TMS Device Publisher1">
+      <domain_participant name="TMSDeviceParticipant1" domain_ref="TMS_DomainLibrary1::TMS_Domain0">
+        <publisher name="TMSDevicePublisher1">
           <data_writer name="DeviceAnnouncementWriter" topic_ref="DeviceAnnouncement">
             <datawriter_qos>
               <durability>
@@ -1021,7 +1028,7 @@
       The deviceId in the xml is defaulted to all '0's and then the params are changed programmatically to the actual deviceId. 
       Note as a tip, this also could have been done via param ENV vars in the xml which is set programmatically before the participant is created. 
       -->
-        <subscriber name="TMS Device Subscriber1">
+        <subscriber name="TMSDeviceSubscriber1">
           <data_reader name="MicrogridMembershipOutcomeReader" topic_ref="MicrogridMembershipOutcome">
             <content_filter name="MyFilter" kind="builtin.sql">
               <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
@@ -1071,16 +1078,16 @@
             </datareader_qos>
           </data_reader>
         </subscriber>
+        <domain_participant_qos base_name="TMS_QoS_LIbrary1::NewQosMaxTypeObjProfile1">
+        </domain_participant_qos>
       </domain_participant>
-      <domain_participant name="TMS MSM-Simulation Participant1" domain_ref="TMS_DomainLibrary1::TMS_Domain0">
-        <publisher name="TMS MSM-Simulation Publisher1">
-          <data_writer name="MicrogridMembershipOutcomeWriter" topic_ref="MicrogridMembershipOutcome"/>
+      <domain_participant name="TMSMSMSimParticipant1" domain_ref="TMS_DomainLibrary1::TMS_Domain0">
+        <publisher name="TMSMSMSimPublisher1">
           <data_writer name="RequestResponseWriter" topic_ref="RequestResponse"/>
           <data_writer name="SourceTransitionRequestWriter" topic_ref="SourceTransitionRequest"/>
+          <data_writer name="MicrogridMembershipOutcomeWriter" topic_ref="MicrogridMembershipOutcome"/>
         </publisher>
-        <!--SIM  MSM since we want to receive all requests and state changes readers so only filter is ReqResponse )
-      -->
-        <subscriber name="TMS MSM-Simulation Subscriber1">
+        <subscriber name="TMSMSMSimSubscriber1">
           <data_reader name="MicrogridMembershipRequestReader" topic_ref="MicrogridMembershipRequest">
             <datareader_qos>
               <reliability>
@@ -1088,8 +1095,6 @@
               </reliability>
             </datareader_qos>
           </data_reader>
-          <!--Filter on Request Response - we can statically set the device Id for the SIM MSM to all 0s
--->
           <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
             <content_filter name="MyFilter" kind="builtin.sql">
               <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>

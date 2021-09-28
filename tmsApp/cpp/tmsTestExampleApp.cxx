@@ -23,7 +23,7 @@
 
 bool run_flag = true;
 
-std::string participant_name = "TMS Device";  // To Do - make participant names less hardwired 
+std::string participant_name = "TMSDevice";  // To Do - make participant names less hardwired 
 
 // should tuck this var into the RequestSequenceNumber class and make that Class a singlton pattern
 unsigned long long sequence_number=0; // ever monotonically increasing for each request sent
@@ -271,7 +271,7 @@ extern "C" int tms_app_main(int sample_count) {
 
     participant = DDSTheParticipantFactory->
             create_participant_from_config(
-                                "TMS_ParticipantLibrary1::TMS Device Participant1");
+                                "TMS_ParticipantLibrary1::TMSDeviceParticipant1");
     if (participant == NULL) {
         std::cerr << "create_participant_from_config error " << std::endl;
         participant_shutdown(participant);
