@@ -263,6 +263,10 @@ extern "C" int tms_app_main(int sample_count) {
     ReaderTopic * request_response_r;
     ReaderTopic * source_transition_request;
 
+    DDS_DynamicData source_seq (NULL, DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
+    DDS_DynamicData source_info (NULL, DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
+    DDS_DynamicData param_seq (NULL, DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
+    DDS_DynamicData params (NULL, DDS_DYNAMIC_DATA_PROPERTY_DEFAULT);
    
     // local reqQaccess object
     RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
@@ -283,7 +287,7 @@ extern "C" int tms_app_main(int sample_count) {
 
     // Create Topic Objects (each contains & runs a thread)
     try {
-        heartbeat = new PeriodicTopic (participant, tms_TOPIC_HEARTBEAT_ENUM, heartbeat_period);
+        heartbeat = new PeriodicTopic (participant, tms_TOPIC_HEARTBEAT_ENUM, heartbeat_period, PREFILL_DEVID);
         request_response_w = new NormalWriterTopic (participant, tms_TOPIC_REQUEST_RESPONSE_ENUM, NO_PREFILL_DEVID);
         source_transition_state = new NormalWriterTopic (participant, tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, PREFILL_DEVID);
         device_announcement = new NormalWriterTopic (participant, tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, PREFILL_DEVID);
@@ -301,8 +305,44 @@ extern "C" int tms_app_main(int sample_count) {
     /* Publish one-time topics here - QoS is likely keep last, with durability set to transient-local to allow late joiners
        to get these announcements
     */
-    std::cout <<  std::endl << tms_TOPIC_DEVICE_ANNOUNCEMENT << ": " << this_device_id << std::endl;
-    // deviceId is preloaded in writer handle lookup loop
+
+    // Setting Doubly nested sequences - two methodes, more general but complex explicit binding
+    // Useful if you don't a priori know how many things your setting (setting programatically), and
+    // implicit binding, much simpler to read/implement but assumes you a prior know all the values
+    // 
+    // Setting doubly nested sequences dyanmically Methode 1: Explicit binding 
+    // retcode = device_announcement->getMyDataInstance()->set_long
+    //                     ("role", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) ROLE_SOURCE);
+    // std::cout <<  std::endl << tms_TOPIC_DEVICE_ANNOUNCEMENT << ": " << this_device_id << std::endl;
+    // retcode = device_announcement->getMyDataInstance()->bind_complex_member
+    //                     (source_seq, "source", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+    // retcode = source_seq.bind_complex_member
+    //                     (source_info, NULL, 1); // '1' is the first index in to source_seq sequence.
+    // retcode = source_info.set_boolean
+    //                     ("supportsDroopCurve", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, DDS_BOOLEAN_TRUE);
+    // retcode = source_info.set_boolean
+    //                     ("supportsNonlinearCurve", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, DDS_BOOLEAN_FALSE);
+   
+
+    // retcode = source_info.bind_complex_member
+    //                     (param_seq, "parameters", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
+    // retcode = param_seq.bind_complex_member
+    //                     (params, NULL, 1); // '1' is the first index in to source_seq sequence.
+    // retcode = params.set_string
+    //                     ("name", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, "foo");
+    // retcode = param_seq.unbind_complex_member
+    //                     (params);
+    // retcode = source_info.unbind_complex_member
+    //                     (param_seq);      
+    // retcode = source_seq.unbind_complex_member
+    //                     (source_info);
+    // retcode = device_announcement->getMyDataInstance()->unbind_complex_member
+    //                     (source_seq);  
+
+    // Setting doubly nested sequences dyanmically Methode 2: Implicit binding 
+    retcode = device_announcement->getMyDataInstance()->set_string
+                        ( "source[0].parameters[0].name", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, "foo");
+
     retcode = device_announcement->getMyWriter()->write(* device_announcement->getMyDataInstance(), DDS_HANDLE_NIL);
     if (retcode != DDS_RETCODE_OK) {
         std::cerr << "product_info: Dynamic Data Set Error " << std::endl << std::flush;
