@@ -311,8 +311,8 @@ extern "C" int tms_app_main(int sample_count) {
     // implicit binding, much simpler to read/implement but assumes you a prior know all the values
     // 
     // Setting doubly nested sequences dyanmically Methode 1: Explicit binding 
-    // retcode = device_announcement->getMyDataInstance()->set_long
-    //                     ("role", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) ROLE_SOURCE);
+     retcode = device_announcement->getMyDataInstance()->set_long
+                         ("role", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, (DDS_Long) ROLE_SOURCE);
     // std::cout <<  std::endl << tms_TOPIC_DEVICE_ANNOUNCEMENT << ": " << this_device_id << std::endl;
     // retcode = device_announcement->getMyDataInstance()->bind_complex_member
     //                     (source_seq, "source", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED);
