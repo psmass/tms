@@ -6,3 +6,4 @@
 TACTICAL MICRO-GRID Example
 Basic App with a few topics created by System Designer and stood-up using XML app Create
 
+** NOTE: Now Supports Connext 7.0.0 EAR ** 
