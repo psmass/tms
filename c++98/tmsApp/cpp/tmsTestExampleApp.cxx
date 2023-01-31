@@ -300,7 +300,9 @@ extern "C" int tms_app_main(int sample_count) {
         goto tms_app_main_end;  // we may attempt to delete a few things that never were created depending
     }                           // upon which object threw the exception
 
+    std::cout << "\n\n\n*** POWER GENERATOR DEVICE INITIALIZATION COMPLETE, SYSTEM RUNNING \n\n\n" << std::endl;
     NDDSUtility::sleep(send_period); // wait a second for thread initialization to complete printing (printing is not sychronized)
+
 
     /* Publish one-time topics here - QoS is likely keep last, with durability set to transient-local to allow late joiners
        to get these announcements
@@ -348,7 +350,8 @@ extern "C" int tms_app_main(int sample_count) {
         std::cerr << "product_info: Dynamic Data Set Error " << std::endl << std::flush;
         goto tms_app_main_end;
     }
- 
+    std::cout << "WRITING >> Device Announement" << std::endl;
+    
     // configure a request to join microgrid  - once configured - update the requestId.sequenceNumber and issue via the write below at will (not durable)
     
     retcode = microgrid_membership_request->getMyDataInstance()->set_octet_array
@@ -401,6 +404,7 @@ extern "C" int tms_app_main(int sample_count) {
                         std::cerr << "Micrgrid Membership Request: Write Error " << std::endl;
                         app_state = SHUT_DOWN;
                     }
+		    std::cout << "WRITING >> Membership Request" << std::endl;
                 } else {
                     // Upon approval enable heartbeat
                     heartbeat->enable(); 
@@ -432,6 +436,8 @@ extern "C" int tms_app_main(int sample_count) {
                         std::cerr << "Main Source State: Request: Write Error \n" << std::endl;
                         app_state = SHUT_DOWN;
                     }
+		    
+		    std::cout << "WRITING >> Source Transition State" << std::endl;		    
                     app_state = STEADY_STATE;
                 }
                 NDDSUtility::sleep(send_period); // save the cpu - wait in between checks

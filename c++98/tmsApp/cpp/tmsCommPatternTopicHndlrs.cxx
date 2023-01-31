@@ -207,7 +207,7 @@ void ReaderHandler_tms_TOPIC_REQUEST_RESPONSE (ReaderThreadInfo * myReaderThread
     // local reqQaccess object
     RequestSequenceNumber * reqSeqNo = new RequestSequenceNumber(&req_cmd_q);
 
-    std::cout << "Receive Handler - Received " << MY_READER_TOPIC_NAME;
+    std::cout << "RECEIVED HANDLER - << Received " << MY_READER_TOPIC_NAME << std::endl;
     // See if anyone is getting Responses not directed to them 
     // filters should never allow this case so this block of code can be omitted.
     retcode = myReaderThreadInfo->dataSeqInstance->get_octet_array(
@@ -255,7 +255,7 @@ void ReaderHandler_tms_TOPIC_DEVICE_ANNOUNCEMENT (ReaderThreadInfo * myReaderThr
 
     received_device_announcement = true; // MSM State Machine reset if in STEADY_STATE
 
-    std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << std::endl;
+    std::cout << "RECEIVED HANDLER - << Received " << MY_READER_TOPIC_NAME << std::endl;
     retcode = myReaderThreadInfo->dataSeqInstance->get_octet_array(
                                     tms_sample_id.deviceId,
                                     &fingerprint_len,
@@ -278,19 +278,19 @@ void ReaderHandler_tms_TOPIC_DEVICE_ANNOUNCEMENT (ReaderThreadInfo * myReaderThr
 }
 
 void ReaderHandler_tms_TOPIC_MICROGRID_MEMBERSHIP_OUTCOME (ReaderThreadInfo * myReaderThreadInfo) {
-    std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << std::endl;
+    std::cout << "RECEIVED HANDLER - << Received " << MY_READER_TOPIC_NAME << std::endl;
 }
 
 void ReaderHandler_tms_TOPIC_SOURCE_TRANSITION_REQUEST (ReaderThreadInfo * myReaderThreadInfo) {
-    std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << 
-    " Yes Boss. Powering up (note I probably should see it that's what she is really asking.)" << std::endl;
+  std::cout << "RECEIVED HANDLER - << Received " << MY_READER_TOPIC_NAME << "\n" <<
+    "***  Yes Boss. Powering up (note I probably should see it that's what she is really asking.)" << std::endl;
     internal_source_transition_state = ST_POWER_UP;
 
 }
 
 void ReaderHandler_tms_TOPIC_SOURCE_TRANSITION_STATE (ReaderThreadInfo * myReaderThreadInfo) {
-    std::cout << "Receive Handler - received " << MY_READER_TOPIC_NAME << 
-    " Ok Sonny. Thanks for Powering up (should check state to see if that's what he did.)" << std::endl;
+  std::cout << "RECEIVED HANDLER - << Received " << MY_READER_TOPIC_NAME << "\n" << 
+    "** Ok Sonny. Thanks for Powering up (should check state to see if that's what he did.)" << std::endl;
 
 }
 
@@ -325,7 +325,7 @@ void PeriodicWriterHandler_tms_TOPIC_HEARTBEAT (PeriodicWriterThreadInfo * myPer
     }
     
 
-    std::cout << "Periodic Writer Handler - Heartbeat " << hb_seq_count << std::endl;
+    std::cout << "PERIODIC WRITER HANDER >> Heartbeat " << hb_seq_count << std::endl;
     retcode = myPeriodicWriterThreadInfo->periodicData->set_ulong("sequenceNumber", DDS_DYNAMIC_DATA_MEMBER_ID_UNSPECIFIED, hb_seq_count);
     hb_seq_count++; // increment seq_count here so 1) it starts at 0 as prescribed by TMS, 2) changes once per write of heartbeat
     if (retcode != DDS_RETCODE_OK) {

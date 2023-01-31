@@ -322,6 +322,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
     // note enums are compiler dependent and here seem to be 4 byte long used
     // (the compiler will tell you- and you can always printf sizeof(MMR_COMPLETE))
     
+    std::cout << "\n\n\n*** MICROGRID MANAGER INITIALIZATION COMPLETE, SYSTEM RUNNING \n\n\n" << std::endl;
     NDDSUtility::sleep(send_period); // Optional - to let periodic writer go first
 
     internal_source_transition_state = ST_POWER_UP; // set internal state to what we want 
@@ -359,6 +360,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                             std::cerr << "Main membership outcome: Write Data Set Error " << std::endl << std::flush;
                             break;
                         }
+		    std::cout << "WRITING >> Membership Outcome" << std::endl;
                     app_state_device = POWER_UP; // approval granted ask to power up
                 }   
                 NDDSUtility::sleep(send_period); // save the cpu - wait in between checks
@@ -384,6 +386,8 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
                         std::cerr << "Main Topic Source Transition Request: Write Data Set Error " << std::endl;
                         break;
                     }
+
+		    std::cout << "WRITING >> Source Transition - POWER-UP" << std::endl;
                     app_state_device = STEADY_STATE;
                 }
                 NDDSUtility::sleep(send_period); // save the cpu - wait in between checks
