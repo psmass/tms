@@ -361,6 +361,7 @@ void*  pthreadToProcReaderEvents(void *reader_thread_info) {
                                     std::cout << "Reader Thread: set_data error\n" << std::endl;
                                     goto end_reader_thread;
                                 }
+				std::cout << "WRITING >> Request Response" << std::endl;
                                 retcode = myReaderThreadInfo->reqRspWriter->write(* request_response_data, DDS_HANDLE_NIL);
                                 // RequestRespones are key'd by sample id which will each use dds resources and essentiall be 
                                 // memory leak. Dispose of the topic after writing and use QoS of Reliable Reliabilty
