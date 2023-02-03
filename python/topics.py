@@ -47,6 +47,7 @@ class HeartbeatWtr(ddsEntities.Writer):
                                     constants.HEARTBEAT_TYPE_NAME,
                                     constants.HEARTBEAT_WRITER)
 
+        
 # TODO Implement Heartbeat Reader on the MSM Sim
 """
 class HeartbeatRdr(ddsEntities.Reader): # In this example, Not paid attention to by the Controller
@@ -56,11 +57,13 @@ class HeartbeatRdr(ddsEntities.Reader): # In this example, Not paid attention to
                                     constants.REQUEST_RESPONSE_READER)
 """
 
+
 class RequestRspDevWtr(ddsEntities.Writer):
     def __init__(self, participant,  periodic=False, period=0.0):
         ddsEntities.Writer.__init__(self, participant, periodic, period,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_DEVICE_WRITER)
+
         
 class RequestRspDevRdr(ddsEntities.Reader):
     def __init__(self, participant):
@@ -82,59 +85,89 @@ class RequestRspMSMSimWtr(ddsEntities.Writer):
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_MSMSIM_WRITER)
 
+        
 class RequestRspMSMSimRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_MSMSIM_READER)
 
+        
 class DeviceAnnouncementWtr(ddsEntities.Writer):
     def __init__(self, participant, periodic=False, period=0.0):
         ddsEntities.Writer.__init__(self, participant,  periodic, period,
                                     constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
                                     constants.DEVICE_ANNOUNCEMENT_WRITER)
+
+        # Loadup all static fields in the C'tor
+        
         # load the sample deviceID with this devices ID
         for idx, x in enumerate(constants.DEVICE1_ID):
             # build sample member name with str index e.g., _sample["deviceId[1]"]
             deviceIdStr="deviceId["+str(idx)+"]"
             self._sample[deviceIdStr]=int(x)
 
-        #"""
-        for idx in range(constants.LEN_FINGERPRINT):
+        self.print_device_id()
+
+        self._sample["role"]= constants.tms_DeviceRole.ROLE_SOURCE
+
+        # example of multi-nested assignment - not working
+        # self._sample["source[0].parameters[0].name"]="foobar"
+
+        
+            
+    def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
+        return self._sample
+
+    def print_device_id(self):
+        print("Loading this devices ID: ", end="")
+        for idx in range(constants.tms_LEN_FINGERPRINT):
             deviceIdStr="deviceId["+str(idx)+"]"
             print (self._sample[deviceIdStr], end="")
         
         print() # newline
-        #"""
-            
-    def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
-        return self._sample
-    
 
+        
 class DeviceAnnouncementRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
                                     constants.DEVICE_ANNOUNCEMENT_READER)
 
+        
 class MicrogridMembershipRqstWtr(ddsEntities.Writer):
     def __init__(self, participant, periodic=False, period=0.0):
         ddsEntities.Writer.__init__(self, participant,  periodic, period,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_WRITER)
 
+        # Loadup all static fields in the C'tor
+        
+        # load the sample deviceID and requestingDeviceId with this devices ID
+        for idx, x in enumerate(constants.DEVICE1_ID):
+            # build sample member name with str index e.g., _sample["deviceId[1]"]
+            reqDeviceIdStr="requestId.deviceId["+str(idx)+"]"
+            self._sample[reqDeviceIdStr]=int(x)
+            deviceIdStr="deviceId["+str(idx)+"]"
+            self._sample[deviceIdStr]=int(x)
+
+        self._sample["membership"]=constants.tms_MicrogridMembership.MM_JOIN
+
+        
 class MicrogridMembershipRqstRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_READER)
 
+        
 class MicrogridMembershipOutcomeWtr(ddsEntities.Writer):
     def __init__(self, participant, periodic=False, period=0.0):
         ddsEntities.Writer.__init__(self, participant, periodic, period,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_WRITER)
-                
+
+        
 class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
@@ -154,6 +187,7 @@ class SrcTransitionRqstWtr(ddsEntities.Writer):
                                     constants.SOURCE_TRANSITION_REQUEST_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_REQUEST_WRITER)
 
+        
 class SrcTransitionRqstRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
@@ -173,6 +207,7 @@ class SrcTransitionStateWtr(ddsEntities.Writer):
                                     constants.SOURCE_TRANSITION_STATE_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_STATE_WRITER)
 
+        
 class SrcTransitionStateRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,

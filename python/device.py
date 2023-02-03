@@ -27,6 +27,9 @@ filepath = osPath.dirname(osPath.realpath(__file__))
 def device_main(domain_id):
     print("Device Powering Up")
 
+    shutdown = False
+    appState = constants.AppState.INIT
+
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(constants.DEVICE_PARTICIPANT_NAME)
 
@@ -43,30 +46,46 @@ def device_main(domain_id):
     device_sts_w = topics.SrcTransitionStateWtr(participant)
     device_hb_w = topics.HeartbeatWtr(participant)
 
-    """
-    # The DeviceState topic holds the device Id and State
-    # The ConfigureDevRdr object instance needs the corresponding DeviceStateWriter
-    # object to obtain the devices DeviceID and state.
-    device_cdr.set_device_state_writer(device_dsw)
-    # device_dsw.start()  # writer thread can be optionally omitted
-    device_dsw.writer.set_listener(ddsEntities.DefaultWriterListener(), dds.StatusMask.ALL)
-    device_cdr.start()
+    # device_da_w.start() # start a statuses monitor thread on the DA Writer
+    # or...#listener
+    device_da_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
+                                    dds.StatusMask.ALL)
+    device_da_w.write() # only need to write this onece since QoS Durable
 
+    # device_mmr_w.start()# start a statuses monitor thread on the MMR Writer
+    # or..listener
+    device_mmr_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
+                                    dds.StatusMask.ALL)                                     
+    """
     # Update the deviceID for the config_dev_reader so we only get config
     # commands directed to our device. It also loads the sample with static data (deviceID)
     # This must be done after the writer thread has run to as the deviceID is stored in the
     # sample that must be created within the device_state_writer thread.
     device_cdr.update_id_cft();
     """
- 
-    while application.run_flag:
-        # write the current state to the controller once anytime it changes
-        """
-        if device_dsw.get_current_state() != device_dsw.get_previous_state():
-            device_dsw.write_data(device_dsw.get_current_state())
-            # then set them equal.
-            device_dsw.set_previous_state(device_dsw.get_current_state())
-        """
+    
+    
+    while not shutdown:
+        if not application.run_flag:
+            appState = constants.AppState.SHUT_DOWN
+
+        if appState == constants.AppState.INIT:
+            print("Device Initializing")
+            device_mmr_w.write() # sit here and request to join the microgrid 
+
+        elif appState == constants.AppState.POWER_UP:
+            print("Device Powered-up and on-line")
+
+        elif appState == constants.AppState.STEADY_STATE:
+            print("Device Steady-state - generating power")
+
+        elif appState == constants.AppState.SHUT_DOWN:
+            print("Device Shutting down")
+            shutdown = True
+            
+        else:
+            print("Device in undefined state")
+        
         # print a background idle '.'
         print(".", end='', flush=True)
         sleep(1)

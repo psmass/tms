@@ -24,8 +24,25 @@ CONTROLLER_PARTICIPANT_NAME = "TMS_ParticipantLibrary1::TMSMSMSimParticipant1"
 
 HEARTBEAT_PERIOD=1.0
 
-# tms data model constants 
-LEN_FINGERPRINT=32
+# tms data model constants (copy and paste as needed from rtiCodeGen for tms.py)
+tms_LEN_FINGERPRINT=32
+
+class tms_DeviceRole(IntEnum):
+    ROLE_MICROGRID_CONTROLLER = 0      
+    ROLE_TIME_CONTROLLER = 1
+    ROLE_SOURCE = 2      
+    ROLE_LOAD = 3      
+    ROLE_STORAGE = 4      
+    ROLE_DISTRIBUTION = 5      
+    ROLE_MICROGRID_SYSTEM_MANAGER = 6
+    ROLE_CONVERSION = 7     
+
+class tms_MicrogridMembership(IntEnum):
+    MM_UNINITIALIZED = 0
+    MM_JOIN = 1
+    MM_LEAVE = 2
+
+    
 
 
 DEVICE1_ID='00000000000000000000000000001234' # Pretend this was in the device EEPROM
@@ -71,9 +88,3 @@ class AppState(IntEnum):
     STEADY_STATE = 2
     SHUT_DOWN = 3
 
-# Device States
-class DeviceStateEnum(IntEnum):
-    UNINITIALIZED = 0
-    OFF = 1
-    ON = 2
-    ERROR = 3
