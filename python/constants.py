@@ -22,6 +22,14 @@ QOS_URL = "file://../model/tmsTestApp.xml"
 DEVICE_PARTICIPANT_NAME = "TMS_ParticipantLibrary1::TMSDeviceParticipant1"
 CONTROLLER_PARTICIPANT_NAME = "TMS_ParticipantLibrary1::TMSMSMSimParticipant1"
 
+HEARTBEAT_PERIOD=1.0
+
+# tms data model constants 
+LEN_FINGERPRINT=32
+
+
+DEVICE1_ID='00000000000000000000000000001234' # Pretend this was in the device EEPROM
+
 # Define Constants for Topic Type Names
 HEARTBEAT_TYPE_NAME = MODULE+"Heartbeat"
 REQUEST_RESPONSE_TYPE_NAME = MODULE+"RequestResponse"
@@ -39,21 +47,21 @@ HEARTBEAT_WRITER="TMSDevicePublisher1::HeartbeatWriter"
 # HEARTBEAT_READER="TMSMSMSimSubscriber1::  TODO - IMPLEMENT HEARTBEAT READER
 REQUEST_RESPONSE_DEVICE_WRITER="TMSDevicePublisher1::RequestResponseWriter"
 REQUEST_RESPONSE_DEVICE_READER="TMSDeviceSubscriber1::RequestResponseReader"
-REQUEST_RESPONSE_DEVICE_CFT_READER="RequestResponse::MyFilter"
+REQUEST_RESPONSE_DEVICE_CFT="RequestResponse::MyFilter"
 REQUEST_RESPONSE_MSMSIM_WRITER="TMSMSMSimPublisher1::RequestResponseWriter"
 REQUEST_RESPONSE_MSMSIM_READER="TMSMSMSimSubscriber1::RequestResponseReader"
 DEVICE_ANNOUNCEMENT_WRITER="TMSDevicePublisher1::DeviceAnnouncementWriter"
-DEVICE_ANNOUNCEMENT_READER="TMSMSMSimSubscriber1::DeviceAnnouncementWriter"
-MICROGRID_MEMBERSHIP_REQUEST_WRITER="TMSDevicePublisher::MicrogridMembershipRequestWriter"
-MICROGRID_MEMBERSHIP_REQUEST_READER="TMSMSMSimSubscriber::MicrogridMembershipRequestReader"
-MICROGRID_MEMBERSHIP_OUTCOME_WRITER="TMSMSMSimPublisher::MicrogridMembershipOutcomeWriter"
-MICROGRID_MEMBERSHIP_OUTCOME_READER="TMSDeviceSubscriber::MicrogridMembershipOutcomeReader"
-MICROGRID_MEMBERSHIP_OUTCOME_CFT_READER="MicrogridMembershipOutcome::MyFilter"
-SOURCE_TRANSITION_REQUEST_WRITER="TMSMSMSimPublisher::SourceTransitionRequestWriter"
-SOURCE_TRANSITION_REQUEST_READER="TMSDeviceSubscriber::SourceTransitionRequestReader"
-SOURCE_TRANSITION_REQUEST_CFT_READER="SourceTransitionRequest::MyFilter"
-SOURCE_TRANSITION_STATE_WRITER="TMSDevicePublisher::SourceTransitionStateWriter"
-SOURCE_TRANSITION_STATE_READER="TMSMSMSimSubscriber::SourceTransitionStateReader"
+DEVICE_ANNOUNCEMENT_READER="TMSMSMSimSubscriber1::DeviceAnnouncementReader"
+MICROGRID_MEMBERSHIP_REQUEST_WRITER="TMSDevicePublisher1::MicrogridMembershipRequestWriter"
+MICROGRID_MEMBERSHIP_REQUEST_READER="TMSMSMSimSubscriber1::MicrogridMembershipRequestReader"
+MICROGRID_MEMBERSHIP_OUTCOME_WRITER="TMSMSMSimPublisher1::MicrogridMembershipOutcomeWriter"
+MICROGRID_MEMBERSHIP_OUTCOME_READER="TMSDeviceSubscriber1::MicrogridMembershipOutcomeReader"
+MICROGRID_MEMBERSHIP_OUTCOME_CFT="MicrogridMembershipOutcome::MyFilter"
+SOURCE_TRANSITION_REQUEST_WRITER="TMSMSMSimPublisher1::SourceTransitionRequestWriter"
+SOURCE_TRANSITION_REQUEST_READER="TMSDeviceSubscriber1::SourceTransitionRequestReader"
+SOURCE_TRANSITION_REQUEST_CFT="SourceTransitionRequest::MyFilter"
+SOURCE_TRANSITION_STATE_WRITER="TMSDevicePublisher1::SourceTransitionStateWriter"
+SOURCE_TRANSITION_STATE_READER="TMSMSMSimSubscriber1::SourceTransitionStateReader"
 
 
 # Application (Controller and Device) State Machine 

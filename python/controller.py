@@ -28,6 +28,19 @@ def controller_main(domain_id):
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(constants.CONTROLLER_PARTICIPANT_NAME)
 
+    # Declare topics for the MSM Controller (creates: readers, writers, and threads)
+    # xml app create, so they already exist - here the base clas simply looks
+    # up the handles so we can manipulate them.
+
+    device_da_r = topics.DeviceAnnouncementRdr(participant)
+    device_mmr_r = topics.MicrogridMembershipRqstRdr(participant)
+    device_rrm_w = topics.RequestRspMSMSimWtr(participant)
+    device_rrm_r = topics.RequestRspMSMSimRdr(participant)
+    device_mmo_w = topics.MicrogridMembershipOutcomeWtr(participant)
+    device_str_w = topics.SrcTransitionRqstWtr(participant)
+    device_sts_r = topics.SrcTransitionStateRdr(participant)
+    # device_hb_w = topics.HeartbeatWtr(participant) // not implemented yet
+
     """
     # Declare topics for the controller (creates: readers, writers, and threads)
     controller_dsr = topics.DeviceStateRdr(participant)
@@ -41,14 +54,7 @@ def controller_main(domain_id):
     """
     
     while application.run_flag:
-        # If the controller gets a message from an UNITIALIZED (new) device, it
-        # registers the target deviceId and State in the controller_dsw object and issues
-        # a turnON command to the target device so long as it's showing UNINITIALIZED.
-        # The target device, upon receiving the ON command should send back an updated
-        # status message which is tracked by this controller, making the if condition below
-        # false.
-        #if controller_dsr.get_current_state() == constants.DeviceStateEnum.UNINITIALIZED:
-        #    controller_cdw.write_data(constants.DeviceStateEnum.ON)
+        # Controller Statemachine
         print(".", end='', flush=True)
         sleep(1)
 
@@ -67,11 +73,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     assert 0 <= args.domain < 233
 
-    # controller_main(args.domain) # uncomment for debug
+    controller_main(args.domain) # uncomment for debug
 
+    """
     try:
         controller_main(args.domain)
     except:
         print("Exception Running Device")
-
+    """
 

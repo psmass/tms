@@ -30,11 +30,20 @@ def device_main(domain_id):
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(constants.DEVICE_PARTICIPANT_NAME)
 
-    """   
+   
     # Declare topics for the device (creates: readers, writers, and threads)
-    device_dsw = topics.DeviceStateWtr(participant)
-    device_cdr = topics.ConfigDevRdr(participant)
+    # xml app create, so they already exist - here the base clas simply looks
+    # up the handles so we can manipulate them.
+    device_da_w = topics.DeviceAnnouncementWtr(participant)
+    device_mmr_w = topics.MicrogridMembershipRqstWtr(participant)
+    device_rrd_w = topics.RequestRspDevWtr(participant)
+    device_rrd_r = topics.RequestRspDevRdr(participant)
+    device_mmo_r = topics.MicrogridMembershipOutcomeRdr(participant)
+    device_str_r = topics.SrcTransitionRqstRdr(participant)
+    device_sts_w = topics.SrcTransitionStateWtr(participant)
+    device_hb_w = topics.HeartbeatWtr(participant)
 
+    """
     # The DeviceState topic holds the device Id and State
     # The ConfigureDevRdr object instance needs the corresponding DeviceStateWriter
     # object to obtain the devices DeviceID and state.
@@ -63,7 +72,7 @@ def device_main(domain_id):
         sleep(1)
 
     # shut down threads
-    device_cdr.join()
+    # device_cdr.join()
     # device_dsw.join()
     print("Device Exiting")
 
@@ -79,9 +88,10 @@ if __name__ == "__main__":
 
     device_main(args.domain)  # uncomment for debug
 
+    """
     try:
         device_main(args.domain)
     except:
         print("Exception Running Device")
-
+    """
 

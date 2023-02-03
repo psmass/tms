@@ -41,15 +41,15 @@ import rti.connextdds as dds
 from time import sleep
 
 
-class HeartBeatWtr(ddsEntities.Writer):
-    def __init__(self, participant):
-        ddsEntities.Writer.__init__(self, participant,
+class HeartbeatWtr(ddsEntities.Writer): 
+    def __init__(self, participant, periodic=True, period=constants.HEARTBEAT_PERIOD):
+        ddsEntities.Writer.__init__(self, participant, periodic, period,
                                     constants.HEARTBEAT_TYPE_NAME,
                                     constants.HEARTBEAT_WRITER)
 
-# TODO Implement HeartBeat Reader on the MSM Sim
+# TODO Implement Heartbeat Reader on the MSM Sim
 """
-class HeartBeatRdr(ddsEntities.Reader): # In this example, Not paid attention to by the Controller
+class HeartbeatRdr(ddsEntities.Reader): # In this example, Not paid attention to by the Controller
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
@@ -57,8 +57,8 @@ class HeartBeatRdr(ddsEntities.Reader): # In this example, Not paid attention to
 """
 
 class RequestRspDevWtr(ddsEntities.Writer):
-    def __init__(self, participant):
-        ddsEntities.Writer.__init__(self, participant,
+    def __init__(self, participant,  periodic=False, period=0.0):
+        ddsEntities.Writer.__init__(self, participant, periodic, period,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_DEVICE_WRITER)
         
@@ -68,9 +68,17 @@ class RequestRspDevRdr(ddsEntities.Reader):
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_DEVICE_READER)
 
+    def update_id_cft(self):
+        cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
+                                                              constants.REQUEST_RESPONSE_DEVICE_CFT)
+        dw_sample = self._device_state_writer.get_data_sample()
+        cft_topic.filter_parameters = [str(dw_sample["myDeviceId.resourceId"]), str(dw_sample["myDeviceId.id"])]
+        print("CFT ID installed")
+    
+
 class RequestRspMSMSimWtr(ddsEntities.Writer):
-    def __init__(self, participant):
-        ddsEntities.Writer.__init__(self, participant,
+    def __init__(self, participant, periodic=False, period=0.0):
+        ddsEntities.Writer.__init__(self, participant, periodic, period,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_MSMSIM_WRITER)
 
@@ -80,33 +88,50 @@ class RequestRspMSMSimRdr(ddsEntities.Reader):
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_MSMSIM_READER)
 
-class DevAnnouncementWtr(ddsEntities.Writer):
-    def __init__(self, participant):
-        ddsEntities.Writer.__init__(self, participant,
+class DeviceAnnouncementWtr(ddsEntities.Writer):
+    def __init__(self, participant, periodic=False, period=0.0):
+        ddsEntities.Writer.__init__(self, participant,  periodic, period,
                                     constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
                                     constants.DEVICE_ANNOUNCEMENT_WRITER)
+        # load the sample deviceID with this devices ID
+        for idx, x in enumerate(constants.DEVICE1_ID):
+            # build sample member name with str index e.g., _sample["deviceId[1]"]
+            deviceIdStr="deviceId["+str(idx)+"]"
+            self._sample[deviceIdStr]=int(x)
 
-class DevAnnouncementRdr(ddsEntities.Reader):
+        #"""
+        for idx in range(constants.LEN_FINGERPRINT):
+            deviceIdStr="deviceId["+str(idx)+"]"
+            print (self._sample[deviceIdStr], end="")
+        
+        print() # newline
+        #"""
+            
+    def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
+        return self._sample
+    
+
+class DeviceAnnouncementRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
                                     constants.DEVICE_ANNOUNCEMENT_READER)
 
 class MicrogridMembershipRqstWtr(ddsEntities.Writer):
-    def __init__(self, participant):
-        ddsEntities.Writer.__init__(self, participant,
+    def __init__(self, participant, periodic=False, period=0.0):
+        ddsEntities.Writer.__init__(self, participant,  periodic, period,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_WRITER)
 
 class MicrogridMembershipRqstRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
-                                    constants.REQUEST_RESPONSE_TYPE_NAME,
-                                    constants.REQUEST_RESPONSE_READER)
+                                    constants.MICROGRID_MEMBERSHIP_REQUEST_TYPE_NAME,
+                                    constants.MICROGRID_MEMBERSHIP_REQUEST_READER)
 
 class MicrogridMembershipOutcomeWtr(ddsEntities.Writer):
-    def __init__(self, participant):
-        ddsEntities.Writer.__init__(self, participant,
+    def __init__(self, participant, periodic=False, period=0.0):
+        ddsEntities.Writer.__init__(self, participant, periodic, period,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_WRITER)
                 
@@ -115,22 +140,36 @@ class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_READER)
+    def update_id_cft(self):
+        cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
+                                                              constants.MICROGRID_MEMBERSHIP_OUTCOME_CFT)
+        dw_sample = self._device_state_writer.get_data_sample()
+        cft_topic.filter_parameters = [str(dw_sample["myDeviceId.resourceId"]), str(dw_sample["myDeviceId.id"])]
+        print("CFT ID installed")
+
 
 class SrcTransitionRqstWtr(ddsEntities.Writer):
-    def __init__(self, participant):
-        ddsEntities.Writer.__init__(self, participant,
-                                    constants.SOURCE_TRANSITION_TYPE_NAME,
-                                    constants.SOURCE_TRANSITION_WRITER)
+    def __init__(self, participant, periodic=False, period=0.0):
+        ddsEntities.Writer.__init__(self, participant, periodic, period,
+                                    constants.SOURCE_TRANSITION_REQUEST_TYPE_NAME,
+                                    constants.SOURCE_TRANSITION_REQUEST_WRITER)
 
 class SrcTransitionRqstRdr(ddsEntities.Reader):
     def __init__(self, participant):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.SOURCE_TRANSITION_REQUEST_TYPE_NAME,
-                                    constants.SOURCE_TRANSITION_READER)
+                                    constants.SOURCE_TRANSITION_REQUEST_READER)
+    def update_id_cft(self):
+        cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
+                                                              constants.SOURCE_TRANSITION_REQUEST_CFT)
+        dw_sample = self._device_state_writer.get_data_sample()
+        cft_topic.filter_parameters = [str(dw_sample["myDeviceId.resourceId"]), str(dw_sample["myDeviceId.id"])]
+        print("CFT ID installed")
+        
 
 class SrcTransitionStateWtr(ddsEntities.Writer):
-    def __init__(self, participant):
-        ddsEntities.Writer.__init__(self, participant,
+    def __init__(self, participant, periodic=False, period=0.0):
+        ddsEntities.Writer.__init__(self, participant, periodic, period,
                                     constants.SOURCE_TRANSITION_STATE_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_STATE_WRITER)
 
