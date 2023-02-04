@@ -18,6 +18,7 @@ import rti.connextdds as dds
 import application
 import constants
 import topics
+import ddsEntities
 
 filepath = osPath.dirname(osPath.realpath(__file__))
 
@@ -30,6 +31,7 @@ def controller_main(domain_id):
     
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(constants.CONTROLLER_PARTICIPANT_NAME)
+
 
     # Declare topics for the MSM Controller (creates: readers, writers, and threads)
     # xml app create, so they already exist - here the base clas simply looks
@@ -44,7 +46,7 @@ def controller_main(domain_id):
     controller_sts_r = topics.SrcTransitionStateRdr(participant)
     # controller_hb_r = topics.HeartbeatRdr(participant) // TODO implemented hb on controller
 
-    # declare application specific DeviceIdState obj
+    # *** DECLARE and ASSIGN APPLICATION SPECIFIC DEVICE ID and STATE OBJECT
     device_id_obj = topics.DeviceIdState(constants.tms_DeviceRole.ROLE_MICROGRID_SYSTEM_MANAGER)
     # Each controller writer object, needs a handle to the device_id object
     # to fetch the deviceId needed in commands/responses sent to each device.
@@ -54,12 +56,28 @@ def controller_main(domain_id):
     controller_rrm_w.setHndlDevIdObj(device_id_obj)
     controller_mmo_w.setHndlDevIdObj(device_id_obj)    
     controller_str_w.setHndlDevIdObj(device_id_obj)
-    
-    """
-    controller_dsr.start()
-    controller_cdw.start()
-    """ 
 
+    # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
+    # controller_rrm_w.start() # start a statuses monitor thread on the DA Writer
+    # or...#listener
+    controller_rrm_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
+                                    dds.StatusMask.ALL)
+    # device_mmo_w.start() # start a statuses monitor thread on the DA Writer
+    # or...#listener
+    controller_mmo_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
+                                    dds.StatusMask.ALL)
+    # device_str_w.start() # start a statuses monitor thread on the DA Writer
+    # or...#listener
+    controller_str_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
+                                    dds.StatusMask.ALL)
+
+    # *** START READER THREADS (Reads data and monitors statuses)   
+    controller_da_r.start()
+    controller_mmr_r.start()
+    controller_rrm_r.start()
+    controller_sts_r.start()
+    
+    # *** RUN DEVICE STATE MACHINE
     while not shutdown:
         if not application.run_flag:
             appState = constants.AppState.SHUT_DOWN
@@ -84,9 +102,14 @@ def controller_main(domain_id):
         print(".", end='', flush=True)
         sleep(1)
 
-            
-    #controller_cdw.join() # uncomment if Thread Monitor vs. Listener used
-    #controller_dsr.join()
+    # ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
+    # controller_mmo_w.join() # uncomment if Thread Monitor vs. Listener used
+    # controller_rrm_w.join() # uncomment if Thread Monitor vs. Listener used
+    # controller_str_w.join() # uncomment if Thread Monitor vs. Listener used
+    controller_da_r.join()
+    controller_mmr_r.join()
+    controller_rrm_r.join()
+    controller_sts_r.join()
 
     print("Controller Exiting")
 

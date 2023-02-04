@@ -146,9 +146,9 @@ class Reader(threading.Thread):
 
     # ********* MUST OVERRIDE TO HANDLE CONCRETE TOPIC CLASS READER SAMPLE DATA  **********
     def handler(self, data):
-        # print("DEFAULT READER HANDLER FOR {r_name} NOT SET ".format(r_name=self._reader_name))
-        # print("*** OVERRIDE TO READ SPECIFIC TOPIC VALUES")
-        print("DRH", end='', flush=True)
+        print("DEFAULT READER HANDLER FOR {r_name}  ".format(r_name=self._reader_name))
+        print("*** OVERRIDE TO READ SPECIFIC TOPIC VALUES")
+        print(data, end='', flush=True)
 
     def get_reader_handle(self):
         return self._reader

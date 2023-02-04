@@ -127,6 +127,11 @@ class RequestRspDevRdr(ddsEntities.Reader):
         cft_topic.filter_parameters = [str(dw_sample["myDeviceId.resourceId"]), str(dw_sample["myDeviceId.id"])]
         print("CFT ID installed")
     
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    def handler(self, data):
+        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+
 
 # Controller/MSM Topic Writer
 class RequestRspMSMSimWtr(ddsEntities.Writer):
@@ -155,6 +160,11 @@ class RequestRspMSMSimRdr(ddsEntities.Reader):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_MSMSIM_READER)
+
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    def handler(self, data):
+        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
 
 
 # Device Topic Writer        
@@ -189,6 +199,11 @@ class DeviceAnnouncementRdr(ddsEntities.Reader):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
                                     constants.DEVICE_ANNOUNCEMENT_READER)
+        
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    def handler(self, data):
+        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
 
         
 # Device Topic Writer        
@@ -218,7 +233,12 @@ class MicrogridMembershipRqstRdr(ddsEntities.Reader):
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_READER)
         
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    def handler(self, data):
+        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
 
+        
 # Controller/MSM Topic Writer - AKA - MembershipApproval
 class MicrogridMembershipOutcomeWtr(ddsEntities.Writer):
     def __init__(self, participant, periodic=False, period=0.0):
@@ -251,7 +271,12 @@ class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
         cft_topic.filter_parameters = [str(dw_sample["myDeviceId.resourceId"]), str(dw_sample["myDeviceId.id"])]
         print("CFT ID installed")
 
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    def handler(self, data):
+        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
 
+        
 # Controller/MSM Topic Writer        
 class SrcTransitionRqstWtr(ddsEntities.Writer):
     def __init__(self, participant, periodic=False, period=0.0):
@@ -285,6 +310,12 @@ class SrcTransitionRqstRdr(ddsEntities.Reader):
         cft_topic.filter_parameters = [str(dw_sample["myDeviceId.resourceId"]), str(dw_sample["myDeviceId.id"])]
         print("CFT ID installed")
         
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    def handler(self, data):
+        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+
+
 # Device Topic Writer
 class SrcTransitionStateWtr(ddsEntities.Writer):
     def __init__(self, participant, periodic=False, period=0.0):
@@ -308,5 +339,10 @@ class SrcTransitionStateRdr(ddsEntities.Reader):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.SOURCE_TRANSITION_STATE_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_STATE_READER)
+
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    def handler(self, data):
+        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
 
 
