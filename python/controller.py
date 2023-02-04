@@ -25,6 +25,9 @@ filepath = osPath.dirname(osPath.realpath(__file__))
 def controller_main(domain_id):
     print("Controller Powering Up")
 
+    shutdown = False
+    appState = constants.AppState.INIT
+    
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(constants.CONTROLLER_PARTICIPANT_NAME)
 
@@ -32,33 +35,57 @@ def controller_main(domain_id):
     # xml app create, so they already exist - here the base clas simply looks
     # up the handles so we can manipulate them.
 
-    device_da_r = topics.DeviceAnnouncementRdr(participant)
-    device_mmr_r = topics.MicrogridMembershipRqstRdr(participant)
-    device_rrm_w = topics.RequestRspMSMSimWtr(participant)
-    device_rrm_r = topics.RequestRspMSMSimRdr(participant)
-    device_mmo_w = topics.MicrogridMembershipOutcomeWtr(participant)
-    device_str_w = topics.SrcTransitionRqstWtr(participant)
-    device_sts_r = topics.SrcTransitionStateRdr(participant)
-    # device_hb_w = topics.HeartbeatWtr(participant) // not implemented yet
+    controller_da_r = topics.DeviceAnnouncementRdr(participant)
+    controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant)
+    controller_rrm_w = topics.RequestRspMSMSimWtr(participant)
+    controller_rrm_r = topics.RequestRspMSMSimRdr(participant)
+    controller_mmo_w = topics.MicrogridMembershipOutcomeWtr(participant)
+    controller_str_w = topics.SrcTransitionRqstWtr(participant)
+    controller_sts_r = topics.SrcTransitionStateRdr(participant)
+    # controller_hb_r = topics.HeartbeatRdr(participant) // TODO implemented hb on controller
 
+    # declare application specific DeviceIdState obj
+    device_id_obj = topics.DeviceIdState(constants.tms_DeviceRole.ROLE_MICROGRID_SYSTEM_MANAGER)
+    # Each controller writer object, needs a handle to the device_id object
+    # to fetch the deviceId needed in commands/responses sent to each device.
+    # Because this is a particular app design choice, so not implemented in
+    # the base class - user impls set_hndl_devIdObj in each topic class in the
+    # topics.py file.
+    controller_rrm_w.setHndlDevIdObj(device_id_obj)
+    controller_mmo_w.setHndlDevIdObj(device_id_obj)    
+    controller_str_w.setHndlDevIdObj(device_id_obj)
+    
     """
-    # Declare topics for the controller (creates: readers, writers, and threads)
-    controller_dsr = topics.DeviceStateRdr(participant)
-    controller_cdw = topics.ConfigDevWtr(participant)
-    # The DeviceState topic will hold the device Id and State
-    # The ConfigureDevWrt object instance needs to have the corresponding DeviceState Object
-    # reference to save the target DeviceID and track state.
-    controller_cdw.set_device_state_reader(controller_dsr)
     controller_dsr.start()
     controller_cdw.start()
-    """
-    
-    while application.run_flag:
-        # Controller Statemachine
+    """ 
+
+    while not shutdown:
+        if not application.run_flag:
+            appState = constants.AppState.SHUT_DOWN
+
+        if appState == constants.AppState.INIT:
+            print("Controller Initializing")
+            
+        elif appState == constants.AppState.POWER_UP:
+            print("Controller Powered-up and on-line")
+
+        elif appState == constants.AppState.STEADY_STATE:
+            print("Controller Steady-state - generating power")
+
+        elif appState == constants.AppState.SHUT_DOWN:
+            print("Controller Shutting down")
+            shutdown = True
+            
+        else:
+            print("Device in undefined state")
+
+        # print a background idle '.'
         print(".", end='', flush=True)
         sleep(1)
 
-    #controller_cdw.join()
+            
+    #controller_cdw.join() # uncomment if Thread Monitor vs. Listener used
     #controller_dsr.join()
 
     print("Controller Exiting")

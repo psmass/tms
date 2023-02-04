@@ -46,6 +46,19 @@ def device_main(domain_id):
     device_sts_w = topics.SrcTransitionStateWtr(participant)
     device_hb_w = topics.HeartbeatWtr(participant)
 
+    # for the device, declare the dev_id_ojb (for the device, this will
+    # also load the deviceId from "EEPROM" or "Flash".
+    device_id_obj = topics.DeviceIdState(constants.tms_DeviceRole.ROLE_SOURCE)
+    # provide all the device writers with the dev_id_obj so they can get the
+    # deviceId that they will need to populate the fingerprint the send
+    # even though this is common to all writers, it's handled each topoic
+    # class in the topics.py file, since it's an application specific impl.
+    device_da_w.setHndlDevIdObj(device_id_obj)
+    device_mmr_w.setHndlDevIdObj(device_id_obj)
+    device_rrd_w.setHndlDevIdObj(device_id_obj)
+    device_hb_w.setHndlDevIdObj(device_id_obj)
+    
+    
     # device_da_w.start() # start a statuses monitor thread on the DA Writer
     # or...#listener
     device_da_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
@@ -92,7 +105,7 @@ def device_main(domain_id):
 
     # shut down threads
     # device_cdr.join()
-    # device_dsw.join()
+    # device_dsw.join() # uncomment if Thread Monitor vs. Listener used
     print("Device Exiting")
 
 
