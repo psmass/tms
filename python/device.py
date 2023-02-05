@@ -28,7 +28,6 @@ def device_main(domain_id):
     print("Device Powering Up")
 
     shutdown = False
-    appState = constants.AppState.INIT
     
     # *** STANDUP PARTICIPANT WITH READERS AND WRITERS XML APP CREATE
     qos_provider = dds.QosProvider(constants.QOS_URL)
@@ -47,19 +46,19 @@ def device_main(domain_id):
     device_sts_w = topics.SrcTransitionStateWtr(participant)
     device_hb_w = topics.HeartbeatWtr(participant)
 
-    # *** DECLARE and ASSIGN APPLICATION SPECIFIC DEVICE ID and STATE OBJECT
+    # *** DECLARE and ASSIGN APPLICATION SPECIFIC APPLICATION STATE  OBJECT
     # for the device, declare the dev_id_ojb (for the device, this will
     # also load the deviceId from "EEPROM" or "Flash".
-    device_id_obj = topics.DeviceIdState(constants.tms_DeviceRole.ROLE_SOURCE)
+    app_state_obj = topics.ApplicationStateObj(constants.tms_DeviceRole.ROLE_SOURCE)
     # provide all the device writers with the dev_id_obj so they can get the
     # deviceId that they will need to populate the tms_fingerprint the send
-    # even though this is common to all writers, it's handled each topoic
+    # even though this is common to all writers, it's handled each topic
     # class in the topics.py file, since it's an application specific impl.
-    device_da_w.setHndlDevIdObj(device_id_obj)
-    device_mmr_w.setHndlDevIdObj(device_id_obj)
-    device_rrd_w.setHndlDevIdObj(device_id_obj)
-    device_sts_w.setHndlDevIdObj(device_id_obj)
-    device_hb_w.setHndlDevIdObj(device_id_obj)
+    device_da_w.setHndlDevIdObj(app_state_obj)
+    device_mmr_w.setHndlDevIdObj(app_state_obj)
+    device_rrd_w.setHndlDevIdObj(app_state_obj)
+    device_sts_w.setHndlDevIdObj(app_state_obj)
+    device_hb_w.setHndlDevIdObj(app_state_obj)
     
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # device_da_w.start() # start a statuses monitor thread on the DA Writer
@@ -99,19 +98,19 @@ def device_main(domain_id):
     
     while not shutdown:
         if not application.run_flag:
-            appState = constants.AppState.SHUT_DOWN
+            app_state_obj.setState(constants.AppState.SHUT_DOWN)
 
-        if appState == constants.AppState.INIT:
+        if app_state_obj.myState() == constants.AppState.INIT:
             print("Device Initializing")
             device_mmr_w.write() # sit here and request to join the microgrid 
 
-        elif appState == constants.AppState.POWER_UP:
-            print("Device Powered-up and on-line")
+        elif app_state_obj.myState() == constants.AppState.POWERING_UP:
+            print("Device Powering-up and on-line")
 
-        elif appState == constants.AppState.STEADY_STATE:
+        elif app_state_obj.myState() == constants.AppState.STEADY_STATE:
             print("Device Steady-state - generating power")
 
-        elif appState == constants.AppState.SHUT_DOWN:
+        elif app_state_obj.myState() == constants.AppState.SHUT_DOWN:
             print("Device Shutting down")
             shutdown = True
             

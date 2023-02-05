@@ -37,25 +37,31 @@ def controller_main(domain_id):
     # *** DECLARE (FIND) TOPICS for the device (creates: readers, writers, and threads)   
     # xml app create, so they already exist - here the base clas simply looks
     # up the handles so we can manipulate them.
-    controller_da_r = topics.DeviceAnnouncementRdr(participant)
-    controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant)
     controller_rrm_w = topics.RequestRspMSMSimWtr(participant)
     controller_rrm_r = topics.RequestRspMSMSimRdr(participant)
+    controller_da_r = topics.DeviceAnnouncementRdr(participant)
+    controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant, controller_rrm_w)
     controller_mmo_w = topics.MicrogridMembershipOutcomeWtr(participant)
     controller_str_w = topics.SrcTransitionRqstWtr(participant)
     controller_sts_r = topics.SrcTransitionStateRdr(participant)
     # controller_hb_r = topics.HeartbeatRdr(participant) // TODO implemented hb on controller
 
-    # *** DECLARE and ASSIGN APPLICATION SPECIFIC DEVICE ID and STATE OBJECT
-    device_id_obj = topics.DeviceIdState(constants.tms_DeviceRole.ROLE_MICROGRID_SYSTEM_MANAGER)
-    # Each controller writer object, needs a handle to the device_id object
+    # *** DECLARE and ASSIGN APPLICATION SPECIFIC STATE OBJECT
+    app_state_obj = topics.ApplicationStateObj(constants.tms_DeviceRole.ROLE_MICROGRID_SYSTEM_MANAGER)
+    # Each controller writer object, needs a handle to the application_state object
     # to fetch the deviceId needed in commands/responses sent to each device.
     # Because this is a particular app design choice, so not implemented in
     # the base class - user impls set_hndl_devIdObj in each topic class in the
     # topics.py file.
-    controller_rrm_w.setHndlDevIdObj(device_id_obj)
-    controller_mmo_w.setHndlDevIdObj(device_id_obj)    
-    controller_str_w.setHndlDevIdObj(device_id_obj)
+    controller_rrm_w.setHndlDevIdObj(app_state_obj)
+    controller_mmo_w.setHndlDevIdObj(app_state_obj)    
+    controller_str_w.setHndlDevIdObj(app_state_obj)
+
+    # Controller DA reader and STS topic reader also need access to the
+    # application_state object to set and get deviceId and state respectively
+    controller_da_r.setHndlDevIdObj(app_state_obj)
+    controller_mmr_r.setHndlDevIdObj(app_state_obj)
+    controller_sts_r.setHndlDevIdObj(app_state_obj)
 
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # controller_rrm_w.start() # start a statuses monitor thread on the DA Writer
@@ -80,18 +86,31 @@ def controller_main(domain_id):
     # *** RUN DEVICE STATE MACHINE
     while not shutdown:
         if not application.run_flag:
-            appState = constants.AppState.SHUT_DOWN
+            app_state_obj.setState(constants.AppState.SHUT_DOWN)
 
-        if appState == constants.AppState.INIT:
+        if app_state_obj.myState() == constants.AppState.INIT:
             print("Controller Initializing")
-            
-        elif appState == constants.AppState.POWER_UP:
-            print("Controller Powered-up and on-line")
 
-        elif appState == constants.AppState.STEADY_STATE:
+        elif app_state_obj.myState() == constants.AppState.FOUND_NEW_DEVICE:
+            print("Controller Found a New Device")
+            # Controller had to wait for a DA to get the DeviceID
+            # We can now configure the target DeviceID in all our writers
+            # not no harm if we sit here repeating this while in this state
+            # vs. adding an new state
+            controller_rrm_w.setSampleDeviceId()
+            controller_mmo_w.setSampleDeviceId()
+            controller_str_w.setSampleDeviceId()
+            if app_state_obj.sendReqResp:  # wait for request
+                controller_rrm_w.write()   # send response
+                app_state_obj.setState(constants.AppState.POWERING_UP)
+            
+        elif app_state_obj.myState() == constants.AppState.POWERING_UP:
+            print("Controller Powering-up device")
+
+        elif app_state_obj.myState() == constants.AppState.STEADY_STATE:
             print("Controller Steady-state - generating power")
 
-        elif appState == constants.AppState.SHUT_DOWN:
+        elif app_state_obj.myState() == constants.AppState.SHUT_DOWN:
             print("Controller Shutting down")
             shutdown = True
             

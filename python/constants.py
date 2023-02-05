@@ -84,7 +84,12 @@ SOURCE_TRANSITION_STATE_READER="TMSMSMSimSubscriber1::SourceTransitionStateReade
 # Application (Controller and Device) State Machine 
 class AppState(IntEnum):
     INIT = 0
-    POWER_UP = 1
-    STEADY_STATE = 2
-    SHUT_DOWN = 3
+    FOUND_NEW_DEVICE = 1
+    DEV_REQ_JOIN = 2
+    POWERING_UP = 3
+    STEADY_STATE = 4
+    SHUT_DOWN = 5
 
+
+
+    
