@@ -1,9 +1,12 @@
-.#*
-c++98/tmsApp/*~
 c++98/tmsApp/objs/*
 c++98/tmsAppTest-SimMSM/objs/*
+c++98/tmsApp/cpp/*~
+c++98/tmsAppTest-SimMSM/cpp/*~
 c++98/tmsApp/cpp/#*
+c++98/tmsAppTest-SimMSM/cpp/#*
 python/*~
+python/.#*
+python/#*
 python/__pycache__/*
 python/venv/*
 
