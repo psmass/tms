@@ -28,15 +28,15 @@ def controller_main(domain_id):
 
     shutdown = False
     appState = constants.AppState.INIT
-    
+
+    # *** STANDUP PARTICIPANT WITH READERS AND WRITERS XML APP CREATE    
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(constants.CONTROLLER_PARTICIPANT_NAME)
 
 
-    # Declare topics for the MSM Controller (creates: readers, writers, and threads)
+    # *** DECLARE (FIND) TOPICS for the device (creates: readers, writers, and threads)   
     # xml app create, so they already exist - here the base clas simply looks
     # up the handles so we can manipulate them.
-
     controller_da_r = topics.DeviceAnnouncementRdr(participant)
     controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant)
     controller_rrm_w = topics.RequestRspMSMSimWtr(participant)
