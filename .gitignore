@@ -1,6 +1,8 @@
+.#*
 c++98/tmsApp/*~
 c++98/tmsApp/objs/*
 c++98/tmsAppTest-SimMSM/objs/*
+c++98/tmsApp/cpp/#*
 c++98/tmsApp/objs/x64Darwin17clang9.0/tmsCommPatterns.o
 c++98/tmsApp/objs/x64Darwin17clang9.0/tmsTestExampleApp
 c++98/tmsApp/objs/x64Darwin17clang9.0/tmsTestExampleApp.o
@@ -10,3 +12,7 @@ c++98/tmsAppTest-SimMSM/objs/x64Darwin17clang9.0/tmsTestExampleApp
 c++98/tmsAppTest-SimMSM/objs/x64Darwin17clang9.0/tmsTestExampleApp.o
 c++98/tmsAppTest-SimMSM/objs/x64Darwin17clang9.0/tmsAppTest-SimMSM.o
 c++98/tmsAppTest-SimMSM/objs/x64Darwin17clang9.0/tmsAppTest-SimMSM
+python/*~
+python/__pycache__/*
+python/venv/*
+
