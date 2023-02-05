@@ -27,7 +27,6 @@ def controller_main(domain_id):
     print("Controller Powering Up")
 
     shutdown = False
-    appState = constants.AppState.INIT
 
     # *** STANDUP PARTICIPANT WITH READERS AND WRITERS XML APP CREATE    
     qos_provider = dds.QosProvider(constants.QOS_URL)
