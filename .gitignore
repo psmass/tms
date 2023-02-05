@@ -1,6 +1,6 @@
 .#*
 c++98/tmsApp/*~
-c++98/tmsApp/objs/*
+c++98/tmsApp/objs/x64Darwin17clang9.0/*
 c++98/tmsAppTest-SimMSM/objs/*
 c++98/tmsApp/cpp/#*
 #c++98/tmsApp/objs/x64Darwin17clang9.0/tmsCommPatterns.o
