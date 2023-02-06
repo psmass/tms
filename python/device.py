@@ -72,12 +72,6 @@ def device_main(domain_id):
     device_hb_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
                                     dds.StatusMask.ALL)                                   
 
-    # *** ADD CONTENT FILTERS on READERS SO THE DEVICE ONLY GETS DIRECTED TOPICS
-    # Update the deviceID for the config_dev_reader so we only get config
-    # commands directed to our device. 
-    #device_cdr.update_id_cft();
-   
-
     # *** START READER THREADS (Reads data and monitors statuses)
     device_rrd_r.start()
     device_mmo_r.start()
@@ -85,6 +79,8 @@ def device_main(domain_id):
     
     # *** SEND DEVICE ANNOUNCMENT  & RUN DEVICE STATE MACHINE
     device_da_w.write() # only need to write this onece since QoS Durable
+
+    count_in_state = 0
     
     while not shutdown:
         if not application.run_flag:
@@ -92,8 +88,11 @@ def device_main(domain_id):
 
         if app_state_obj.myState() == constants.AppState.INIT:
             print("Device Initializing")
-            device_mmr_w.write() # sit here and request to join the microgrid 
-
+            count_in_state +=1
+            if count_in_state % 5 == 0: # request to join every 5 sec
+                app_state_obj.clearOutstandingRequest()
+                device_mmr_w.write()
+                
         elif app_state_obj.myState() == constants.AppState.POWERING_UP:
             print("Device Powering-up and on-line")
 
