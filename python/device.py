@@ -46,7 +46,9 @@ def device_main(domain_id):
     device_rrd_w = topics.RequestRspDevWtr(participant, app_state_obj)
     device_rrd_r = topics.RequestRspDevRdr(participant, app_state_obj)
     device_mmo_r = topics.MicrogridMembershipOutcomeRdr(participant, app_state_obj)
-    device_str_r = topics.SrcTransitionRqstRdr(participant, app_state_obj)
+    device_str_r = topics.SrcTransitionRqstRdr(participant,
+                                               app_state_obj,
+                                               device_rrd_w)
     device_sts_w = topics.SrcTransitionStateWtr(participant, app_state_obj)
     device_hb_w = topics.HeartbeatWtr(participant, app_state_obj)
 
@@ -81,7 +83,7 @@ def device_main(domain_id):
     device_da_w.write() # only need to write this onece since QoS Durable
 
     count_in_state = 0
-    
+
     while not shutdown:
         if not application.run_flag:
             app_state_obj.setState(constants.AppState.SHUT_DOWN)
@@ -89,9 +91,12 @@ def device_main(domain_id):
         if app_state_obj.myState() == constants.AppState.INIT:
             print("Device Initializing")
             count_in_state +=1
-            if count_in_state % 5 == 0: # request to join every 5 sec
+            if count_in_state % 5 == 0: # request to membership every 5 sec
                 app_state_obj.clearOutstandingRequest()
                 device_mmr_w.write()
+
+        elif app_state_obj.myState() == constants.AppState.JOINING_GRID:
+            print("Device Joining Grid")
                 
         elif app_state_obj.myState() == constants.AppState.POWERING_UP:
             print("Device Powering-up and on-line")

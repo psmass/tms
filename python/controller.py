@@ -71,7 +71,7 @@ def controller_main(domain_id):
     controller_rrm_r.start()
     controller_sts_r.start()
     
-    # *** RUN DEVICE STATE MACHINE
+    # *** RUN CONTROLLER STATE MACHINE
     while not shutdown:
         if not application.run_flag:
             app_state_obj.setState(constants.AppState.SHUT_DOWN)

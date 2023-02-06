@@ -158,9 +158,13 @@ class RequestRspDevRdr(ddsEntities.Reader):
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
         print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
-        #print (data, end="", flush=True)
+        # print (data, end="", flush=True)
+        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.sequenceNumber():
+            print("RRD_RDR - request responded")
+            self._app_state_obj.clearOutstandingRequest()
+            self._app_state_obj.setState(constants.AppState.JOINING_GRID)
 
-
+            
 # Controller/MSM RRM Topic Writer
 class RequestRspMSMSimWtr(ddsEntities.Writer):
     def __init__(self, participant, app_state_obj):
@@ -265,8 +269,7 @@ class MicrogridMembershipRqstRdr(ddsEntities.Reader):
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_READER)
 
-        self._app_state_obj = app_state_obj
-        
+        self._app_state_obj = app_state_obj   
         self._my_request_response_wtr = reqRes_wtr
     
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
@@ -349,13 +352,13 @@ class SrcTransitionRqstWtr(ddsEntities.Writer):
         
 # Device STR Topic Reader        
 class SrcTransitionRqstRdr(ddsEntities.Reader):
-    def __init__(self, participant, app_state_obj):
+    def __init__(self, participant, app_state_obj, reqRes_wtr):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.SOURCE_TRANSITION_REQUEST_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_REQUEST_READER)
 
         self._app_state_obj = app_state_obj
-
+        self._my_request_response_wtr = reqRes_wtr
         
         # Install the content filter for the devices Id, so we only get STR's to this device
         cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
