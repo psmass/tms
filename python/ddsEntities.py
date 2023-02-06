@@ -71,7 +71,7 @@ class Writer(threading.Thread):
     
     # Optionally overload write specific topic
     def write(self):
-        print("Writing - ", self._topic_type_name)
+        print("Writing (Default Writer) - ", self._topic_type_name)
         self._writer.write(self._sample)
         
     @property

@@ -52,14 +52,15 @@ class ApplicationStateObj():
         self._deviceId = bytearray(32)
         self._application_state = constants.AppState.INIT
         self._controller_rcvd_da = False
-        self._sendReqResp = False # flag to send a ReqResp in response to request
+        self._deviceIdSet = False # flag to send a ReqResp in response to request
         
         if (self._role != constants.tms_DeviceRole.ROLE_MICROGRID_CONTROLLER and
         self._role != constants.tms_DeviceRole.ROLE_MICROGRID_SYSTEM_MANAGER):
             # if not controller or MSM, get/set deviceId froom EEPROM or Flash
             for idx, x in enumerate(constants.DEVICE1_ID):
                 self._deviceId[idx]=int(x)
-        
+                
+            self._deviceIdSet = True # not really used by Device
             self.print_device_id()
 
     def print_device_id(self):
@@ -76,6 +77,7 @@ class ApplicationStateObj():
         for idx, x in enumerate(deviceId):
             self._deviceId[idx]=int(x)
 
+        self._deviceIdSet = True
         self.print_device_id()
         self._application_state = constants.AppState.FOUND_NEW_DEVICE 
 
@@ -85,12 +87,9 @@ class ApplicationStateObj():
     def setState(self, state):
         self._application_state = state
 
-    def sendReqResp(self):
-        return self._sendReqResp
-        
-    def setSendReqResp(self, condition):
-        self._sendReqResp = condition
-        
+    # Used by controller to ensure DA was processed before sending ReqResp w/targetID
+    def deviceIdSet(self):
+        return self._deviceIdSet
         
     # used to set the Id in a sample about to be written by any topic   
     def setDevIdInSample (self, sample, idStrName):
@@ -102,43 +101,33 @@ class ApplicationStateObj():
 
 # Device Topic Writer
 class HeartbeatWtr(ddsEntities.Writer): 
-    def __init__(self, participant, periodic=True, period=constants.HEARTBEAT_PERIOD):
-        ddsEntities.Writer.__init__(self, participant, periodic, period,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant, True, constants.HEARTBEAT_PERIOD,
                                     constants.HEARTBEAT_TYPE_NAME,
                                     constants.HEARTBEAT_WRITER)
         
-        self._app_state_obj = None # holds handle to app_state_obj
-        
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
         self._app_state_obj = app_state_obj
-        # for device Topic Writers, we have the device Id so load the topic sample
-        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
-
+        
 
 # Device Topic Writer        
 class RequestRspDevWtr(ddsEntities.Writer):
-    def __init__(self, participant, periodic=False, period=0.0):
-        ddsEntities.Writer.__init__(self, participant, periodic, period,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant, False, 0.0,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_DEVICE_WRITER)
 
-        self._app_state_obj = None # holds handle to app_state_obj
-
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
         self._app_state_obj = app_state_obj
-        # for device Topic Writers, we have the device Id so load the topic sample
-        self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
 
-        
+
 # Device Topic Reader        
 class RequestRspDevRdr(ddsEntities.Reader):
-    def __init__(self, participant):
-        ddsEntities.Reader.__init__(self, participant,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Reader.__init__(self, participant, 
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_DEVICE_READER)
 
+        self._app_state_obj = app_state_obj
+        
     def update_id_cft(self):
         cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
                                                               constants.REQUEST_RESPONSE_DEVICE_CFT)
@@ -154,30 +143,29 @@ class RequestRspDevRdr(ddsEntities.Reader):
 
 # Controller/MSM Topic Writer
 class RequestRspMSMSimWtr(ddsEntities.Writer):
-    def __init__(self, participant, periodic=False, period=0.0):
-        ddsEntities.Writer.__init__(self, participant, periodic, period,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant, False, 0.0,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_MSMSIM_WRITER)
         
-        self._app_state_obj = None # holds handle to app_state_obj
-
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
         self._app_state_obj = app_state_obj
 
-    # for Controllers this is called from the Device Announcement Reader after
-    # we get the deviceId
-    def setSampleDeviceId(self):
+    def write(self): # override default writer
+        print("Writing ReqRes (MSM)", self._topic_type_name)
+        # set the Id field - we do this each time we write
         self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
+        self._writer.write(self._sample)
 
 
 # Controller/MSM Topic Reader        
 class RequestRspMSMSimRdr(ddsEntities.Reader):
-    def __init__(self, participant):
+    def __init__(self, participant, app_state_obj):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_MSMSIM_READER)
 
+        self._app_state_obj = app_state_obj
+        
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
         print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
@@ -186,12 +174,13 @@ class RequestRspMSMSimRdr(ddsEntities.Reader):
 
 # Device Topic Writer        
 class DeviceAnnouncementWtr(ddsEntities.Writer):
-    def __init__(self, participant, periodic=False, period=0.0):
-        ddsEntities.Writer.__init__(self, participant,  periodic, period,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
                                     constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
                                     constants.DEVICE_ANNOUNCEMENT_WRITER)
 
-        self._app_state_obj = None # holds handle to app_state_obj
+        self._app_state_obj = app_state_obj
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
         
         # Loadup  static fields in the C'tor (except deviceId as we have
         # common code to do this (see setHndlDevIdObj() below
@@ -202,22 +191,16 @@ class DeviceAnnouncementWtr(ddsEntities.Writer):
 
     def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
         return self._sample
-
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
-        self._app_state_obj = app_state_obj
-        # for device Topic Writers, we have the device Id so load the topic sample
-        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
                 
 
 # Controller/MSM Topic Reader        
 class DeviceAnnouncementRdr(ddsEntities.Reader):
-    def __init__(self, participant):
-        ddsEntities.Reader.__init__(self, participant,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Reader.__init__(self, participant, 
                                     constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
                                     constants.DEVICE_ANNOUNCEMENT_READER)
 
-        self._app_state_obj = None # holds handle to app_state_obj
+        self._app_state_obj = app_state_obj
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # For the DA Reader, we extract the DeviceId and save it in our app_state_obj
@@ -228,44 +211,33 @@ class DeviceAnnouncementRdr(ddsEntities.Reader):
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
 
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
-        self._app_state_obj = app_state_obj
-
         
 # Device Topic Writer        
 class MicrogridMembershipRqstWtr(ddsEntities.Writer):
-    def __init__(self, participant, periodic=False, period=0.0):
-        ddsEntities.Writer.__init__(self, participant,  periodic, period,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_WRITER)
 
-        self._app_state_obj = None # holds handle to app_state_obj
+        self._app_state_obj = app_state_obj
         
         # Loadup all static fields in the C'tor
-        self._sample["membership"]=constants.tms_MicrogridMembership.MM_JOIN
-
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
-        self._app_state_obj = app_state_obj
-        # for device Topic Writers, we have the device Id so load the topic sample
         self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
         self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
+        self._sample["membership"]=constants.tms_MicrogridMembership.MM_JOIN
 
         
 # Controller/MSM Topic Reader - all request Readers have to issue a requestResponse       
 class MicrogridMembershipRqstRdr(ddsEntities.Reader):
-    def __init__(self, participant, reqRes_wtr):
+    def __init__(self, participant, app_state_obj, reqRes_wtr):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_REQUEST_READER)
 
-        self._app_state_obj = None # holds handle to app_state_obj
-        self._my_request_response_wtr = reqRes_wtr
-
-    def setHndlDevIdObj(self, app_state_obj):
         self._app_state_obj = app_state_obj
         
+        self._my_request_response_wtr = reqRes_wtr
+    
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # TODO: check deviceId again known DA's and actual request (JOIN/LEAVE etc)
     # send a response in the application StateMachine to avoid race condition, where
@@ -274,33 +246,38 @@ class MicrogridMembershipRqstRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-        self._app_state_obj.setSendReqResp(True)
+        while (not self._app_state_obj.deviceIdSet()): # ensure the DA has been processed
+            sleep(1)
+
+        self._my_request_response_wtr.write() # send a good response
+        self._app_state_obj.setState(constants.AppState.JOINING_GRID)
         
         
 # Controller/MSM Topic Writer - AKA - MembershipApproval
 class MicrogridMembershipOutcomeWtr(ddsEntities.Writer):
-    def __init__(self, participant, periodic=False, period=0.0):
-        ddsEntities.Writer.__init__(self, participant, periodic, period,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant, False, 0.0,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_WRITER)
 
-    def setHndlDevIdObj(self, app_state_obj):
         self._app_state_obj = app_state_obj
 
     # for Controllers this is called from the Device Announcement Reader after
     # we get the deviceId
-    def setSampleDeviceId(self):
-        self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
-        self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
-        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
-        
+    #    self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
+    #    self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
+    #    self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+
+    
 # Device Topic Reader        
 class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
-    def __init__(self, participant):
+    def __init__(self, participant, app_state_obj):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_TYPE_NAME,
                                     constants.MICROGRID_MEMBERSHIP_OUTCOME_READER)
 
+        self._app_state_obj = app_state_obj
+        
     def update_id_cft(self):
         cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
                                                               constants.MICROGRID_MEMBERSHIP_OUTCOME_CFT)
@@ -316,31 +293,29 @@ class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
         
 # Controller/MSM Topic Writer        
 class SrcTransitionRqstWtr(ddsEntities.Writer):
-    def __init__(self, participant, periodic=False, period=0.0):
-        ddsEntities.Writer.__init__(self, participant, periodic, period,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant, False, 0.0,
                                     constants.SOURCE_TRANSITION_REQUEST_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_REQUEST_WRITER)
 
-        self._app_state_obj = None # holds handle to app_state_obj
-                
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
         self._app_state_obj = app_state_obj
+                
 
     # for Controllers this is called from the Device Announcement Reader after
     # we get the deviceId
-    def setSampleDeviceId(self):
-        self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
-        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+    #    self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
+    #    self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
 
         
 # Device Topic Reader        
 class SrcTransitionRqstRdr(ddsEntities.Reader):
-    def __init__(self, participant):
+    def __init__(self, participant, app_state_obj):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.SOURCE_TRANSITION_REQUEST_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_REQUEST_READER)
 
+        self._app_state_obj = app_state_obj
+        
     def update_id_cft(self):
         cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
                                                               constants.SOURCE_TRANSITION_REQUEST_CFT)
@@ -356,37 +331,30 @@ class SrcTransitionRqstRdr(ddsEntities.Reader):
 
 # Device Topic Writer
 class SrcTransitionStateWtr(ddsEntities.Writer):
-    def __init__(self, participant, periodic=False, period=0.0):
-        ddsEntities.Writer.__init__(self, participant, periodic, period,
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant, False, 0.0,
                                     constants.SOURCE_TRANSITION_STATE_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_STATE_WRITER)
 
-        self._app_state_obj = None # holds handle to app_state_obj
+        self._app_state_obj = app_state_obj
         
     # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
-        self._app_state_obj = app_state_obj
-        # for device Topic Writers, we have the device Id so load the topic sample
-        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
-        self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
+    # for device Topic Writers, we have the device Id so load the topic sample
+    #    self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+    #    self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
 
         
 # Controller/MSM Topic Reader        
 class SrcTransitionStateRdr(ddsEntities.Reader):
-    def __init__(self, participant):
+    def __init__(self, participant, app_state_obj):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.SOURCE_TRANSITION_STATE_TYPE_NAME,
                                     constants.SOURCE_TRANSITION_STATE_READER)
 
-        self._app_state_obj = None # holds handle to app_state_obj
+        self._app_state_obj = app_state_obj
         
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
         print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    def setHndlDevIdObj(self, app_state_obj):
-        self._app_state_obj = app_state_obj
-
 

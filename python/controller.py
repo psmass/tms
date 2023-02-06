@@ -33,34 +33,23 @@ def controller_main(domain_id):
     participant = qos_provider.create_participant_from_config(constants.CONTROLLER_PARTICIPANT_NAME)
 
 
-    # *** DECLARE (FIND) TOPICS for the device (creates: readers, writers, and threads)   
+    # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
+    # (creates: readers, writers, and threads). All request reader topics also need
+    # need the request response writer to post a response.
     # xml app create, so they already exist - here the base clas simply looks
     # up the handles so we can manipulate them.
-    controller_rrm_w = topics.RequestRspMSMSimWtr(participant)
-    controller_rrm_r = topics.RequestRspMSMSimRdr(participant)
-    controller_da_r = topics.DeviceAnnouncementRdr(participant)
-    controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant, controller_rrm_w)
-    controller_mmo_w = topics.MicrogridMembershipOutcomeWtr(participant)
-    controller_str_w = topics.SrcTransitionRqstWtr(participant)
-    controller_sts_r = topics.SrcTransitionStateRdr(participant)
-    # controller_hb_r = topics.HeartbeatRdr(participant) // TODO implemented hb on controller
-
-    # *** DECLARE and ASSIGN APPLICATION SPECIFIC STATE OBJECT
     app_state_obj = topics.ApplicationStateObj(constants.tms_DeviceRole.ROLE_MICROGRID_SYSTEM_MANAGER)
-    # Each controller writer object, needs a handle to the application_state object
-    # to fetch the deviceId needed in commands/responses sent to each device.
-    # Because this is a particular app design choice, so not implemented in
-    # the base class - user impls set_hndl_devIdObj in each topic class in the
-    # topics.py file.
-    controller_rrm_w.setHndlDevIdObj(app_state_obj)
-    controller_mmo_w.setHndlDevIdObj(app_state_obj)    
-    controller_str_w.setHndlDevIdObj(app_state_obj)
 
-    # Controller DA reader and STS topic reader also need access to the
-    # application_state object to set and get deviceId and state respectively
-    controller_da_r.setHndlDevIdObj(app_state_obj)
-    controller_mmr_r.setHndlDevIdObj(app_state_obj)
-    controller_sts_r.setHndlDevIdObj(app_state_obj)
+    controller_rrm_w = topics.RequestRspMSMSimWtr(participant, app_state_obj)
+    controller_rrm_r = topics.RequestRspMSMSimRdr(participant, app_state_obj)
+    controller_da_r = topics.DeviceAnnouncementRdr(participant, app_state_obj)
+    controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant,
+                                                         app_state_obj,
+                                                         controller_rrm_w)
+    controller_mmo_w = topics.MicrogridMembershipOutcomeWtr(participant, app_state_obj)
+    controller_str_w = topics.SrcTransitionRqstWtr(participant, app_state_obj)
+    controller_sts_r = topics.SrcTransitionStateRdr(participant, app_state_obj)
+    # controller_hb_r = topics.HeartbeatRdr(participant) // TODO implemented hb on controller
 
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # controller_rrm_w.start() # start a statuses monitor thread on the DA Writer
@@ -89,19 +78,14 @@ def controller_main(domain_id):
 
         if app_state_obj.myState() == constants.AppState.INIT:
             print("Controller Initializing")
+            # receiving a DA moves us to the next state
 
         elif app_state_obj.myState() == constants.AppState.FOUND_NEW_DEVICE:
             print("Controller Found a New Device")
-            # Controller had to wait for a DA to get the DeviceID
-            # We can now configure the target DeviceID in all our writers
-            # not no harm if we sit here repeating this while in this state
-            # vs. adding an new state
-            controller_rrm_w.setSampleDeviceId()
-            controller_mmo_w.setSampleDeviceId()
-            controller_str_w.setSampleDeviceId()
-            if app_state_obj.sendReqResp:  # wait for request
-                controller_rrm_w.write()   # send response
-                app_state_obj.setState(constants.AppState.POWERING_UP)
+            # receiving an MMR moves us to the next state
+
+        elif app_state_obj.myState() == constants.AppState.JOINING_GRID:
+            print("Controller allowing Device to join the grid")
             
         elif app_state_obj.myState() == constants.AppState.POWERING_UP:
             print("Controller Powering-up device")

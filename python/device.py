@@ -34,32 +34,22 @@ def device_main(domain_id):
     participant = qos_provider.create_participant_from_config(constants.DEVICE_PARTICIPANT_NAME)
 
    
-    # *** DECLARE (FIND) TOPICS for the device (creates: readers, writers, and threads)
+    # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
+    # (creates: readers, writers, and threads). All request reader topics also need
+    # need the request response writer to post a response.
     # xml app create, so they already exist - here the base clas simply looks
     # up the handles so we can manipulate them.
-    device_da_w = topics.DeviceAnnouncementWtr(participant)
-    device_mmr_w = topics.MicrogridMembershipRqstWtr(participant)
-    device_rrd_w = topics.RequestRspDevWtr(participant)
-    device_rrd_r = topics.RequestRspDevRdr(participant)
-    device_mmo_r = topics.MicrogridMembershipOutcomeRdr(participant)
-    device_str_r = topics.SrcTransitionRqstRdr(participant)
-    device_sts_w = topics.SrcTransitionStateWtr(participant)
-    device_hb_w = topics.HeartbeatWtr(participant)
-
-    # *** DECLARE and ASSIGN APPLICATION SPECIFIC APPLICATION STATE  OBJECT
-    # for the device, declare the dev_id_ojb (for the device, this will
-    # also load the deviceId from "EEPROM" or "Flash".
     app_state_obj = topics.ApplicationStateObj(constants.tms_DeviceRole.ROLE_SOURCE)
-    # provide all the device writers with the dev_id_obj so they can get the
-    # deviceId that they will need to populate the tms_fingerprint the send
-    # even though this is common to all writers, it's handled each topic
-    # class in the topics.py file, since it's an application specific impl.
-    device_da_w.setHndlDevIdObj(app_state_obj)
-    device_mmr_w.setHndlDevIdObj(app_state_obj)
-    device_rrd_w.setHndlDevIdObj(app_state_obj)
-    device_sts_w.setHndlDevIdObj(app_state_obj)
-    device_hb_w.setHndlDevIdObj(app_state_obj)
     
+    device_da_w = topics.DeviceAnnouncementWtr(participant, app_state_obj)
+    device_mmr_w = topics.MicrogridMembershipRqstWtr(participant, app_state_obj)
+    device_rrd_w = topics.RequestRspDevWtr(participant, app_state_obj)
+    device_rrd_r = topics.RequestRspDevRdr(participant, app_state_obj)
+    device_mmo_r = topics.MicrogridMembershipOutcomeRdr(participant, app_state_obj)
+    device_str_r = topics.SrcTransitionRqstRdr(participant, app_state_obj)
+    device_sts_w = topics.SrcTransitionStateWtr(participant, app_state_obj)
+    device_hb_w = topics.HeartbeatWtr(participant, app_state_obj)
+
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # device_da_w.start() # start a statuses monitor thread on the DA Writer
     # or...#listener
