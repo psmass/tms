@@ -70,8 +70,51 @@ def controller_main(domain_id):
     controller_mmr_r.start()
     controller_rrm_r.start()
     controller_sts_r.start()
+
+    sleep(5) # wait for threads to spin up and settle printing (output readability)
+
+    # CONTROLLER STATE MACHINE 
+    #
+    # The SM is transitioned by receiving specific commands / responses
+    # while in specific states. An Request Response will not transition
+    # the SM. But must be received and correlated using the sequence
+    # number. It is assumed only one request is allowed to be outstanding
+    # at a time. No further requests may be made until the outstanding
+    # request is cleared (either by receiving a correlated RR or manually
+    # via the app_state_obj.clearOutstandingReq().
+    #
+    # Note - while we might expect an RR to come in before a response
+    # e.g., if we post an STR, we expect a RR followed by a STS. While
+    # both are sent reliably, the order is not guaranteed as the RR
+    # could have gotten lost and need to be resent by DDS.
+    #
+    # The state machine will transition to ERROR if an unexpected command
+    # or response is received (i.e., the SM is not in the proper state
+    # to expect one 
+    #
+    # INIT - Waits for a DA to transition to FOUND_NEW_DEVICE
+    #
+    # FOUND_NEW_DEVICE - fills in DeviceId (from DA) and waits for MMR
+    #
+    # JOINING_GRID - Received MMR, sending MMO, transition to POWERING_UP
+    #
+    # POWERING_UP - Send STR, transition to Steady State
+    #
+    # STEADY_STATE - Controller can have logic here to handle other functions
+    #               In this example we just sit, printing '.'.
+    #               Leave this state by either a new DA (go back to JOINING_GRID
+    #               or CTRL-C for SHUT_DOWN
+    #
+    # SHUT_DOWN     Device has been turned-off (CTRL-C) - Shutdown
+    #
+    # ERROR         For a given state an unexpected command or event
+    #               occured (SM has no basis to select next state)
+    #
+    # else          Logical default if no states were matched, (theortically
+    #               can't occur, unless bug in Device code)
+
+    print("\n\n **** Starting State Machine")
     
-    # *** RUN CONTROLLER STATE MACHINE
     while not shutdown:
         if not application.run_flag:
             app_state_obj.setState(constants.ControllerState.SHUT_DOWN)
@@ -81,14 +124,27 @@ def controller_main(domain_id):
             # receiving a DA moves us to the next state
 
         elif app_state_obj.myState() == constants.ControllerState.FOUND_NEW_DEVICE:
-            print("Controller Found a New Device,awaiting Microgrid JOIN Request")
-            # waiting for MMR moves us to the next state
+            print("Controller Found a New Device, awaiting Microgrid JOIN Request")
+            # waiting for MMR causes RR to be sent (from MMR reader), and MMO, then
+            # the state is set to POWERING_UP
+
+            # at this point we know we received a DA and that the DeviceId has
+            # been loaded into the app_state_obj. So populate remaining writers
+            controller_mmo_w.fillInDevId()
+            controller_str_w.fillInDevId()
 
         elif app_state_obj.myState() == constants.ControllerState.JOINING_GRID:
-            print("Controller allowing Device to join the grid")
-            
+            print("Controller allowing Device to JOIN grid")
+            controller_mmo_w.setResult(constants.tms_MicrogridMembershipResult.MMR_COMPLETE)
+            controller_mmo_w.write()
+            app_state_obj.setState(constants.ControllerState.POWERING_UP)
+                        
         elif app_state_obj.myState() == constants.ControllerState.POWERING_UP:
             print("Controller Powering-up device")
+            controller_str_w.setTransition(constants.tms_SourceTransition.ST_POWER_UP)
+            controller_str_w.write()
+            app_state_obj.setState(constants.ControllerState.STEADY_STATE)
+            
 
         elif app_state_obj.myState() == constants.ControllerState.STEADY_STATE:
             #print("Controller Steady-state - generating power")
@@ -98,11 +154,10 @@ def controller_main(domain_id):
             print("Controller Shutting down")
             shutdown = True
 
-        elif app_state.myState() == constants.ControllerState.ERROR:
+        elif app_state_obj.myState() == constants.ControllerState.ERROR:
             print("ERROR - Unexpected Event, resetting Target Device")
             # TODO: Printout, Device and event
             app_state_obj.setState(constants.ControllerState.STEADY_STATE)
-
 
         else:
             print("Device in undefined state")

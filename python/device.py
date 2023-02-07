@@ -79,7 +79,7 @@ def device_main(domain_id):
     device_mmo_r.start()
     device_str_r.start()
     
-
+    sleep(5) # let threads spin up and settle down (output readabilty)
 
 
     # DEVICE STATE MACHINE 
@@ -124,6 +124,7 @@ def device_main(domain_id):
     #
     # else          Logical default if no states were matched, (theortically
     #               can't occur, unless bug in Device code)
+    print("\n\n **** Starting State Machine")
     
     count_in_state = 0
 
@@ -154,7 +155,7 @@ def device_main(domain_id):
             print("Device Shutting down")
             shutdown = True
                                    
-        elif app_state.myState() == constants.DeviceState.ERROR:
+        elif app_state_obj.myState() == constants.DeviceState.ERROR:
             print("ERROR - Unexpected Event, resetting Device")
             # TODO: Printout currentState, and Event that occurred
             app_state_obj.setState(constants.DeviceState.JOINING_GRID)

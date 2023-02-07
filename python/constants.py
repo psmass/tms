@@ -42,7 +42,23 @@ class tms_MicrogridMembership(IntEnum):
     MM_JOIN = 1
     MM_LEAVE = 2
 
-    
+class tms_MicrogridMembershipResult(IntEnum):
+    MMR_UNINITIALIZED = 0
+    MMR_REPLACED = 1
+    MMR_COMPLETE = 2
+    MMR_BLOCKED = 3
+
+class tms_SourceTransition(IntEnum):
+    ST_UNINITIALIZED = 0
+    ST_NONE = 1
+    ST_POWER_UP = 2
+    ST_POWER_DOWN = 3
+    ST_START = 4
+    ST_STOP = 5
+    ST_CONNECT = 6
+    ST_DISCONNECT = 7
+    ST_JUMP_START = 8
+    ST_RAPID_STOP = 9
 
 
 DEVICE1_ID='00000000000000000000000000001234' # Pretend this was in the device EEPROM

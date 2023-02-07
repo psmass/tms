@@ -305,12 +305,15 @@ class MicrogridMembershipOutcomeWtr(ddsEntities.Writer):
 
         self._app_state_obj = app_state_obj
 
-    # for Controllers this is called from the Device Announcement Reader after
-    # we get the deviceId
-    #    self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
-    #    self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
-    #    self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+    def fillInDevId(self):
+        # for Controllers this is called from the Device Announcement Reader after
+        # we get the deviceId
+        self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
+        self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
 
+    def setResult(self, result):
+        self._sample["result"] = result
     
 # Device MMO Topic Reader        
 class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
@@ -333,6 +336,7 @@ class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
+        self._app_state_obj.setState(constants.DeviceState.WAIT_CMD_IDLE)
 
         
 # Controller/MSM STR Topic Writer        
@@ -344,12 +348,14 @@ class SrcTransitionRqstWtr(ddsEntities.Writer):
 
         self._app_state_obj = app_state_obj
                 
+    def fillInDevId(self):    
+        # for Controllers this is called from the Device Announcement Reader after
+        # we get the deviceId
+        self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
 
-    # for Controllers this is called from the Device Announcement Reader after
-    # we get the deviceId
-    #    self._app_state_obj.setDevIdInSample(self._sample, "requestId.deviceId")
-    #    self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
-
+    def setTransition(self, transition):
+        self._sample["desiredTransition"] = transition
         
 # Device STR Topic Reader        
 class SrcTransitionRqstRdr(ddsEntities.Reader):
