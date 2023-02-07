@@ -82,13 +82,22 @@ SOURCE_TRANSITION_STATE_READER="TMSMSMSimSubscriber1::SourceTransitionStateReade
 
 
 # Application (Controller and Device) State Machine 
-class AppState(IntEnum):
+class ControllerState(IntEnum):
     INIT = 0
-    FOUND_NEW_DEVICE = 1
+    FOUND_NEW_DEVICE = 1 # Controller State Only
     JOINING_GRID = 2
     POWERING_UP = 3
     STEADY_STATE = 4
     SHUT_DOWN = 5
+    ERROR = 6 # received an out of order request
+
+class DeviceState(IntEnum):
+    INIT = 0
+    JOINING_GRID = 1
+    WAIT_CMD_IDLE = 2 # Device State Only
+    POWERING_UP = 3
+    SHUT_DOWN = 4
+    ERROR = 5 # received an out of order request
 
 
 

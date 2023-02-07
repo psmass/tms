@@ -74,29 +74,36 @@ def controller_main(domain_id):
     # *** RUN CONTROLLER STATE MACHINE
     while not shutdown:
         if not application.run_flag:
-            app_state_obj.setState(constants.AppState.SHUT_DOWN)
+            app_state_obj.setState(constants.ControllerState.SHUT_DOWN)
 
-        if app_state_obj.myState() == constants.AppState.INIT:
+        if app_state_obj.myState() == constants.ControllerState.INIT:
             print("Controller Initializing")
             # receiving a DA moves us to the next state
 
-        elif app_state_obj.myState() == constants.AppState.FOUND_NEW_DEVICE:
-            print("Controller Found a New Device")
-            # receiving an MMR moves us to the next state
+        elif app_state_obj.myState() == constants.ControllerState.FOUND_NEW_DEVICE:
+            print("Controller Found a New Device,awaiting Microgrid JOIN Request")
+            # waiting for MMR moves us to the next state
 
-        elif app_state_obj.myState() == constants.AppState.JOINING_GRID:
+        elif app_state_obj.myState() == constants.ControllerState.JOINING_GRID:
             print("Controller allowing Device to join the grid")
             
-        elif app_state_obj.myState() == constants.AppState.POWERING_UP:
+        elif app_state_obj.myState() == constants.ControllerState.POWERING_UP:
             print("Controller Powering-up device")
 
-        elif app_state_obj.myState() == constants.AppState.STEADY_STATE:
-            print("Controller Steady-state - generating power")
+        elif app_state_obj.myState() == constants.ControllerState.STEADY_STATE:
+            #print("Controller Steady-state - generating power")
+            print(".", end="")
 
-        elif app_state_obj.myState() == constants.AppState.SHUT_DOWN:
+        elif app_state_obj.myState() == constants.ControllerState.SHUT_DOWN:
             print("Controller Shutting down")
             shutdown = True
-            
+
+        elif app_state.myState() == constants.ControllerState.ERROR:
+            print("ERROR - Unexpected Event, resetting Target Device")
+            # TODO: Printout, Device and event
+            app_state_obj.setState(constants.ControllerState.STEADY_STATE)
+
+
         else:
             print("Device in undefined state")
 

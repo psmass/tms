@@ -79,35 +79,86 @@ def device_main(domain_id):
     device_mmo_r.start()
     device_str_r.start()
     
-    # *** SEND DEVICE ANNOUNCMENT  & RUN DEVICE STATE MACHINE
-    device_da_w.write() # only need to write this onece since QoS Durable
 
+
+
+    # DEVICE STATE MACHINE 
+    #
+    # The SM is transitioned by receiving specific commands / responses
+    # while in specific states. An Request Response will not transition
+    # the SM. But must be received and correlated using the sequence
+    # number. It is assumed only one request is allowed to be outstanding
+    # at a time. No further requests may be made until the outstanding
+    # request is cleared (either by receiving a correlated RR or manually
+    # via the app_state_obj.clearOutstandingReq().
+    #
+    # Note - while we might expect an RR to come in before a response
+    # e.g., if we post an MMR, we expect a RR followed by a MMO. While
+    # both are sent reliably, the order is not guaranteed as the RR
+    # could have gotten lost and need to be resent by DDS.
+    #
+    # The state machine will transition to ERROR if an unexpected command
+    # or response is received (i.e., the SM is not in the proper state
+    # to expect one - e.g., say an unsolicited MMO comes in, we cannot
+    # assume we sent an MMR and should transition to JOINING_GRID.
+    #
+    # INIT - send DA and transition to JOINING_GRID
+    #
+    # JOINING_GRID - send MMR, wait for MMO, transition to JOINING GRID
+    #
+    # WAIT_CMD_IDLE - Device Received MMO with good Membership Result
+    #                and has joined the grid. It now waits for a command/
+    #                request from the controler. Their should be a state
+    #                for each possible command supported (and a catch-all
+    #                for unsupported commands). 
+    #              - In this example we'll wait for a SourceTransitionRequest
+    #                (STR - ST_POWER_UP) and transiton to POWERING_UP
+    #                The example does not support other transitons, as
+    #                a state would need to be supported for each.
+    # POWERING_UP - RECEIVED STR, handle and return to WAIT_CMD_IDLE
+    #
+    # SHUT_DOWN     Device has been turned-off (CTRL-C) - Shutdown
+    #
+    # ERROR         For a given state an unexpected command or event
+    #               occured (SM has no basis to select next state)
+    #
+    # else          Logical default if no states were matched, (theortically
+    #               can't occur, unless bug in Device code)
+    
     count_in_state = 0
 
     while not shutdown:
         if not application.run_flag:
-            app_state_obj.setState(constants.AppState.SHUT_DOWN)
+            app_state_obj.setState(constants.DeviceState.SHUT_DOWN)
 
-        if app_state_obj.myState() == constants.AppState.INIT:
-            print("Device Initializing")
+        if app_state_obj.myState() == constants.DeviceState.INIT:
+            print("Device Initializing ")
+            device_da_w.write() # only need to write this once since QoS Durable
+            app_state_obj.setState(constants.DeviceState.JOINING_GRID)
+
+        elif app_state_obj.myState() == constants.DeviceState.JOINING_GRID:
+            print("Device asking to join grid")
             count_in_state +=1
             if count_in_state % 5 == 0: # request to membership every 5 sec
                 app_state_obj.clearOutstandingRequest()
                 device_mmr_w.write()
 
-        elif app_state_obj.myState() == constants.AppState.JOINING_GRID:
-            print("Device Joining Grid")
+        elif app_state_obj.myState() == constants.DeviceState.WAIT_CMD_IDLE:
+            # print("Device awating command")
+            print(".", end="")
                 
-        elif app_state_obj.myState() == constants.AppState.POWERING_UP:
+        elif app_state_obj.myState() == constants.DeviceState.POWERING_UP:
             print("Device Powering-up and on-line")
 
-        elif app_state_obj.myState() == constants.AppState.STEADY_STATE:
-            print("Device Steady-state - generating power")
-
-        elif app_state_obj.myState() == constants.AppState.SHUT_DOWN:
+        elif app_state_obj.myState() == constants.DeviceState.SHUT_DOWN:
             print("Device Shutting down")
             shutdown = True
-            
+                                   
+        elif app_state.myState() == constants.DeviceState.ERROR:
+            print("ERROR - Unexpected Event, resetting Device")
+            # TODO: Printout currentState, and Event that occurred
+            app_state_obj.setState(constants.DeviceState.JOINING_GRID)
+
         else:
             print("Device in undefined state")
         

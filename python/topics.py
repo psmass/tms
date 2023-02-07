@@ -50,7 +50,8 @@ class ApplicationStateObj():
     def __init__(self, role):
         self._role = role
         self._deviceId = bytearray(32)
-        self._application_state = constants.AppState.INIT
+        self._device_state = constants.DeviceState.INIT
+        self._application_state = constants.ControllerState.INIT
         self._controller_rcvd_da = False
         self._deviceIdSet = False # flag to send a ReqResp in response to request
         self._sequenceNumber = 0 # unique sequence number for request/response
@@ -162,7 +163,7 @@ class RequestRspDevRdr(ddsEntities.Reader):
         if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.sequenceNumber():
             print("RRD_RDR - request responded")
             self._app_state_obj.clearOutstandingRequest()
-            self._app_state_obj.setState(constants.AppState.JOINING_GRID)
+            # self._app_state_obj.setState(constants.DeviceState.JOINING_GRID)
 
             
 # Controller/MSM RRM Topic Writer
@@ -235,7 +236,7 @@ class DeviceAnnouncementRdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
-        self._app_state_obj.setState( constants.AppState.FOUND_NEW_DEVICE)
+        self._app_state_obj.setState( constants.ControllerState.FOUND_NEW_DEVICE)
 
         
 # Device Topic MMR Writer        
@@ -292,7 +293,7 @@ class MicrogridMembershipRqstRdr(ddsEntities.Reader):
 
         req_sequence_no = data["requestId.sequenceNumber"]
         self._my_request_response_wtr.write(req_sequence_no) # send a good response
-        self._app_state_obj.setState(constants.AppState.JOINING_GRID)
+        self._app_state_obj.setState(constants.ControllerState.JOINING_GRID)
         
         
 # Controller/MSM MMO Topic Writer - AKA - MembershipApproval
