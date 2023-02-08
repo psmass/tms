@@ -76,12 +76,12 @@ def controller_main(domain_id):
     # CONTROLLER STATE MACHINE 
     #
     # The SM is transitioned by receiving specific commands / responses
-    # while in specific states. An Request Response will not transition
-    # the SM. But must be received and correlated using the sequence
-    # number. It is assumed only one request is allowed to be outstanding
-    # at a time. No further requests may be made until the outstanding
-    # request is cleared (either by receiving a correlated RR or manually
-    # via the app_state_obj.clearOutstandingReq().
+    # while in specific states (or from a specific state). A Request Response
+    # will not transition the SM. But must be received and correlated using
+    # the sequence  number. It is assumed only one request is allowed to be
+    # outstanding at a time. No further requests may be made until the
+    # outstanding request is cleared (either by receiving a correlated RR
+    # or manually via the app_state_obj.clearOutstandingReq().)
     #
     # Note - while we might expect an RR to come in before a response
     # e.g., if we post an STR, we expect a RR followed by a STS. While
@@ -90,7 +90,7 @@ def controller_main(domain_id):
     #
     # The state machine will transition to ERROR if an unexpected command
     # or response is received (i.e., the SM is not in the proper state
-    # to expect one 
+    # to expect one) 
     #
     # INIT - Waits for a DA to transition to FOUND_NEW_DEVICE
     #
@@ -111,7 +111,7 @@ def controller_main(domain_id):
     #               occured (SM has no basis to select next state)
     #
     # else          Logical default if no states were matched, (theortically
-    #               can't occur, unless bug in Device code)
+    #               can't occur, unless bug in Controller code)
 
     print("\n\n **** Starting State Machine")
     

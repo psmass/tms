@@ -50,7 +50,10 @@ class ApplicationStateObj():
     def __init__(self, role):
         self._role = role
         self._deviceId = bytearray(32)
-        self._device_state = constants.DeviceState.INIT
+        # track device source transition, send STS on change (when ever they are different)
+        self._device_source_transition_state = constants.tms_SourceTransition.ST_UNINITIALIZED
+        self._requested_device_source_transition_state = constants.tms_SourceTransition.ST_UNINITIALIZED
+
         self._application_state = constants.ControllerState.INIT
         self._controller_rcvd_da = False
         self._deviceIdSet = False # flag to send a ReqResp in response to request
@@ -72,7 +75,6 @@ class ApplicationStateObj():
         if not self._outstandingRequest:
             self._sequenceNumber +=1
             self._outstandingRequest = True
-            print("********* Sequence Number: ", self._sequenceNumber)
         return self._sequenceNumber
 
     def outstandingRequest(self):
@@ -82,7 +84,7 @@ class ApplicationStateObj():
         self._outstandingRequest=False
         
     def print_device_id(self):
-        print("Loading devices ID: ", end="")
+        print("Device ID: ", end="")
         for idx in range(constants.tms_LEN_FINGERPRINT):
             print (self._deviceId[idx], end="")
         
@@ -118,6 +120,25 @@ class ApplicationStateObj():
             deviceIdStr=idStrName+"["+str(idx)+"]"
             sample[deviceIdStr]=int(x)
 
+    def setDevReqSrcXitionState(self, newState):
+        self._requested_device_source_transition_state = newState
+
+    def devSrcState(self):
+        return self._device_source_transition_state
+
+    def setDevSrcState(self, srcState):
+        self._device_source_transition_state=srcState
+
+    def devSrcXitionStateChange(self):
+        change = False
+        if self._device_source_transition_state != \
+            self._requested_device_source_transition_state:
+            # set them equal
+            self._device_source_transition_state = \
+            self._requested_device_source_transition_state
+            change = True
+        return change
+    
 
 # Device HB Topic Writer
 class HeartbeatWtr(ddsEntities.Writer): 
@@ -138,7 +159,14 @@ class RequestRspDevWtr(ddsEntities.Writer):
 
         self._app_state_obj = app_state_obj
 
+    def write(self, req_seq_no): # override default writer
+        print("Writing ReqRes (Device)", self._topic_type_name)
+        # set the Id field - we do this each time we write
+        self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
+        self._sample["relatedRequestId.sequenceNumber"]=req_seq_no
+        self._writer.write(self._sample)
 
+        
 # Device RRD Topic Reader        
 class RequestRspDevRdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj):
@@ -158,7 +186,7 @@ class RequestRspDevRdr(ddsEntities.Reader):
     
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
-        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         # print (data, end="", flush=True)
         if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.sequenceNumber():
             print("RRD_RDR - request responded")
@@ -194,7 +222,7 @@ class RequestRspMSMSimRdr(ddsEntities.Reader):
         
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
-        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         
 
@@ -232,7 +260,7 @@ class DeviceAnnouncementRdr(ddsEntities.Reader):
     # For the DA Reader, we extract the DeviceId and save it in our app_state_obj
     # to track this device and send requests to it.
     def handler(self, data):
-        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
@@ -279,7 +307,7 @@ class MicrogridMembershipRqstRdr(ddsEntities.Reader):
     # a DA quickly followed by a MMR comes in. If we respond too quickly, the writer
     # target DeviceId is not yet set in the sample.
     def handler(self, data):
-        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         while (not self._app_state_obj.deviceIdSet()): # ensure the DA has been processed
             sleep(1)
@@ -334,7 +362,7 @@ class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
 
         # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
-        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         self._app_state_obj.setState(constants.DeviceState.WAIT_CMD_IDLE)
 
@@ -378,9 +406,14 @@ class SrcTransitionRqstRdr(ddsEntities.Reader):
         
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
-        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("Received sample for topic {r_name} {ns_name}".\
+               format(r_name=self._reader_name, ns_name=data["desiredTransition"]))
         #print (data, end="", flush=True)
-
+        req_sequence_no = data["requestId.sequenceNumber"]
+        self._app_state_obj.setDevReqSrcXitionState(data["desiredTransition"])
+        self._my_request_response_wtr.write(req_sequence_no) # send a good response
+        self._app_state_obj.setState(constants.ControllerState.POWERING_UP)
+         
 
 # Device STS Topic Writer
 class SrcTransitionStateWtr(ddsEntities.Writer):
@@ -391,10 +424,17 @@ class SrcTransitionStateWtr(ddsEntities.Writer):
 
         self._app_state_obj = app_state_obj
         
-    # Used to give the handle to the DeviceIdState Obj above to writer objects
-    # for device Topic Writers, we have the device Id so load the topic sample
-    #    self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
-    #    self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
+        # Used to give the handle to the DeviceIdState Obj above to writer objects
+        # for device Topic Writers, we have the device Id so load the topic sample
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+        self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
+
+    def write(self):
+        print("Writing STS - On Change: ", self._app_state_obj.devSrcState())
+        self._sample["presentState"] = self._app_state_obj.devSrcState()
+        self._sample["futureState"] = self._app_state_obj.devSrcState()
+        self._writer.write(self._sample)
+
 
         
 # Controller/MSM STS Topic Reader        
@@ -408,6 +448,11 @@ class SrcTransitionStateRdr(ddsEntities.Reader):
         
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
-        print ("Recieved sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("Received sample for topic {r_name} {ns_name}". \
+               format(r_name=self._reader_name, ns_name=data["presentState"]))
+        self._app_state_obj.setDevSrcState(data["presentState"])
+        self._app_state_obj.print_device_id()
+        print("State: ", self._app_state_obj.devSrcState())
         #print (data, end="", flush=True)
+        
 

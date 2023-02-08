@@ -85,12 +85,12 @@ def device_main(domain_id):
     # DEVICE STATE MACHINE 
     #
     # The SM is transitioned by receiving specific commands / responses
-    # while in specific states. An Request Response will not transition
-    # the SM. But must be received and correlated using the sequence
-    # number. It is assumed only one request is allowed to be outstanding
-    # at a time. No further requests may be made until the outstanding
-    # request is cleared (either by receiving a correlated RR or manually
-    # via the app_state_obj.clearOutstandingReq().
+    # while in specific states (or from a specific state). A Request Response
+    # will not transition the SM. But must be received and correlated using
+    # the sequence  number. It is assumed only one request is allowed to be
+    # outstanding at a time. No further requests may be made until the
+    # outstanding request is cleared (either by receiving a correlated RR
+    # or manually via the app_state_obj.clearOutstandingReq().)
     #
     # Note - while we might expect an RR to come in before a response
     # e.g., if we post an MMR, we expect a RR followed by a MMO. While
@@ -100,7 +100,7 @@ def device_main(domain_id):
     # The state machine will transition to ERROR if an unexpected command
     # or response is received (i.e., the SM is not in the proper state
     # to expect one - e.g., say an unsolicited MMO comes in, we cannot
-    # assume we sent an MMR and should transition to JOINING_GRID.
+    # assume we sent an MMR and should transition to JOINING_GRID.)
     #
     # INIT - send DA and transition to JOINING_GRID
     #
@@ -115,6 +115,7 @@ def device_main(domain_id):
     #                (STR - ST_POWER_UP) and transiton to POWERING_UP
     #                The example does not support other transitons, as
     #                a state would need to be supported for each.
+    #
     # POWERING_UP - RECEIVED STR, handle and return to WAIT_CMD_IDLE
     #
     # SHUT_DOWN     Device has been turned-off (CTRL-C) - Shutdown
@@ -124,6 +125,7 @@ def device_main(domain_id):
     #
     # else          Logical default if no states were matched, (theortically
     #               can't occur, unless bug in Device code)
+    
     print("\n\n **** Starting State Machine")
     
     count_in_state = 0
@@ -149,7 +151,11 @@ def device_main(domain_id):
             print(".", end="")
                 
         elif app_state_obj.myState() == constants.DeviceState.POWERING_UP:
-            print("Device Powering-up and on-line")
+            print("Device POWERED_UP as Requested")
+            # publish an STS if new state asked for 
+            if app_state_obj.devSrcXitionStateChange():
+                device_sts_w.write()
+            app_state_obj.setState(constants.DeviceState.WAIT_CMD_IDLE) # return idle
 
         elif app_state_obj.myState() == constants.DeviceState.SHUT_DOWN:
             print("Device Shutting down")
