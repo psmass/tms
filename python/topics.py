@@ -70,16 +70,16 @@ class ApplicationStateObj():
             self._deviceIdSet = True # not really used by Device
             self.print_device_id()
 
+    def appState(self):
+        return self._application_state
+
+    def setAppState(self, state):
+        self._application_state = state
+
     def sequenceNumber(self):
         self._sequenceNumber +=1
         return self._sequenceNumber
 
-    def outstandingRequest(self):
-        return self._outstandingRequest
-
-    def clearOutstandingRequest(self):
-        self._outstandingRequest=False
- 
     # Unique Sequence number used to correlate requests/responses
     # returns either the current sequence number outstanding or the next for use
     def rrSequenceNumber(self):
@@ -87,7 +87,13 @@ class ApplicationStateObj():
             self._rrSequenceNumber = self.sequenceNumber()
             self._outstandingRequest = True
         return self._rrSequenceNumber
-        
+
+    def outstandingRequest(self):
+        return self._outstandingRequest
+
+    def clearOutstandingRequest(self):
+        self._outstandingRequest=False
+ 
         
     def print_device_id(self):
         print("Device ID: ", end="")
@@ -107,12 +113,6 @@ class ApplicationStateObj():
 
     def deviceId(self):
         return self._deviceId
-
-    def appState(self):
-        return self._application_state
-
-    def setAppState(self, state):
-        self._application_state = state
 
     # Used by controller to ensure DA was processed before sending ReqResp w/targetID
     def deviceIdSet(self):
@@ -200,7 +200,7 @@ class RequestRspDevRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         # print (data, end="", flush=True)
-        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.rrSequenceNumber():
+        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj._rrSequenceNumber:
             print("RRD_RDR - request responded")
             self._app_state_obj.clearOutstandingRequest()
 
@@ -235,7 +235,7 @@ class RequestRspMSMSimRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.rrSequenceNumber():
+        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj._rrSequenceNumber:
             print("RRM_RDR - request responded")
             self._app_state_obj.clearOutstandingRequest()
         
@@ -325,13 +325,6 @@ class MicrogridMembershipRqstRdr(ddsEntities.Reader):
         while (not self._app_state_obj.deviceIdSet()): # ensure the DA has been processed
             sleep(1)
 
-        # The Controller can receive DA and MMR right on top of eachother, not a problem,
-        # but the Controller DA Reader will set the app_state = FOUND_NEW_DEVICE, then
-        # MMR will set app_state = JOINING_GRID, since the State Machine runs with a 1 sec
-        # sleep between states, we can jump from INIT to JOINING_GRID w/o
-        # Transitioning through FOUND_NEW_DEVICE
-        sleep(1) # force the Controller SM to go through FOUND_NEW_DEVICE STATE
-
         req_sequence_no = data["requestId.sequenceNumber"]
         self._my_request_response_wtr.write(req_sequence_no) # send a good response
         self._app_state_obj.setAppState(constants.ControllerState.JOINING_GRID)
@@ -378,7 +371,7 @@ class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-        self._app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE)
+        self._app_state_obj.setAppState(constants.DeviceState.JOINED_GRID)
 
         
 # Controller/MSM STR Topic Writer        
@@ -434,7 +427,7 @@ class SrcTransitionRqstRdr(ddsEntities.Reader):
         req_sequence_no = data["requestId.sequenceNumber"]
         self._app_state_obj.setDevReqSrcXitionState(data["desiredTransition"])
         self._my_request_response_wtr.write(req_sequence_no) # send a good response
-        self._app_state_obj.setAppState(constants.ControllerState.POWERING_UP)
+        self._app_state_obj.setAppState(constants.DeviceState.POWERING_UP)
          
 
 # Device STS Topic Writer
@@ -475,4 +468,5 @@ class SrcTransitionStateRdr(ddsEntities.Reader):
         self._app_state_obj.print_device_id()
         print("State: ", self._app_state_obj.devSrcState())
         #print (data, end="", flush=True)
+ 
         

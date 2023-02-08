@@ -68,10 +68,6 @@ def device_main(domain_id):
     # or..listener
     device_sts_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
                                     dds.StatusMask.ALL)                                   
-    # device_hb.start()# start a statuses monitor thread on Writer
-    # or..listener
-    device_hb_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
-                                    dds.StatusMask.ALL)                                   
 
     # *** START READER THREADS (Reads data and monitors statuses)
     device_rrd_r.start()
@@ -143,8 +139,12 @@ def device_main(domain_id):
                 print("Device asking to join grid")
                 app_state_obj.clearOutstandingRequest()
                 device_mmr_w.write()
-                device_hb_w.start() # start sending heartbeats
 
+        elif app_state_obj.appState() == constants.DeviceState.JOINED_GRID:
+            print("Device Joined Grid - start HB")
+            device_hb_w.start() # start sending heartbeats
+            app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE) # return idle
+            
         elif app_state_obj.appState() == constants.DeviceState.WAIT_CMD_IDLE:
             #print("Device awating command")
             print(".", end="", flush=True)

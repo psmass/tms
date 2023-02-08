@@ -131,10 +131,11 @@ class ControllerState(IntEnum):
 class DeviceState(IntEnum):
     INIT = 0
     JOINING_GRID = 1
-    WAIT_CMD_IDLE = 2 # Device State Only
-    POWERING_UP = 3
-    SHUT_DOWN = 4
-    ERROR = 5 # received an out of order request
+    JOINED_GRID = 2
+    WAIT_CMD_IDLE = 3 # Device State Only
+    POWERING_UP = 4
+    SHUT_DOWN = 5
+    ERROR = 6 # received an out of order request
 
 
 

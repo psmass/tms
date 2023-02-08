@@ -129,6 +129,8 @@ def controller_main(domain_id):
 
             # at this point we know we received a DA and that the DeviceId has
             # been loaded into the app_state_obj. So populate remaining writers
+            # if a new DA came in to reset to this state
+            app_state_obj.clearOutstandingRequest() 
             controller_mmo_w.fillInDevId()
             controller_str_w.fillInDevId()
 
