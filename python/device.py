@@ -132,45 +132,43 @@ def device_main(domain_id):
 
     while not shutdown:
         if not application.run_flag:
-            app_state_obj.setState(constants.DeviceState.SHUT_DOWN)
+            app_state_obj.setAppState(constants.DeviceState.SHUT_DOWN)
 
-        if app_state_obj.myState() == constants.DeviceState.INIT:
+        if app_state_obj.appState() == constants.DeviceState.INIT:
             print("Device Initializing ")
             device_da_w.write() # only need to write this once since QoS Durable
-            app_state_obj.setState(constants.DeviceState.JOINING_GRID)
+            app_state_obj.setAppState(constants.DeviceState.JOINING_GRID)
 
-        elif app_state_obj.myState() == constants.DeviceState.JOINING_GRID:
-            print("Device asking to join grid")
+        elif app_state_obj.appState() == constants.DeviceState.JOINING_GRID:
             count_in_state +=1
             if count_in_state % 5 == 0: # request to membership every 5 sec
+                print("Device asking to join grid")
                 app_state_obj.clearOutstandingRequest()
                 device_mmr_w.write()
 
-        elif app_state_obj.myState() == constants.DeviceState.WAIT_CMD_IDLE:
-            # print("Device awating command")
-            print(".", end="")
+        elif app_state_obj.appState() == constants.DeviceState.WAIT_CMD_IDLE:
+            #print("Device awating command")
+            print(".", end="", flush=True)
                 
-        elif app_state_obj.myState() == constants.DeviceState.POWERING_UP:
+        elif app_state_obj.appState() == constants.DeviceState.POWERING_UP:
             print("Device POWERED_UP as Requested")
             # publish an STS if new state asked for 
             if app_state_obj.devSrcXitionStateChange():
                 device_sts_w.write()
-            app_state_obj.setState(constants.DeviceState.WAIT_CMD_IDLE) # return idle
+            app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE) # return idle
 
-        elif app_state_obj.myState() == constants.DeviceState.SHUT_DOWN:
+        elif app_state_obj.appState() == constants.DeviceState.SHUT_DOWN:
             print("Device Shutting down")
             shutdown = True
                                    
-        elif app_state_obj.myState() == constants.DeviceState.ERROR:
+        elif app_state_obj.appState() == constants.DeviceState.ERROR:
             print("ERROR - Unexpected Event, resetting Device")
             # TODO: Printout currentState, and Event that occurred
-            app_state_obj.setState(constants.DeviceState.JOINING_GRID)
+            app_state_obj.setAppState(constants.DeviceState.JOINING_GRID)
 
         else:
             print("Device in undefined state")
         
-        # print a background idle '.'
-        print(".", end='', flush=True)
         sleep(1)
 
     # ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT

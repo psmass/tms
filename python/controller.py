@@ -117,13 +117,13 @@ def controller_main(domain_id):
     
     while not shutdown:
         if not application.run_flag:
-            app_state_obj.setState(constants.ControllerState.SHUT_DOWN)
+            app_state_obj.setAppState(constants.ControllerState.SHUT_DOWN)
 
-        if app_state_obj.myState() == constants.ControllerState.INIT:
+        if app_state_obj.appState() == constants.ControllerState.INIT:
             print("Controller Initializing")
             # receiving a DA moves us to the next state
 
-        elif app_state_obj.myState() == constants.ControllerState.FOUND_NEW_DEVICE:
+        elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
             print("Controller Found a New Device, awaiting Microgrid JOIN Request")
             # waiting for MMR causes RR to be sent (from MMR reader), and MMO, then
             # the state is set to POWERING_UP
@@ -133,37 +133,35 @@ def controller_main(domain_id):
             controller_mmo_w.fillInDevId()
             controller_str_w.fillInDevId()
 
-        elif app_state_obj.myState() == constants.ControllerState.JOINING_GRID:
+        elif app_state_obj.appState() == constants.ControllerState.JOINING_GRID:
             print("Controller allowing Device to JOIN grid")
             controller_mmo_w.setResult(constants.tms_MicrogridMembershipResult.MMR_COMPLETE)
             controller_mmo_w.write()
-            app_state_obj.setState(constants.ControllerState.POWERING_UP)
+            app_state_obj.setAppState(constants.ControllerState.POWERING_UP)
                         
-        elif app_state_obj.myState() == constants.ControllerState.POWERING_UP:
+        elif app_state_obj.appState() == constants.ControllerState.POWERING_UP:
             print("Controller Powering-up device")
             controller_str_w.setTransition(constants.tms_SourceTransition.ST_POWER_UP)
             controller_str_w.write()
-            app_state_obj.setState(constants.ControllerState.STEADY_STATE)
+            app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
             
 
-        elif app_state_obj.myState() == constants.ControllerState.STEADY_STATE:
+        elif app_state_obj.appState() == constants.ControllerState.STEADY_STATE:
             #print("Controller Steady-state - generating power")
-            print(".", end="")
+            print(".", end="", flush=True)
 
-        elif app_state_obj.myState() == constants.ControllerState.SHUT_DOWN:
+        elif app_state_obj.appState() == constants.ControllerState.SHUT_DOWN:
             print("Controller Shutting down")
             shutdown = True
 
-        elif app_state_obj.myState() == constants.ControllerState.ERROR:
+        elif app_state_obj.appState() == constants.ControllerState.ERROR:
             print("ERROR - Unexpected Event, resetting Target Device")
             # TODO: Printout, Device and event
-            app_state_obj.setState(constants.ControllerState.STEADY_STATE)
+            app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
 
         else:
             print("Device in undefined state")
 
-        # print a background idle '.'
-        print(".", end='', flush=True)
         sleep(1)
 
     # ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT

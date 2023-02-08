@@ -103,10 +103,10 @@ class ApplicationStateObj():
     def deviceId(self):
         return self._deviceId
 
-    def myState(self):
+    def appState(self):
         return self._application_state
 
-    def setState(self, state):
+    def setAppState(self, state):
         self._application_state = state
 
     # Used by controller to ensure DA was processed before sending ReqResp w/targetID
@@ -191,7 +191,7 @@ class RequestRspDevRdr(ddsEntities.Reader):
         if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.sequenceNumber():
             print("RRD_RDR - request responded")
             self._app_state_obj.clearOutstandingRequest()
-            # self._app_state_obj.setState(constants.DeviceState.JOINING_GRID)
+
 
             
 # Controller/MSM RRM Topic Writer
@@ -264,7 +264,7 @@ class DeviceAnnouncementRdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
-        self._app_state_obj.setState( constants.ControllerState.FOUND_NEW_DEVICE)
+        self._app_state_obj.setAppState( constants.ControllerState.FOUND_NEW_DEVICE)
 
         
 # Device Topic MMR Writer        
@@ -321,7 +321,7 @@ class MicrogridMembershipRqstRdr(ddsEntities.Reader):
 
         req_sequence_no = data["requestId.sequenceNumber"]
         self._my_request_response_wtr.write(req_sequence_no) # send a good response
-        self._app_state_obj.setState(constants.ControllerState.JOINING_GRID)
+        self._app_state_obj.setAppState(constants.ControllerState.JOINING_GRID)
         
         
 # Controller/MSM MMO Topic Writer - AKA - MembershipApproval
@@ -364,7 +364,7 @@ class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-        self._app_state_obj.setState(constants.DeviceState.WAIT_CMD_IDLE)
+        self._app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE)
 
         
 # Controller/MSM STR Topic Writer        
@@ -412,7 +412,7 @@ class SrcTransitionRqstRdr(ddsEntities.Reader):
         req_sequence_no = data["requestId.sequenceNumber"]
         self._app_state_obj.setDevReqSrcXitionState(data["desiredTransition"])
         self._my_request_response_wtr.write(req_sequence_no) # send a good response
-        self._app_state_obj.setState(constants.ControllerState.POWERING_UP)
+        self._app_state_obj.setAppState(constants.ControllerState.POWERING_UP)
          
 
 # Device STS Topic Writer
