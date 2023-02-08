@@ -32,7 +32,6 @@ def device_main(domain_id):
     # *** STANDUP PARTICIPANT WITH READERS AND WRITERS XML APP CREATE
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(constants.DEVICE_PARTICIPANT_NAME)
-
    
     # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
     # (creates: readers, writers, and threads). All request reader topics also need
@@ -80,7 +79,6 @@ def device_main(domain_id):
     device_str_r.start()
     
     sleep(5) # let threads spin up and settle down (output readabilty)
-
 
     # DEVICE STATE MACHINE 
     #
@@ -145,6 +143,7 @@ def device_main(domain_id):
                 print("Device asking to join grid")
                 app_state_obj.clearOutstandingRequest()
                 device_mmr_w.write()
+                device_hb_w.start() # start sending heartbeats
 
         elif app_state_obj.appState() == constants.DeviceState.WAIT_CMD_IDLE:
             #print("Device awating command")
@@ -176,7 +175,7 @@ def device_main(domain_id):
     # device_mmr_w.join() # uncomment if Thread Monitor vs. Listener used
     # device_rrd_w.join() # uncomment if Thread Monitor vs. Listener used
     # device_sts_w.join() # uncomment if Thread Monitor vs. Listener used
-    # device_hb_w.join() # uncomment if Thread Monitor vs. Listener used
+    device_hb_w.join() # uncomment if Thread Monitor vs. Listener used
     device_rrd_r.join()
     device_mmo_r.join()
     device_str_r.join()

@@ -66,12 +66,11 @@ class Writer(threading.Thread):
                 if dds.StatusMask.PUBLICATION_MATCHED in status_mask:
                     print("Writer Subs: {0} {1}".format(st.current_count, st.current_count_change))
             elif self._periodic:  # no active condition, check if periodic
-                print(self._periodic)
                 self.write()
     
     # Optionally overload write specific topic
     def write(self):
-        print("Writing (Default Writer) - ", self._topic_type_name)
+        # print("Writing (Default Writer) - ", self._topic_type_name) 
         self._writer.write(self._sample)
         
     @property

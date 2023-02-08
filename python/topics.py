@@ -57,7 +57,8 @@ class ApplicationStateObj():
         self._application_state = constants.ControllerState.INIT
         self._controller_rcvd_da = False
         self._deviceIdSet = False # flag to send a ReqResp in response to request
-        self._sequenceNumber = 0 # unique sequence number for request/response
+        self._sequenceNumber = 0  # unique running sequence number
+        self._rrSequenceNumber = self._sequenceNumber  # sequenceNumber of outstanding Request 
         self._outstandingRequest = False
         
         if (self._role != constants.tms_DeviceRole.ROLE_MICROGRID_CONTROLLER and
@@ -69,12 +70,8 @@ class ApplicationStateObj():
             self._deviceIdSet = True # not really used by Device
             self.print_device_id()
 
-    # Unique Sequence number used to correlate requests/responses
-    # returns either the current sequence number outstanding or the next for use
     def sequenceNumber(self):
-        if not self._outstandingRequest:
-            self._sequenceNumber +=1
-            self._outstandingRequest = True
+        self._sequenceNumber +=1
         return self._sequenceNumber
 
     def outstandingRequest(self):
@@ -82,6 +79,15 @@ class ApplicationStateObj():
 
     def clearOutstandingRequest(self):
         self._outstandingRequest=False
+ 
+    # Unique Sequence number used to correlate requests/responses
+    # returns either the current sequence number outstanding or the next for use
+    def rrSequenceNumber(self):
+        if not self._outstandingRequest:
+            self._rrSequenceNumber = self.sequenceNumber()
+            self._outstandingRequest = True
+        return self._rrSequenceNumber
+        
         
     def print_device_id(self):
         print("Device ID: ", end="")
@@ -90,7 +96,6 @@ class ApplicationStateObj():
         
         print() # newline
            
-
     # used by the controller to set the deviceID upon receiveing DA
     # Calling this also changes the Controllers state from INIT to FOUND_DEVICE
     def setDevId(self, deviceId ):
@@ -146,8 +151,15 @@ class HeartbeatWtr(ddsEntities.Writer):
         ddsEntities.Writer.__init__(self, participant, True, constants.HEARTBEAT_PERIOD,
                                     constants.HEARTBEAT_TYPE_NAME,
                                     constants.HEARTBEAT_WRITER)
-        
+
         self._app_state_obj = app_state_obj
+
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+        
+
+    def write(self): # need to overload to add sequence #
+        self._sample["sequenceNumber"]=self._app_state_obj.sequenceNumber()
+        self._writer.write(self._sample)
         
 
 # Device RRD Topic Writer        
@@ -188,12 +200,11 @@ class RequestRspDevRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         # print (data, end="", flush=True)
-        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.sequenceNumber():
+        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.rrSequenceNumber():
             print("RRD_RDR - request responded")
             self._app_state_obj.clearOutstandingRequest()
 
-
-            
+      
 # Controller/MSM RRM Topic Writer
 class RequestRspMSMSimWtr(ddsEntities.Writer):
     def __init__(self, participant, app_state_obj):
@@ -224,6 +235,9 @@ class RequestRspMSMSimRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
+        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.rrSequenceNumber():
+            print("RRM_RDR - request responded")
+            self._app_state_obj.clearOutstandingRequest()
         
 
 # Device DA Topic Writer        
@@ -284,13 +298,12 @@ class MicrogridMembershipRqstWtr(ddsEntities.Writer):
     def write(self):
         if not self._app_state_obj.outstandingRequest():
             print("Writing ", self._topic_type_name)
-            self._sample["requestId.sequenceNumber"]=self._app_state_obj.sequenceNumber()
+            self._sample["requestId.sequenceNumber"]=self._app_state_obj.rrSequenceNumber()
             self._writer.write(self._sample)
         else:
             print("** Application Error - Attempting to send a request while one is outstanding") 
         
-
-        
+    
 # Controller/MSM MMR Topic Reader - all request Readers have to issue a requestResponse       
 class MicrogridMembershipRqstRdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj, reqRes_wtr):
@@ -342,7 +355,8 @@ class MicrogridMembershipOutcomeWtr(ddsEntities.Writer):
 
     def setResult(self, result):
         self._sample["result"] = result
-    
+
+        
 # Device MMO Topic Reader        
 class MicrogridMembershipOutcomeRdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj):
@@ -384,6 +398,15 @@ class SrcTransitionRqstWtr(ddsEntities.Writer):
 
     def setTransition(self, transition):
         self._sample["desiredTransition"] = transition
+
+    def write(self):
+        if not self._app_state_obj.outstandingRequest():
+            print("Writing ", self._topic_type_name)
+            self._sample["requestId.sequenceNumber"]=self._app_state_obj.rrSequenceNumber()
+            self._writer.write(self._sample)
+        else:
+            print("** Application Error - Attempting to send a request while one is outstanding") 
+
         
 # Device STR Topic Reader        
 class SrcTransitionRqstRdr(ddsEntities.Reader):
@@ -402,8 +425,7 @@ class SrcTransitionRqstRdr(ddsEntities.Reader):
         cft_topic.filter_parameters = [str(device_id[28]), str(device_id[29]),
                                        str(device_id[30]), str(device_id[31])]
         print("STR_RDR: CFT ID installed")
-
-        
+     
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
         print ("Received sample for topic {r_name} {ns_name}".\
@@ -435,7 +457,6 @@ class SrcTransitionStateWtr(ddsEntities.Writer):
         self._sample["futureState"] = self._app_state_obj.devSrcState()
         self._writer.write(self._sample)
 
-
         
 # Controller/MSM STS Topic Reader        
 class SrcTransitionStateRdr(ddsEntities.Reader):
@@ -455,4 +476,3 @@ class SrcTransitionStateRdr(ddsEntities.Reader):
         print("State: ", self._app_state_obj.devSrcState())
         #print (data, end="", flush=True)
         
-

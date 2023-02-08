@@ -32,7 +32,6 @@ def controller_main(domain_id):
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(constants.CONTROLLER_PARTICIPANT_NAME)
 
-
     # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
     # (creates: readers, writers, and threads). All request reader topics also need
     # need the request response writer to post a response.
@@ -144,7 +143,6 @@ def controller_main(domain_id):
             controller_str_w.setTransition(constants.tms_SourceTransition.ST_POWER_UP)
             controller_str_w.write()
             app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
-            
 
         elif app_state_obj.appState() == constants.ControllerState.STEADY_STATE:
             #print("Controller Steady-state - generating power")
