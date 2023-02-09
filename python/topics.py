@@ -152,12 +152,15 @@ class HeartbeatWtr(ddsEntities.Writer):
                                     constants.HEARTBEAT_TYPE_NAME,
                                     constants.HEARTBEAT_WRITER)
 
+        self._thread_started = False
         self._app_state_obj = app_state_obj
 
         self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
         
 
     def write(self): # need to overload to add sequence #
+        # A write is only called from a thread
+        self._thread_started = True
         self._sample["sequenceNumber"]=self._app_state_obj.sequenceNumber()
         self._writer.write(self._sample)
         

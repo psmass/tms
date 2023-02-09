@@ -24,30 +24,27 @@
 
 # If undefined in the environment default NDDSHOME to install dir
 ifndef NDDSHOME
-NDDSHOME := "/home/pauls/rti_connext_dds-7.0.0"
+NDDSHOME := "/Applications/rti_connext_dds-6.1.0"
 endif
 
 SOURCE_DIR = ./cpp/
+# use the common code from the actual app directory
 COMMON_SOURCE_DIR = ../tmsApp/cpp/
 
-TARGET_ARCH = x64Linux4gcc7.3.0
-
-#TOOLSROOT = # Set the location of the toolchain
-#COMPILERSYSROOT = $(TOOLSROOT)/build/tmp/sysroots/genericx86-64
-#COMPILER_PATH = $(TOOLSROOT)/build/tmp/sysroots/x86_64-linux/usr/bin/x86_64-wrs-linux
+TARGET_ARCH = x64Darwin17clang9.0
 
 ifndef COMPILER
-COMPILER = $(COMPILER_PATH)$(GCC_PREFIX)g++
+COMPILER = clang++
 endif
-COMPILER_FLAGS = -m64 -Wall $(ADDITIONAL_COMPILER_FLAGS)
+COMPILER_FLAGS = -m64 -Wno-return-type-c-linkage
 ifndef LINKER
-LINKER = $(COMPILER_PATH)$(GCC_PREFIX)g++
+LINKER = clang++
 endif
-LINKER_FLAGS = -m64 $(ADDITIONAL_LINKER_FLAGS)
-SYSLIBS = -ldl -lm -lpthread -lrt -no-pie -rdynamic
-DEFINES = -DRTI_UNIX -DRTI_LINUX -DRTI_64BIT 
+LINKER_FLAGS = -m64
+SYSLIBS = -lm -lpthread -ldl
+DEFINES = -DRTI_UNIX -DRTI_DARWIN -DRTI_64BIT 
 ifndef DEBUG
-DEBUG=0
+DEBUG=0 
 endif
 ifeq ($(DEBUG),1)
 COMPILER_FLAGS += -g -O0
@@ -56,21 +53,18 @@ DEBUG_SFX = d
 else
 DEBUG_SFX = 
 endif
-
+ 
 ifndef SHAREDLIB
 SHAREDLIB=0
 endif
 
 ifeq ($(SHAREDLIB),1)
-    SHAREDLIB_SFX =
-    STATIC_LIBRARIES =
-    DYNAMIC_LIBRARIES = 
+SHAREDLIB_SFX = 
 else
-    SHAREDLIB_SFX = z
-    DEFINES += -DRTI_STATIC
-    STATIC_LIBRARIES = 
-    DYNAMIC_LIBRARIES =
+SHAREDLIB_SFX = z
+DEFINES += -DRTI_STATIC
 endif
+
 
 
 INCLUDES = -I. -I./cpp -I../tmsApp/cpp -I$(NDDSHOME)/include -I$(NDDSHOME)/include/ndds 

@@ -123,19 +123,24 @@ def controller_main(domain_id):
             # receiving a DA moves us to the next state
 
         elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
+            # this state in case we get a DA and not an MMR so hold waiting for MMR
+            # Note: DA is durable, so we can get a DA followed immediately by a DA
             print("Controller Found a New Device, awaiting Microgrid JOIN Request")
+
+        elif app_state_obj.appState() == constants.ControllerState.JOINING_GRID:
+            print("Controller allowing Device to JOIN grid")
             # waiting for MMR causes RR to be sent (from MMR reader), and MMO, then
             # the state is set to POWERING_UP
 
-            # at this point we know we received a DA and that the DeviceId has
+            # at this point we know we received a DA and a MMR. If the controller
+            # comes up late, it gets them back-to-back - so we go from INIT straight
+            # to JOINING GRID. At this point we know and that the DeviceId has
             # been loaded into the app_state_obj. So populate remaining writers
             # if a new DA came in to reset to this state
             app_state_obj.clearOutstandingRequest() 
             controller_mmo_w.fillInDevId()
             controller_str_w.fillInDevId()
 
-        elif app_state_obj.appState() == constants.ControllerState.JOINING_GRID:
-            print("Controller allowing Device to JOIN grid")
             controller_mmo_w.setResult(constants.tms_MicrogridMembershipResult.MMR_COMPLETE)
             controller_mmo_w.write()
             app_state_obj.setAppState(constants.ControllerState.POWERING_UP)

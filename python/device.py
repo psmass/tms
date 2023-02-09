@@ -175,7 +175,8 @@ def device_main(domain_id):
     # device_mmr_w.join() # uncomment if Thread Monitor vs. Listener used
     # device_rrd_w.join() # uncomment if Thread Monitor vs. Listener used
     # device_sts_w.join() # uncomment if Thread Monitor vs. Listener used
-    device_hb_w.join() # uncomment if Thread Monitor vs. Listener used
+    if device_hb_w._thread_started: # incase we ^C prior to heartbeat.start() 
+        device_hb_w.join() 
     device_rrd_r.join()
     device_mmo_r.join()
     device_str_r.join()
