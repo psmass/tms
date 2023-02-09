@@ -204,7 +204,7 @@ class RequestRspDevRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         # print (data, end="", flush=True)
-        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj._rrSequenceNumber:
+        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.rrSequenceNumber():
             print("RRD_RDR - request responded")
             self._app_state_obj.clearOutstandingRequest()
 
@@ -239,7 +239,7 @@ class RequestRspMSMSimRdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj._rrSequenceNumber:
+        if  data["relatedRequestId.sequenceNumber"] == self._app_state_obj.rrSequenceNumber():
             print("RRM_RDR - request responded")
             self._app_state_obj.clearOutstandingRequest()
         
