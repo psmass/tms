@@ -181,7 +181,7 @@ class RequestRspDevWtr(ddsEntities.Writer):
         
 # Device RRD Topic Reader        
 class RequestRspDevRdr(ddsEntities.Reader):
-    def __init__(self, participant, app_state_obj):
+    def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
         ddsEntities.Reader.__init__(self, participant, 
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_DEVICE_READER)
@@ -195,6 +195,7 @@ class RequestRspDevRdr(ddsEntities.Reader):
         cft_topic.filter_parameters = [str(device_id[28]), str(device_id[29]),
                                        str(device_id[30]), str(device_id[31])]
         print("RRD_RDR CFT ID installed")
+        participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Request Responses sent to MSM
     
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
