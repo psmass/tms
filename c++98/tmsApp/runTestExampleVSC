@@ -1,5 +1,5 @@
 # Statically set TMS_TOP_LEVEL_REPO for VSC (comment/uncomment to set with ENV var)
-export TMS_TOP_LEVEL_REPO=~/Github/tms
+export TMS_TOP_LEVEL_REPO=~/GitHub/tms
 if [[ -z "${TMS_TOP_LEVEL_REPO}" ]];
 then
      echo "Error:  Env variable TMS_TOP_LEVEL_REPO: must be set to the top level tms directory (where tms has been cloned) "
@@ -13,4 +13,4 @@ then
 fi
 export NDDS_QOS_PROFILES=file://$TMS_TOP_LEVEL_REPO/model/tmsTestApp.xml
 echo "Script kicking off tmsTestApp"
-./objs/x64Darwin17clang9.0/tmsTestExampleApp
+./objs/x64Linux4gcc7.3.0/tmsTestExampleApp
