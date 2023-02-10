@@ -40,10 +40,11 @@ def controller_main(domain_id):
     app_state_obj = topics.ApplicationStateObj(constants.tms_DeviceRole.ROLE_MICROGRID_SYSTEM_MANAGER)
 
     controller_rrm_w = topics.RequestRspMSMSimWtr(participant, app_state_obj)
-    controller_rrm_r = topics.RequestRspMSMSimRdr(participant, app_state_obj)
+    controller_rrm_r = topics.RequestRspMSMSimRdr(participant,
+                                                  app_state_obj,
+                                                  controller_rrm_w._writer.instance_handle)
     controller_da_r = topics.DeviceAnnouncementRdr(participant, app_state_obj)
-    controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant,
-                                                         app_state_obj,
+    controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant, app_state_obj,
                                                          controller_rrm_w)
     controller_mmo_w = topics.MicrogridMembershipOutcomeWtr(participant, app_state_obj)
     controller_str_w = topics.SrcTransitionRqstWtr(participant, app_state_obj)

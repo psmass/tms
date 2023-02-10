@@ -1096,15 +1096,6 @@
             </datareader_qos>
           </data_reader>
           <data_reader name="RequestResponseReader" topic_ref="RequestResponse">
-            <content_filter name="MyFilter" kind="builtin.sql">
-              <expression>relatedRequestId.deviceId[28] = %0 and relatedRequestId.deviceId[29] = %1 and  relatedRequestId.deviceId[30] = %2 and relatedRequestId.deviceId[31] = %3</expression>
-              <expression_parameters>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-                <element>48</element>
-              </expression_parameters>
-            </content_filter>
             <datareader_qos>
               <reliability>
                 <kind>RELIABLE_RELIABILITY_QOS</kind>

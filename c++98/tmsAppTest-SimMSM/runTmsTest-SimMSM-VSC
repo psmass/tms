@@ -14,4 +14,4 @@ fi
 export NDDS_QOS_PROFILES=file://$TMS_TOP_LEVEL_REPO/model/tmsTestApp.xml
 echo $NDDS_QOS_PROFILES
 echo "Script kicking off tmsAppTest-SimMSM"
-./objs/x64Linux4gcc7.3.0/tmsAppTest-SimMSM
+./objs/x64Darwin17clang9.0/tmsAppTest-SimMSM

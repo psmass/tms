@@ -43,7 +43,8 @@ def device_main(domain_id):
     device_da_w = topics.DeviceAnnouncementWtr(participant, app_state_obj)
     device_mmr_w = topics.MicrogridMembershipRqstWtr(participant, app_state_obj)
     device_rrd_w = topics.RequestRspDevWtr(participant, app_state_obj)
-    device_rrd_r = topics.RequestRspDevRdr(participant, app_state_obj, device_rrd_w._writer.instance_handle)
+    device_rrd_r = topics.RequestRspDevRdr(participant, app_state_obj,
+                                           device_rrd_w._writer.instance_handle)
     device_mmo_r = topics.MicrogridMembershipOutcomeRdr(participant, app_state_obj)
     device_str_r = topics.SrcTransitionRqstRdr(participant,
                                                app_state_obj,

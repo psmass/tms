@@ -173,7 +173,8 @@ class RequestRspDevWtr(ddsEntities.Writer):
                                     constants.REQUEST_RESPONSE_DEVICE_WRITER)
 
         self._app_state_obj = app_state_obj
-
+        self._sample["status.reason"]="DEVICE"
+        
     def write(self, req_seq_no): # override default writer
         print("Writing ReqRes (Device)", self._topic_type_name)
         # set the Id field - we do this each time we write
@@ -217,6 +218,7 @@ class RequestRspMSMSimWtr(ddsEntities.Writer):
                                     constants.REQUEST_RESPONSE_MSMSIM_WRITER)
         
         self._app_state_obj = app_state_obj
+        self._sample["status.reason"]="CONTROLLER"
 
     def write(self, req_seq_no): # override default writer
         print("Writing ReqRes (MSM)", self._topic_type_name)
@@ -228,12 +230,13 @@ class RequestRspMSMSimWtr(ddsEntities.Writer):
 
 # Controller/MSM RRM Topic Reader        
 class RequestRspMSMSimRdr(ddsEntities.Reader):
-    def __init__(self, participant, app_state_obj):
+    def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
         ddsEntities.Reader.__init__(self, participant,
                                     constants.REQUEST_RESPONSE_TYPE_NAME,
                                     constants.REQUEST_RESPONSE_MSMSIM_READER)
 
         self._app_state_obj = app_state_obj
+        participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Request Responses sent to MSM
         
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     def handler(self, data):
@@ -259,7 +262,8 @@ class DeviceAnnouncementWtr(ddsEntities.Writer):
         self._sample["role"]= constants.tms_DeviceRole.ROLE_SOURCE
 
         # example of multi-nested assignment - not working
-        # self._sample["source[0].parameters[0].name"]="foobar"
+        #self._sample["source[0].parameters[0].name"]="foo"
+        self._sample["modelName"]="MyDevice"
 
     def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
         return self._sample

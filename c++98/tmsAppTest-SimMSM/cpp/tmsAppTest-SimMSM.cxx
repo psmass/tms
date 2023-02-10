@@ -280,7 +280,7 @@ extern "C" int tms_app_test_msm_main(int sample_count) {
         request_response_w = new NormalWriterTopic (participant, tms_TOPIC_REQUEST_RESPONSE_ENUM, NO_PREFILL_DEVID);
         source_transition_request = new NormalWriterTopic (participant, tms_TOPIC_SOURCE_TRANSITION_REQUEST_ENUM);
         device_announcement = new ReaderTopic(participant, tms_TOPIC_DEVICE_ANNOUNCEMENT_ENUM, NO_ECHO_RQST_RESPONSE, NO_FILTER);
-        request_response_r = new ReaderTopic(participant, tms_TOPIC_REQUEST_RESPONSE_ENUM);
+        request_response_r = new ReaderTopic(participant, tms_TOPIC_REQUEST_RESPONSE_ENUM, NULL, NO_FILTER);
         microgrid_membership_request = new ReaderTopic(participant, tms_TOPIC_MICROGRID_MEMBERSHIP_REQUEST_ENUM, request_response_w, NO_FILTER);
         microgrid_transition_state = new ReaderTopic(participant, tms_TOPIC_SOURCE_TRANSITION_STATE_ENUM, NO_ECHO_RQST_RESPONSE, NO_FILTER);
 
