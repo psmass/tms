@@ -112,6 +112,23 @@ def controller_main(domain_id):
     #
     # else          Logical default if no states were matched, (theortically
     #               can't occur, unless bug in Controller code)
+    #
+    # NOTE: With this version of TMS Data-model, all requests contain a keyed sampleID.
+    #       Since the SampleID contains a unique "SequenceID" all requests are unique
+    #       instances, and should be disposed of, or essentially we 'leak' memory.
+    #       Having unique instances of every sample, essentially makes the idea of
+    #       key'd managed resources per-instance effectively useless. This was corrected
+    #       in later TMS data-models.
+    #       Of course, since requests are sent reliably, we need to wait at least
+    #       a second to allow a potential retransmission. Since repeated requests of
+    #       the same topic is infrequent, and this issue has been corrected in
+    #       subsequent TMS Data-models, we won't dispose of them. One way to do
+    #       this is to have a DISPOSE_REQUEST state we transition to after each
+    #       request. It might use the app_state_obj to track the request instance,
+    #       unregistering and disposing of it.
+    #
+    #       For a controller managing more than one device, one would want to dispose
+    #       of all writer instances as a Device departs the grid.
 
     print("\n\n **** Starting State Machine")
     
