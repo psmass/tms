@@ -42,7 +42,7 @@ def controller_main(domain_id):
     controller_rrm_w = topics.RequestRspMSMSimWtr(participant, app_state_obj)
     controller_rrm_r = topics.RequestRspMSMSimRdr(participant,
                                                   app_state_obj,
-                                                  controller_rrm_w._writer.instance_handle)
+                                                  controller_rrm_w.writer.instance_handle)
     controller_da_r = topics.DeviceAnnouncementRdr(participant, app_state_obj)
     controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant, app_state_obj,
                                                          controller_rrm_w)
