@@ -127,7 +127,6 @@ class ControllerState(IntEnum):
     STEADY_STATE = 4
     SHUT_DOWN = 5
     ERROR = 6 # received an out of order request
-
 class DeviceState(IntEnum):
     INIT = 0
     JOINING_GRID = 1
