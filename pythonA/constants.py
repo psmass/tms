@@ -24,22 +24,25 @@ QOS_URL = "file://../model_distroA/tmsExampleApp.xml"
 DEVICE1_ID = "DGen1234"
 CONTROLER1_ID = "MC0001"
 
+HEARTBEAT_PERIOD=1.0
 
 class ControllerState(IntEnum):
-    INIT = 0
-    FOUND_NEW_DEVICE = 1 # Controller State Only
-    JOINING_GRID = 2
-    POWERING_UP = 3
-    STEADY_STATE = 4
-    SHUT_DOWN = 5
-    ERROR = 6 # received an out of order request
+    INIT = 0 # send DI and start HB
+    DISCOVERY = 1
+    FOUND_NEW_DEVICE = 2 
+    WAIT_CMD_IDLE = 3
+    POWERING_UP_AUTH = 4
+    ENERGIZE = 5
+    SHUT_DOWN = 6
+    ERROR = 7 # received an out of order request
 
 class DeviceState(IntEnum):
-    INIT = 0
-    JOINING_GRID = 1
-    JOINED_GRID = 2
-    WAIT_CMD_IDLE = 3 # Device State Only
-    POWERING_UP = 4
-    SHUT_DOWN = 5
-    ERROR = 6 # received an out of order request
+    INIT = 0 # send DI and start HB
+    DISCOVERY = 1
+    FOUND_NEW_CONTROLLER = 2
+    WAIT_CMD_IDLE = 3
+    POWER_UP_AUTH = 4
+    ENERGIZE = 5
+    SHUT_DOWN = 6
+    ERROR = 7 # received an out of order request
 

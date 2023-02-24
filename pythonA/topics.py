@@ -113,10 +113,7 @@ class ApplicationStateObj():
         
     # used to set the Id in a sample about to be written by any topic   
     def setDevIdInSample (self, sample, idStrName):
-        for idx, x in enumerate(self._deviceId):
-            # build sample member name with str index e.g., _sample["deviceId[1]"]
-            deviceIdStr=idStrName+"["+str(idx)+"]"
-            sample[deviceIdStr]=int(x)
+        sample[idStrName]=self._deviceId
 
     def setDevReqSrcXitionState(self, newState):
         self._requested_device_source_transition_state = newState
@@ -138,14 +135,14 @@ class ApplicationStateObj():
         return change
     
 
-# Device HB Topic Writer
-class HeartbeatWtr(ddsEntities.Writer): 
+# Generator Device HB Topic Writer
+class HeartbeatGD_Wtr(ddsEntities.Writer): 
     def __init__(self, participant, app_state_obj):
         ddsEntities.Writer.__init__(self, participant, True, constants.HEARTBEAT_PERIOD,
-                                    constants.HEARTBEAT_TYPE_NAME,
-                                    constants.HEARTBEAT_WRITER)
+                                    "tms::Heartbeat", # Heartbeat registered_type reference
+                                    tmsConstants.generator_device.HEARTBEAT_WRITER)
 
-        self._thread_started = False
+        self._thread_started = False  # track thread, to join() on exit only if started 
         self._app_state_obj = app_state_obj
 
         self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
@@ -156,8 +153,159 @@ class HeartbeatWtr(ddsEntities.Writer):
         self._thread_started = True
         self._sample["sequenceNumber"]=self._app_state_obj.sequenceNumber()
         self._writer.write(self._sample)
+
+        
+# Generator Device HB Topic Reader        
+class HeartbeatGD_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::Heartbeat", # Heartbeat registered_type reference
+                                    tmsConstants.generator_device.HEARTBEAT_READER)
+
+        self._app_state_obj = app_state_obj
+        
+        # TODO: Install the content filter to only receive active MC
+        # cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
+        #                                                      constants.REQUEST_RESPONSE_DEVICE_CFT)
+        #
+        # cft_topic.filter_parameters = [self._app_state_obj.deviceID()]
+        # print("RRD_RDR CFT ID installed")
+        participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Heartbeats 
+
+
+# MC HB Topic Writer
+class HeartbeatMC_Wtr(ddsEntities.Writer): 
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant, True, constants.HEARTBEAT_PERIOD,
+                                    "tms::Heartbeat", # Heartbeat registered_type reference
+                                    tmsConstants.master_controller.HEARTBEAT_WRITER)
+
+        self._thread_started = False  # track thread, to join() on exit only if started 
+        self._app_state_obj = app_state_obj
+
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
         
 
+    def write(self): # need to overload to add sequence #
+        # A write is only called from a thread
+        self._thread_started = True
+        self._sample["sequenceNumber"]=self._app_state_obj.sequenceNumber()
+        self._writer.write(self._sample)
+
+        
+# MC HB Topic Reader        
+class HeartbeatMC_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::Heartbeat", # Heartbeat registered_type reference
+                                    tmsConstants.master_controller.HEARTBEAT_READER)
+
+        self._app_state_obj = app_state_obj
+        
+        # TODO: Install the content filter to only receive active MC
+        # cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
+        #                                                      constants.REQUEST_RESPONSE_DEVICE_CFT)
+        #
+        # cft_topic.filter_parameters = [self._app_state_obj.deviceID()]
+        # print("RRD_RDR CFT ID installed")
+        participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Heartbeats 
+
+
+# Generator Device DI Topic Writer        
+class DeviceInfoGD_Wtr(ddsEntities.Writer):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
+                                    "tms::DeviceInfo", # DeviceInfo registered_type reference
+                                    tmsConstants.generator_device.DEVICE_INFO_WRITER)
+
+        self._app_state_obj = app_state_obj
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+        
+        # Loadup  static fields in the C'tor (except deviceId as we have
+        # common code to do this (see setHndlDevIdObj() below
+        self._sample["role"]= tmsConstants.tms_DeviceRole.ROLE_SOURCE
+
+        # example of multi-nested assignment - not working
+        self._sample["product.modelName"]="MyGeneratorDeviceMfgr"
+
+    def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
+        return self._sample
+                    
+# Generator Device DI Topic Reader        
+class DeviceDG_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::DeviceInfo", # DeviceInfo registered_type name
+                                    tmsConstants.generator_device.DEVICE_INFO_READER)
+
+        self._app_state_obj = app_state_obj
+
+        participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own DI
+        
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
+    # 
+    def handler(self, data):
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+        devId=data["deviceId"]
+        self._app_state_obj.setDevId(devId)
+        self._app_state_obj.setAppState( constants.ControllerState.FOUND_NEW_CONTROLLER)
+
+# MC DI Topic Writer        
+class DeviceInfoMC_Wtr(ddsEntities.Writer):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
+                                    "tms::DeviceInfo", # DeviceInfo registered_type name
+                                    tmsConstants.generator_deviceMC_DEVICE_INFO_WRITER)
+
+        self._app_state_obj = app_state_obj
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+        
+        # Loadup  static fields in the C'tor (except deviceId as we have
+        # common code to do this (see setHndlDevIdObj() below
+        self._sample["role"]= constants.tms_DeviceRole.ROLE_SOURCE
+
+        # example of multi-nested assignment - not working
+        #self._sample["source[0].parameters[0].name"]="foo"
+        self._sample["modelName"]="MyDevice"
+
+    def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
+        return self._sample
+                
+
+# MC DI Topic Reader        
+class DeviceMC_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::DeviceInfo", # DeviceInfo registered_type name
+                                    tmsConstants.MC_DEVICE_INFO_READER)
+
+        self._app_state_obj = app_state_obj
+
+        participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own DI
+                
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
+    # 
+    def handler(self, data):
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+        devId=data["deviceId"]
+        self._app_state_obj.setDevId(devId)
+        self._app_state_obj.setAppState( constants.ControllerState.FOUND_NEW_DEVICE)
+
+
+
+
+
+
+
+
+
+
+
+        
 # Device RRD Topic Writer        
 class RequestRspDevWtr(ddsEntities.Writer):
     def __init__(self, participant, app_state_obj):
@@ -239,47 +387,6 @@ class RequestRspMSMSimRdr(ddsEntities.Reader):
             print("RRM_RDR - request responded")
             self._app_state_obj.clearOutstandingRequest()
         
-
-# Device DA Topic Writer        
-class DeviceAnnouncementWtr(ddsEntities.Writer):
-    def __init__(self, participant, app_state_obj):
-        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
-                                    constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
-                                    constants.DEVICE_ANNOUNCEMENT_WRITER)
-
-        self._app_state_obj = app_state_obj
-        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
-        
-        # Loadup  static fields in the C'tor (except deviceId as we have
-        # common code to do this (see setHndlDevIdObj() below
-        self._sample["role"]= constants.tms_DeviceRole.ROLE_SOURCE
-
-        # example of multi-nested assignment - not working
-        #self._sample["source[0].parameters[0].name"]="foo"
-        self._sample["modelName"]="MyDevice"
-
-    def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
-        return self._sample
-                
-
-# Controller/MSM DA Topic Reader        
-class DeviceAnnouncementRdr(ddsEntities.Reader):
-    def __init__(self, participant, app_state_obj):
-        ddsEntities.Reader.__init__(self, participant, 
-                                    constants.DEVICE_ANNOUNCEMENT_TYPE_NAME,
-                                    constants.DEVICE_ANNOUNCEMENT_READER)
-
-        self._app_state_obj = app_state_obj
-                
-    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
-    # For the DA Reader, we extract the DeviceId and save it in our app_state_obj
-    # to track this device and send requests to it.
-    def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
-        #print (data, end="", flush=True)
-        devId=data["deviceId"]
-        self._app_state_obj.setDevId(devId)
-        self._app_state_obj.setAppState( constants.ControllerState.FOUND_NEW_DEVICE)
 
         
 # Device Topic MMR Writer        

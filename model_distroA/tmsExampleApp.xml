@@ -5,33 +5,33 @@
          the system designer portion of the 'system model' - see qos_libraries, domain_library,participant_library
          at the end of this file.
     -->
-      <module name="deviceExample">
-        <const name="GENERATOR_DEVICE1" type="string" value="&quot;TMSParticipantLib::GeneratorDevice1&quot;"/>
-        <const name="GD_DEVICE_INFO_WRITER" type="string" value="&quot;GD_Publisher::DeviceInfoWriter&quot;"/>
-        <const name="GD_HEARTBEAT_WRITER" type="string" value="&quot;GD_Publisher::HeartbeatWriter&quot;"/>
-        <const name="GD_AMC_STATE_WRITER" type="string" value="&quot;GD_Publisher::ActiveMicrogridControllerStateWriter&quot;"/>
-        <const name="GD_ATE_REQUEST_WRITER" type="string" value="&quot;GD_Publisher::AuthorizationToEnergizeRequestWriter&quot;"/>
-        <const name="GD_ATE_RESULT_WRITER" type="string" value="&quot;GD_Publisher::AuthorizationToEnergizeResultWriter&quot;"/>
-        <const name="GD_ESS_STATE_WRITER" type="string" value="&quot;GD_Publisher::EnergyStartStopStateWriter&quot;"/>
-        <const name="GD_REPLY_WRITER" type="string" value="&quot;GD_Publisher::ReplyWriter&quot;"/>
-        <const name="GD_DEVICE_INFO_READER" type="string" value="&quot;GD_Subscriber::DeviceInfoReader&quot;"/>
-        <const name="GD_HEARTBEAT_READER" type="string" value="&quot;GD_Subscriber::HeartbeatReader&quot;"/>
-        <const name="GD_ATE_REPLY_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeReplyReader&quot;"/>
-        <const name="GD_ESS_REQUEST_READER" type="string" value="&quot;GD_Subscriber::EnergyStartStopRequestReader&quot;"/>
+      <module name="generator_device">
+        <const name="DEVICE1" type="string" value="&quot;TMSParticipantLib::GeneratorDevice1&quot;"/>
+        <const name="DEVICE_INFO_WRITER" type="string" value="&quot;GD_Publisher::DeviceInfoWriter&quot;"/>
+        <const name="HEARTBEAT_WRITER" type="string" value="&quot;GD_Publisher::HeartbeatWriter&quot;"/>
+        <const name="AMC_STATE_WRITER" type="string" value="&quot;GD_Publisher::ActiveMicrogridControllerStateWriter&quot;"/>
+        <const name="ATE_REQUEST_WRITER" type="string" value="&quot;GD_Publisher::AuthorizationToEnergizeRequestWriter&quot;"/>
+        <const name="ATE_RESULT_WRITER" type="string" value="&quot;GD_Publisher::AuthorizationToEnergizeResultWriter&quot;"/>
+        <const name="ESS_STATE_WRITER" type="string" value="&quot;GD_Publisher::EnergyStartStopStateWriter&quot;"/>
+        <const name="REPLY_WRITER" type="string" value="&quot;GD_Publisher::ReplyWriter&quot;"/>
+        <const name="DEVICE_INFO_READER" type="string" value="&quot;GD_Subscriber::DeviceInfoReader&quot;"/>
+        <const name="HEARTBEAT_READER" type="string" value="&quot;GD_Subscriber::HeartbeatReader&quot;"/>
+        <const name="ATE_REPLY_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeReplyReader&quot;"/>
+        <const name="ESS_REQUEST_READER" type="string" value="&quot;GD_Subscriber::EnergyStartStopRequestReader&quot;"/>
       </module>
-      <module name="controllerExample">
+      <module name="master_controller">
         <const name="MASTER_CONTROLLER1" type="string" value="&quot;TMSParticipantLib::MasterController1&quot;"/>
-        <const name="MC_DEVICE_INFO_WRITER" type="string" value="&quot;MC_Publisher::DeviceInfoWriter&quot;"/>
-        <const name="MC_HEARTBEAT_WRITER" type="string" value="&quot;MC_Publisher::HeartbeatWriter&quot;"/>
-        <const name="MC_ATE_REPLY_WRITER" type="string" value="&quot;MC_Publisher::AuthorizationToEnergizeReplyWriter&quot;"/>
-        <const name="MC_ESS_REQUEST_WRITER" type="string" value="&quot;MC_Publisher::EnergyStartStopRequestWriter&quot;"/>
-        <const name="MC_DEVICE_INFO_READER" type="string" value="&quot;MC_Subscriber::DeviceInfoReader&quot;"/>
-        <const name="MC_HEARTBEAT_READER" type="string" value="&quot;MC_Subscriber::HeartbeatReader&quot;"/>
-        <const name="MC_AMC_STATE_READER" type="string" value="&quot;GD_Subscriber::ActiveMicrogridControllerStateReader&quot;"/>
-        <const name="MC_ATE_REQUEST_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeRequestReader&quot;"/>
-        <const name="MC_ATE_RESULT_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeResultReader&quot;"/>
-        <const name="MC_ESS_STATE_READER" type="string" value="&quot;GD_Subscriber::EnergyStartStopStateReader&quot;"/>
-        <const name="MC_REPLY_READER" type="string" value="&quot;GD_Subscriber::ReplyReader&quot;"/>
+        <const name="DEVICE_INFO_WRITER" type="string" value="&quot;MC_Publisher::DeviceInfoWriter&quot;"/>
+        <const name="HEARTBEAT_WRITER" type="string" value="&quot;MC_Publisher::HeartbeatWriter&quot;"/>
+        <const name="ATE_REPLY_WRITER" type="string" value="&quot;MC_Publisher::AuthorizationToEnergizeReplyWriter&quot;"/>
+        <const name="ESS_REQUEST_WRITER" type="string" value="&quot;MC_Publisher::EnergyStartStopRequestWriter&quot;"/>
+        <const name="DEVICE_INFO_READER" type="string" value="&quot;MC_Subscriber::DeviceInfoReader&quot;"/>
+        <const name="HEARTBEAT_READER" type="string" value="&quot;MC_Subscriber::HeartbeatReader&quot;"/>
+        <const name="AMC_STATE_READER" type="string" value="&quot;GD_Subscriber::ActiveMicrogridControllerStateReader&quot;"/>
+        <const name="ATE_REQUEST_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeRequestReader&quot;"/>
+        <const name="ATE_RESULT_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeResultReader&quot;"/>
+        <const name="ESS_STATE_READER" type="string" value="&quot;GD_Subscriber::EnergyStartStopStateReader&quot;"/>
+        <const name="REPLY_READER" type="string" value="&quot;GD_Subscriber::ReplyReader&quot;"/>
       </module>
       <module name="tms">
         <module name="topic">
@@ -1133,12 +1133,12 @@
           <member name="role" type="nonBasic" nonBasicTypeName="tms::DeviceRole"/>
           <member name="product" type="nonBasic" nonBasicTypeName="tms::ProductInfo"/>
           <member name="topics" type="nonBasic" nonBasicTypeName="tms::TopicInfo"/>
-          <member name="controlHardware" type="nonBasic" nonBasicTypeName="tms::ControlHardwareInfo" optional="true"/>
-          <member name="powerHardware" type="nonBasic" nonBasicTypeName="tms::PowerHardwareInfo" optional="true"/>
+          <!--member name="controlHardware" type="nonBasic" nonBasicTypeName="tms::ControlHardwareInfo" optional="true"/-->
+          <!--member name="powerHardware" type="nonBasic" nonBasicTypeName="tms::PowerHardwareInfo" optional="true"/-->
           <member name="controlParameters" type="nonBasic" nonBasicTypeName="tms::ParameterMetadataSequence" optional="true"/>
           <member name="metricParameters" type="nonBasic" nonBasicTypeName="tms::ParameterMetadataSequence" optional="true"/>
           <member name="controlService" type="nonBasic" nonBasicTypeName="tms::ControlServiceInfo" optional="true"/>
-          <member name="powerDevice" type="nonBasic" nonBasicTypeName="tms::PowerDeviceInfo" optional="true"/>
+          <!--member name="powerDevice" type="nonBasic" nonBasicTypeName="tms::PowerDeviceInfo" optional="true"/-->
         </struct>
       </module>
     </types>
@@ -1349,6 +1349,33 @@
           </ownership_strength>
         </datawriter_qos>
       </qos_profile>
+      <qos_profile name="LargeTopicParticipantQoS">
+        <domain_participant_qos>
+          <resource_limits>
+            <type_code_max_serialized_length>65530</type_code_max_serialized_length>
+            <type_object_max_serialized_length>65530</type_object_max_serialized_length>
+          </resource_limits>
+          <receiver_pool>
+            <buffer_size>65530</buffer_size>
+          </receiver_pool>
+          <property>
+            <value>
+              <element>
+                <name>dds.transport.UDPv4.builtin.recv_socket_buffer_size</name>
+                <value>1048576</value>
+              </element>
+              <element>
+                <name>dds.transport.UDPv4.builtin.parent.message_size_max</name>
+                <value>65530</value>
+              </element>
+              <element>
+                <name>dds.transport.UDPv4.builtin.send_socket_buffer_size</name>
+                <value>65530</value>
+              </element>
+            </value>
+          </property>
+        </domain_participant_qos>
+      </qos_profile>
     </qos_library>
 
     <domain_library name="MyDomainLib">
@@ -1409,34 +1436,96 @@
     <domain_participant_library name="TMSParticipantLib">
       <domain_participant name="MasterController1" domain_ref="MyDomainLib::MyDomain">
         <publisher name="MC_Publisher">
-          <data_writer name="DeviceInfoWriter" topic_ref="DeviceInfo"/>
-          <data_writer name="HeartbeatWriter" topic_ref="Heartbeat"/>
-          <data_writer name="AuthorizationToEnergizeReplyWriter" topic_ref="AuthorizationToEnergizeReply"/>
-          <data_writer name="EnergyStartStopRequestWriter" topic_ref="EnergyStartStopRequest"/>
+          <data_writer name="DeviceInfoWriter" topic_ref="DeviceInfo">
+            <datawriter_qos base_name="TMSQoSLib::PublishLast">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="HeartbeatWriter" topic_ref="Heartbeat">
+            <datawriter_qos base_name="TMSQoSLib::Medium">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="AuthorizationToEnergizeReplyWriter" topic_ref="AuthorizationToEnergizeReply">
+            <datawriter_qos base_name="TMSQoSLib::Response">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="EnergyStartStopRequestWriter" topic_ref="EnergyStartStopRequest">
+            <datawriter_qos base_name="TMSQoSLib::Command">
+            </datawriter_qos>
+          </data_writer>
         </publisher>
         <subscriber name="MC_Subscriber">
-          <data_reader name="DeviceInfoReader" topic_ref="DeviceInfo"/>
-          <data_reader name="HeartbeatReader" topic_ref="Heartbeat"/>
-          <data_reader name="ActiveMicrogridControllerStateReader" topic_ref="ActiveMicrogridControllerState"/>
-          <data_reader name="AuthorizationToEnergizeRequestReader" topic_ref="AuthorizationToEnergizeRequest"/>
-          <data_reader name="AuthorizationToEnergizeResultReader" topic_ref="AuthorizationToEnergizeResult"/>
-          <data_reader name="EnergyStartStopStateReader" topic_ref="EnergyStartStopState"/>
-          <data_reader name="ReplyReader" topic_ref="Reply"/>
+          <data_reader name="DeviceInfoReader" topic_ref="DeviceInfo">
+            <datareader_qos base_name="TMSQoSLib::PublishLast">
+            </datareader_qos>
+          </data_reader>
+          <data_reader name="HeartbeatReader" topic_ref="Heartbeat">
+            <datareader_qos base_name="TMSQoSLib::Medium">
+            </datareader_qos>
+          </data_reader>
+          <data_reader name="ActiveMicrogridControllerStateReader" topic_ref="ActiveMicrogridControllerState">
+            <datareader_qos base_name="TMSQoSLib::PublishLast">
+            </datareader_qos>
+          </data_reader>
+          <data_reader name="AuthorizationToEnergizeRequestReader" topic_ref="AuthorizationToEnergizeRequest">
+            <datareader_qos base_name="TMSQoSLib::Command">
+            </datareader_qos>
+          </data_reader>
+          <data_reader name="AuthorizationToEnergizeResultReader" topic_ref="AuthorizationToEnergizeResult">
+            <datareader_qos base_name="TMSQoSLib::Response">
+            </datareader_qos>
+          </data_reader>
+          <data_reader name="EnergyStartStopStateReader" topic_ref="EnergyStartStopState">
+            <datareader_qos base_name="TMSQoSLib::PublishLast">
+            </datareader_qos>
+          </data_reader>
+          <data_reader name="ReplyReader" topic_ref="Reply">
+            <datareader_qos base_name="TMSQoSLib::Reply">
+            </datareader_qos>
+          </data_reader>
         </subscriber>
+        <domain_participant_qos base_name="TMSQoSLib::LargeTopicParticipantQoS">
+        </domain_participant_qos>
       </domain_participant>
       <domain_participant name="GeneratorDevice1" domain_ref="MyDomainLib::MyDomain">
         <publisher name="GD_Publisher">
-          <data_writer name="DeviceInfoWriter" topic_ref="DeviceInfo"/>
-          <data_writer name="HeartbeatWriter" topic_ref="Heartbeat"/>
-          <data_writer name="ActiveMicrogridControllerStateWriter" topic_ref="ActiveMicrogridControllerState"/>
-          <data_writer name="AuthorizationToEnergizeRequestWriter" topic_ref="AuthorizationToEnergizeRequest"/>
-          <data_writer name="AuthorizationToEnergizeResultWriter" topic_ref="AuthorizationToEnergizeResult"/>
-          <data_writer name="EnergyStartStopStateWriter" topic_ref="EnergyStartStopState"/>
-          <data_writer name="ReplyWriter" topic_ref="Reply"/>
+          <data_writer name="DeviceInfoWriter" topic_ref="DeviceInfo">
+            <datawriter_qos base_name="TMSQoSLib::PublishLast">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="HeartbeatWriter" topic_ref="Heartbeat">
+            <datawriter_qos base_name="TMSQoSLib::Medium">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="ActiveMicrogridControllerStateWriter" topic_ref="ActiveMicrogridControllerState">
+            <datawriter_qos base_name="TMSQoSLib::PublishLast">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="AuthorizationToEnergizeRequestWriter" topic_ref="AuthorizationToEnergizeRequest">
+            <datawriter_qos base_name="TMSQoSLib::Command">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="AuthorizationToEnergizeResultWriter" topic_ref="AuthorizationToEnergizeResult">
+            <datawriter_qos base_name="TMSQoSLib::Response">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="EnergyStartStopStateWriter" topic_ref="EnergyStartStopState">
+            <datawriter_qos base_name="TMSQoSLib::PublishLast">
+            </datawriter_qos>
+          </data_writer>
+          <data_writer name="ReplyWriter" topic_ref="Reply">
+            <datawriter_qos base_name="TMSQoSLib::Reply">
+            </datawriter_qos>
+          </data_writer>
         </publisher>
         <subscriber name="GD_Subscriber">
-          <data_reader name="DeviceInfoReader" topic_ref="DeviceInfo"/>
-          <data_reader name="HeartbeatReader" topic_ref="Heartbeat"/>
+          <data_reader name="DeviceInfoReader" topic_ref="DeviceInfo">
+            <datareader_qos base_name="TMSQoSLib::PublishLast">
+            </datareader_qos>
+          </data_reader>
+          <data_reader name="HeartbeatReader" topic_ref="Heartbeat">
+            <datareader_qos base_name="TMSQoSLib::Medium">
+            </datareader_qos>
+          </data_reader>
           <data_reader name="AuthorizationToEnergizeReplyReader" topic_ref="AuthorizationToEnergizeReply">
             <content_filter name="MyFilter" kind="builtin.sql">
               <expression>relatedRequestId.requestingDeviceId = %0</expression>
@@ -1444,6 +1533,8 @@
                 <element>&apos;UNITIALIZED&apos;</element>
               </expression_parameters>
             </content_filter>
+            <datareader_qos base_name="TMSQoSLib::Response">
+            </datareader_qos>
           </data_reader>
           <data_reader name="EnergyStartStopRequestReader" topic_ref="EnergyStartStopRequest">
             <content_filter name="MyFilter" kind="builtin.sql">
@@ -1452,8 +1543,12 @@
                 <element>&apos;UNINITIALIZED&apos;</element>
               </expression_parameters>
             </content_filter>
+            <datareader_qos base_name="TMSQoSLib::Command">
+            </datareader_qos>
           </data_reader>
         </subscriber>
+        <domain_participant_qos base_name="TMSQoSLib::LargeTopicParticipantQoS">
+        </domain_participant_qos>
       </domain_participant>
     </domain_participant_library>
 

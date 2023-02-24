@@ -13,105 +13,105 @@ import rti.idl as idl
 from enum import IntEnum
 
 
-deviceExample = idl.get_module("deviceExample")
+generator_device = idl.get_module("generator_device")
 
-deviceExample_GENERATOR_DEVICE1 = "TMSParticipantLib::GeneratorDevice1"
+generator_device_DEVICE1 = "TMSParticipantLib::GeneratorDevice1"
 
-deviceExample.GENERATOR_DEVICE1 = deviceExample_GENERATOR_DEVICE1
+generator_device.DEVICE1 = generator_device_DEVICE1
 
-deviceExample_GD_DEVICE_INFO_WRITER = "GD_Publisher::DeviceInfoWriter"
+generator_device_DEVICE_INFO_WRITER = "GD_Publisher::DeviceInfoWriter"
 
-deviceExample.GD_DEVICE_INFO_WRITER = deviceExample_GD_DEVICE_INFO_WRITER
+generator_device.DEVICE_INFO_WRITER = generator_device_DEVICE_INFO_WRITER
 
-deviceExample_GD_HEARTBEAT_WRITER = "GD_Publisher::HeartbeatWriter"
+generator_device_HEARTBEAT_WRITER = "GD_Publisher::HeartbeatWriter"
 
-deviceExample.GD_HEARTBEAT_WRITER = deviceExample_GD_HEARTBEAT_WRITER
+generator_device.HEARTBEAT_WRITER = generator_device_HEARTBEAT_WRITER
 
-deviceExample_GD_AMC_STATE_WRITER = "GD_Publisher::ActiveMicrogridControllerStateWriter"
+generator_device_AMC_STATE_WRITER = "GD_Publisher::ActiveMicrogridControllerStateWriter"
 
-deviceExample.GD_AMC_STATE_WRITER = deviceExample_GD_AMC_STATE_WRITER
+generator_device.AMC_STATE_WRITER = generator_device_AMC_STATE_WRITER
 
-deviceExample_GD_ATE_REQUEST_WRITER = "GD_Publisher::AuthorizationToEnergizeRequestWriter"
+generator_device_ATE_REQUEST_WRITER = "GD_Publisher::AuthorizationToEnergizeRequestWriter"
 
-deviceExample.GD_ATE_REQUEST_WRITER = deviceExample_GD_ATE_REQUEST_WRITER
+generator_device.ATE_REQUEST_WRITER = generator_device_ATE_REQUEST_WRITER
 
-deviceExample_GD_ATE_RESULT_WRITER = "GD_Publisher::AuthorizationToEnergizeResultWriter"
+generator_device_ATE_RESULT_WRITER = "GD_Publisher::AuthorizationToEnergizeResultWriter"
 
-deviceExample.GD_ATE_RESULT_WRITER = deviceExample_GD_ATE_RESULT_WRITER
+generator_device.ATE_RESULT_WRITER = generator_device_ATE_RESULT_WRITER
 
-deviceExample_GD_ESS_STATE_WRITER = "GD_Publisher::EnergyStartStopStateWriter"
+generator_device_ESS_STATE_WRITER = "GD_Publisher::EnergyStartStopStateWriter"
 
-deviceExample.GD_ESS_STATE_WRITER = deviceExample_GD_ESS_STATE_WRITER
+generator_device.ESS_STATE_WRITER = generator_device_ESS_STATE_WRITER
 
-deviceExample_GD_REPLY_WRITER = "GD_Publisher::ReplyWriter"
+generator_device_REPLY_WRITER = "GD_Publisher::ReplyWriter"
 
-deviceExample.GD_REPLY_WRITER = deviceExample_GD_REPLY_WRITER
+generator_device.REPLY_WRITER = generator_device_REPLY_WRITER
 
-deviceExample_GD_DEVICE_INFO_READER = "GD_Subscriber::DeviceInfoReader"
+generator_device_DEVICE_INFO_READER = "GD_Subscriber::DeviceInfoReader"
 
-deviceExample.GD_DEVICE_INFO_READER = deviceExample_GD_DEVICE_INFO_READER
+generator_device.DEVICE_INFO_READER = generator_device_DEVICE_INFO_READER
 
-deviceExample_GD_HEARTBEAT_READER = "GD_Subscriber::HeartbeatReader"
+generator_device_HEARTBEAT_READER = "GD_Subscriber::HeartbeatReader"
 
-deviceExample.GD_HEARTBEAT_READER = deviceExample_GD_HEARTBEAT_READER
+generator_device.HEARTBEAT_READER = generator_device_HEARTBEAT_READER
 
-deviceExample_GD_ATE_REPLY_READER = "GD_Subscriber::AuthorizationToEnergizeReplyReader"
+generator_device_ATE_REPLY_READER = "GD_Subscriber::AuthorizationToEnergizeReplyReader"
 
-deviceExample.GD_ATE_REPLY_READER = deviceExample_GD_ATE_REPLY_READER
+generator_device.ATE_REPLY_READER = generator_device_ATE_REPLY_READER
 
-deviceExample_GD_ESS_REQUEST_READER = "GD_Subscriber::EnergyStartStopRequestReader"
+generator_device_ESS_REQUEST_READER = "GD_Subscriber::EnergyStartStopRequestReader"
 
-deviceExample.GD_ESS_REQUEST_READER = deviceExample_GD_ESS_REQUEST_READER
+generator_device.ESS_REQUEST_READER = generator_device_ESS_REQUEST_READER
 
-controllerExample = idl.get_module("controllerExample")
+master_controller = idl.get_module("master_controller")
 
-controllerExample_MASTER_CONTROLLER1 = "TMSParticipantLib::MasterController1"
+master_controller_MASTER_CONTROLLER1 = "TMSParticipantLib::MasterController1"
 
-controllerExample.MASTER_CONTROLLER1 = controllerExample_MASTER_CONTROLLER1
+master_controller.MASTER_CONTROLLER1 = master_controller_MASTER_CONTROLLER1
 
-controllerExample_MC_DEVICE_INFO_WRITER = "MC_Publisher::DeviceInfoWriter"
+master_controller_DEVICE_INFO_WRITER = "MC_Publisher::DeviceInfoWriter"
 
-controllerExample.MC_DEVICE_INFO_WRITER = controllerExample_MC_DEVICE_INFO_WRITER
+master_controller.DEVICE_INFO_WRITER = master_controller_DEVICE_INFO_WRITER
 
-controllerExample_MC_HEARTBEAT_WRITER = "MC_Publisher::HeartbeatWriter"
+master_controller_HEARTBEAT_WRITER = "MC_Publisher::HeartbeatWriter"
 
-controllerExample.MC_HEARTBEAT_WRITER = controllerExample_MC_HEARTBEAT_WRITER
+master_controller.HEARTBEAT_WRITER = master_controller_HEARTBEAT_WRITER
 
-controllerExample_MC_ATE_REPLY_WRITER = "MC_Publisher::AuthorizationToEnergizeReplyWriter"
+master_controller_ATE_REPLY_WRITER = "MC_Publisher::AuthorizationToEnergizeReplyWriter"
 
-controllerExample.MC_ATE_REPLY_WRITER = controllerExample_MC_ATE_REPLY_WRITER
+master_controller.ATE_REPLY_WRITER = master_controller_ATE_REPLY_WRITER
 
-controllerExample_MC_ESS_REQUEST_WRITER = "MC_Publisher::EnergyStartStopRequestWriter"
+master_controller_ESS_REQUEST_WRITER = "MC_Publisher::EnergyStartStopRequestWriter"
 
-controllerExample.MC_ESS_REQUEST_WRITER = controllerExample_MC_ESS_REQUEST_WRITER
+master_controller.ESS_REQUEST_WRITER = master_controller_ESS_REQUEST_WRITER
 
-controllerExample_MC_DEVICE_INFO_READER = "MC_Subscriber::DeviceInfoReader"
+master_controller_DEVICE_INFO_READER = "MC_Subscriber::DeviceInfoReader"
 
-controllerExample.MC_DEVICE_INFO_READER = controllerExample_MC_DEVICE_INFO_READER
+master_controller.DEVICE_INFO_READER = master_controller_DEVICE_INFO_READER
 
-controllerExample_MC_HEARTBEAT_READER = "MC_Subscriber::HeartbeatReader"
+master_controller_HEARTBEAT_READER = "MC_Subscriber::HeartbeatReader"
 
-controllerExample.MC_HEARTBEAT_READER = controllerExample_MC_HEARTBEAT_READER
+master_controller.HEARTBEAT_READER = master_controller_HEARTBEAT_READER
 
-controllerExample_MC_AMC_STATE_READER = "GD_Subscriber::ActiveMicrogridControllerStateReader"
+master_controller_AMC_STATE_READER = "GD_Subscriber::ActiveMicrogridControllerStateReader"
 
-controllerExample.MC_AMC_STATE_READER = controllerExample_MC_AMC_STATE_READER
+master_controller.AMC_STATE_READER = master_controller_AMC_STATE_READER
 
-controllerExample_MC_ATE_REQUEST_READER = "GD_Subscriber::AuthorizationToEnergizeRequestReader"
+master_controller_ATE_REQUEST_READER = "GD_Subscriber::AuthorizationToEnergizeRequestReader"
 
-controllerExample.MC_ATE_REQUEST_READER = controllerExample_MC_ATE_REQUEST_READER
+master_controller.ATE_REQUEST_READER = master_controller_ATE_REQUEST_READER
 
-controllerExample_MC_ATE_RESULT_READER = "GD_Subscriber::AuthorizationToEnergizeResultReader"
+master_controller_ATE_RESULT_READER = "GD_Subscriber::AuthorizationToEnergizeResultReader"
 
-controllerExample.MC_ATE_RESULT_READER = controllerExample_MC_ATE_RESULT_READER
+master_controller.ATE_RESULT_READER = master_controller_ATE_RESULT_READER
 
-controllerExample_MC_ESS_STATE_READER = "GD_Subscriber::EnergyStartStopStateReader"
+master_controller_ESS_STATE_READER = "GD_Subscriber::EnergyStartStopStateReader"
 
-controllerExample.MC_ESS_STATE_READER = controllerExample_MC_ESS_STATE_READER
+master_controller.ESS_STATE_READER = master_controller_ESS_STATE_READER
 
-controllerExample_MC_REPLY_READER = "GD_Subscriber::ReplyReader"
+master_controller_REPLY_READER = "GD_Subscriber::ReplyReader"
 
-controllerExample.MC_REPLY_READER = controllerExample_MC_REPLY_READER
+master_controller.REPLY_READER = master_controller_REPLY_READER
 
 tms = idl.get_module("tms")
 
@@ -1062,13 +1062,11 @@ class tms_ControlCurve:
 
 tms.ControlCurve = tms_ControlCurve
 
-
 @idl.struct(
     member_annotations = {
-        'requestingDeviceId': [idl.bound(tms.Identity_MAXLEN)]
+        'requestingDeviceId': [idl.bound(tms.Identity_MAXLEN)],
     }
 )
-
 class tms_GridRequest:
     requestingDeviceId: str = ""
 
@@ -1784,7 +1782,6 @@ class tms_ActiveDiagnosticState:
 
 tms.ActiveDiagnosticState = tms_ActiveDiagnosticState
 
-
 @idl.struct(
     member_annotations = {
         'relatedRequestId': [idl.key, ],
@@ -1793,7 +1790,6 @@ tms.ActiveDiagnosticState = tms_ActiveDiagnosticState
         'userId': [idl.bound(tms.Identity_MAXLEN)],
     }
 )
-
 class tms_AuthorizationToEnergizeResult:
     relatedRequestId: tms.GridRequest = field(default_factory = tms.GridRequest)
     relatedSequenceId: idl.uint64 = 0
@@ -1810,15 +1806,12 @@ class tms_AuthorizationToEnergizeResult:
 
 tms.AuthorizationToEnergizeResult = tms_AuthorizationToEnergizeResult
 
-
 @idl.struct(
     member_annotations = {
         'requestId': [idl.key, ],
         'energizeRequestingDeviceId': [idl.bound(tms.Identity_MAXLEN)],
     }
 )
-
-
 class tms_AuthorizationToEnergizeRequest:
     requestId: tms.GridRequest = field(default_factory = tms.GridRequest)
     sequenceId: idl.uint64 = 0
@@ -1828,7 +1821,6 @@ class tms_AuthorizationToEnergizeRequest:
 
 tms.AuthorizationToEnergizeRequest = tms_AuthorizationToEnergizeRequest
 
-
 @idl.struct(
     member_annotations = {
         'deviceId': [idl.bound(tms.Identity_MAXLEN)],
@@ -1837,8 +1829,6 @@ tms.AuthorizationToEnergizeRequest = tms_AuthorizationToEnergizeRequest
         'userId': [idl.bound(tms.Identity_MAXLEN)],
     }
 )
-
-
 class tms_AuthorizationToEnergizeReply:
     deviceId: str = ""
     relatedRequestId: tms.GridRequest = field(default_factory = tms.GridRequest)
@@ -2050,7 +2040,6 @@ class tms_PowerPortIntentSequence:
 
 tms.PowerPortIntentSequence = tms_PowerPortIntentSequence
 
-
 @idl.struct
 class tms_OperatorIntent:
     requestId: tms.GridRequest = field(default_factory = tms.GridRequest)
@@ -2061,16 +2050,11 @@ class tms_OperatorIntent:
 
 tms.OperatorIntent = tms_OperatorIntent
 
-
-
 @idl.struct(
     member_annotations = {
         'requestId': [idl.key, ],
     }
 )
-
-
-
 class tms_OperatorIntentRequest:
     requestId: tms.GridRequest = field(default_factory = tms.GridRequest)
     sequenceId: idl.uint64 = 0
@@ -2083,9 +2067,6 @@ tms.OperatorIntentRequest = tms_OperatorIntentRequest
         'deviceId': [idl.key, idl.bound(tms.Identity_MAXLEN)],
     }
 )
-
-
-
 class tms_OperatorIntentState:
     deviceId: str = ""
     activeOperatorIntent: tms.OperatorIntent = field(default_factory = tms.OperatorIntent)
@@ -2356,148 +2337,6 @@ class tms_ActiveMicrogridControllerState:
 
 tms.ActiveMicrogridControllerState = tms_ActiveMicrogridControllerState
 
-tms_ac = idl.get_module("tms_ac")
-
-tms.ac = tms_ac
-
-tms_ac_PhaseAngleSequence_MINLEN = 0
-
-tms.ac.PhaseAngleSequence_MINLEN = tms_ac_PhaseAngleSequence_MINLEN
-
-tms_ac_PhaseAngleSequence_MAXLEN = 3
-
-tms.ac.PhaseAngleSequence_MAXLEN = tms_ac_PhaseAngleSequence_MAXLEN
-
-@idl.alias(
-    annotations = [idl.bound(tms.ac.PhaseAngleSequence_MAXLEN),]
-)
-class tms_ac_PhaseAngleSequence:
-    value: Sequence[idl.float32] = field(default_factory = idl.array_factory(idl.float32))
-
-tms.ac.PhaseAngleSequence = tms_ac_PhaseAngleSequence
-
-@idl.struct
-class tms_ac_PowerLineMeasurement:
-    voltage: idl.float32 = 0.0
-    frequency: idl.float32 = 0.0
-    amperage: idl.float32 = 0.0
-    phaseOffset: idl.float32 = 0.0
-    realPower: idl.float32 = 0.0
-    reactivePower: idl.float32 = 0.0
-
-tms.ac.PowerLineMeasurement = tms_ac_PowerLineMeasurement
-
-tms_ac_PowerLineMeasurementSequence_MINLEN = 1
-
-tms.ac.PowerLineMeasurementSequence_MINLEN = tms_ac_PowerLineMeasurementSequence_MINLEN
-
-tms_ac_PowerLineMeasurementSequence_MAXLEN = 4
-
-tms.ac.PowerLineMeasurementSequence_MAXLEN = tms_ac_PowerLineMeasurementSequence_MAXLEN
-
-@idl.alias(
-    annotations = [idl.bound(tms.ac.PowerLineMeasurementSequence_MAXLEN),]
-)
-class tms_ac_PowerLineMeasurementSequence:
-    value: Sequence[tms.ac.PowerLineMeasurement] = field(default_factory = list)
-
-tms.ac.PowerLineMeasurementSequence = tms_ac_PowerLineMeasurementSequence
-
-@idl.struct
-class tms_ac_PowerPortMeasurement:
-    portNumber: idl.int32 = 0
-    line: tms.ac.PowerLineMeasurementSequence = field(default_factory = tms.ac.PowerLineMeasurementSequence)
-    phaseAngle: tms.ac.PhaseAngleSequence = field(default_factory = tms.ac.PhaseAngleSequence)
-    realPowerRateOfChange: idl.float32 = 0.0
-    reactivePowerRateOfChange: idl.float32 = 0.0
-
-tms.ac.PowerPortMeasurement = tms_ac_PowerPortMeasurement
-
-tms_ac_PowerPortMeasurementSequence_MINLEN = 0
-
-tms.ac.PowerPortMeasurementSequence_MINLEN = tms_ac_PowerPortMeasurementSequence_MINLEN
-
-tms_ac_PowerPortMeasurementSequence_MAXLEN = tms.MAX_PORTS
-
-tms.ac.PowerPortMeasurementSequence_MAXLEN = tms_ac_PowerPortMeasurementSequence_MAXLEN
-
-@idl.alias(
-    annotations = [idl.bound(tms.ac.PowerPortMeasurementSequence_MAXLEN),]
-)
-class tms_ac_PowerPortMeasurementSequence:
-    value: Sequence[tms.ac.PowerPortMeasurement] = field(default_factory = list)
-
-tms.ac.PowerPortMeasurementSequence = tms_ac_PowerPortMeasurementSequence
-
-@idl.struct(
-    member_annotations = {
-        'deviceId': [idl.key, idl.bound(tms.Identity_MAXLEN)],
-    }
-)
-class tms_ac_MeasurementUpdate:
-    deviceId: str = ""
-    timeMeasured: tms.ClockMonotonic = field(default_factory = tms.ClockMonotonic)
-    externalMeasurement: tms.ac.PowerPortMeasurementSequence = field(default_factory = tms.ac.PowerPortMeasurementSequence)
-    internalMeasurement: tms.ac.PowerPortMeasurementSequence = field(default_factory = tms.ac.PowerPortMeasurementSequence)
-
-tms.ac.MeasurementUpdate = tms_ac_MeasurementUpdate
-
-@idl.struct
-class tms_ac_LoadSharingParameters:
-    portNumber: idl.int32 = 0
-    referenceFrequency: tms.ControlCurve = field(default_factory = tms.ControlCurve)
-    referenceVoltage: tms.ControlCurve = field(default_factory = tms.ControlCurve)
-    minRealPower: idl.float32 = 0.0
-    maxRealPower: idl.float32 = 0.0
-    minFrequency: idl.float32 = 0.0
-    maxFrequency: idl.float32 = 0.0
-    minReactivePower: idl.float32 = 0.0
-    maxReactivePower: idl.float32 = 0.0
-    minVoltage: idl.float32 = 0.0
-    maxVoltage: idl.float32 = 0.0
-
-tms.ac.LoadSharingParameters = tms_ac_LoadSharingParameters
-
-tms_ac_LoadSharingParameterSequence_MINLEN = 1
-
-tms.ac.LoadSharingParameterSequence_MINLEN = tms_ac_LoadSharingParameterSequence_MINLEN
-
-tms_ac_LoadSharingParameterSequence_MAXLEN = tms.MAX_PORTS
-
-tms.ac.LoadSharingParameterSequence_MAXLEN = tms_ac_LoadSharingParameterSequence_MAXLEN
-
-@idl.alias(
-    annotations = [idl.bound(tms.ac.LoadSharingParameterSequence_MAXLEN),]
-)
-class tms_ac_LoadSharingParameterSequence:
-    value: Sequence[tms.ac.LoadSharingParameters] = field(default_factory = list)
-
-tms.ac.LoadSharingParameterSequence = tms_ac_LoadSharingParameterSequence
-
-@idl.struct(
-    member_annotations = {
-        'requestId': [idl.key, ],
-    }
-)
-class tms_ac_LoadSharingRequest:
-    requestId: tms.PowerPortConfigRequest = field(default_factory = tms.PowerPortConfigRequest)
-    sequenceId: idl.uint64 = 0
-    parameters: tms.ac.LoadSharingParameters = field(default_factory = tms.ac.LoadSharingParameters)
-
-tms.ac.LoadSharingRequest = tms_ac_LoadSharingRequest
-
-@idl.struct(
-    member_annotations = {
-        'deviceId': [idl.key, idl.bound(tms.Identity_MAXLEN)],
-    }
-)
-class tms_ac_LoadSharingState:
-    deviceId: str = ""
-    config: tms.ConfigId = tms.ConfigId.CONFIG_UNKNOWN
-    parameters: tms.ac.LoadSharingParameterSequence = field(default_factory = tms.ac.LoadSharingParameterSequence)
-
-tms.ac.LoadSharingState = tms_ac_LoadSharingState
-
 tms_dc = idl.get_module("tms_dc")
 
 tms.dc = tms_dc
@@ -2671,4 +2510,3 @@ class tms_DeviceInfo:
     powerDevice: Optional[tms.PowerDeviceInfo] = None
 
 tms.DeviceInfo = tms_DeviceInfo
-

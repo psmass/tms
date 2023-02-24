@@ -33,7 +33,7 @@ def device_main(domain_id):
     
     # *** STANDUP PARTICIPANT WITH READERS AND WRITERS XML APP CREATE
     qos_provider = dds.QosProvider(constants.QOS_URL)
-    participant = qos_provider.create_participant_from_config(tmsConstants.deviceExample.GENERATOR_DEVICE1)
+    participant = qos_provider.create_participant_from_config(tmsConstants.generator_device.DEVICE1)
    
     # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
     # (creates: readers, writers, and threads). All request reader topics also need
@@ -42,10 +42,12 @@ def device_main(domain_id):
     # up the handles so we can manipulate them.
     
     app_state_obj = topics.ApplicationStateObj(tmsConstants.tms_DeviceRole.ROLE_SOURCE)
+    
+    device_di_w = topics.DeviceInfoGD_Wtr(participant, app_state_obj)
+    device_hb_w = topics.HeartbeatGD_Wtr(participant, app_state_obj)
+    device_hb_r = topics.HeartbeatGD_Rdr(participant, app_state_obj, device_hb_w.writer.instance_handle)
 
     """
-    
-    device_da_w = topics.DeviceAnnouncementWtr(participant, app_state_obj)
     device_mmr_w = topics.MicrogridMembershipRqstWtr(participant, app_state_obj)
     device_rrd_w = topics.RequestRspDevWtr(participant, app_state_obj)
     device_rrd_r = topics.RequestRspDevRdr(participant, app_state_obj,
@@ -55,7 +57,7 @@ def device_main(domain_id):
                                                app_state_obj,
                                                device_rrd_w)
     device_sts_w = topics.SrcTransitionStateWtr(participant, app_state_obj)
-    device_hb_w = topics.HeartbeatWtr(participant, app_state_obj)
+
 
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # device_da_w.start() # start a statuses monitor thread on the DA Writer
@@ -150,28 +152,35 @@ def device_main(domain_id):
             app_state_obj.setAppState(constants.DeviceState.SHUT_DOWN)
 
         if app_state_obj.appState() == constants.DeviceState.INIT:
-            print("Device Initializing ")
-            #device_da_w.write() # only need to write this once since QoS Durable
-            app_state_obj.setAppState(constants.DeviceState.JOINING_GRID)
+            print("Device Initialization ")
+            device_di_w.write() # only need to write this once since QoS Durable
+            device_hb_w.start() # start sending heartbeats
+            app_state_obj.setAppState(constants.DeviceState.DISCOVERY)
 
-        elif app_state_obj.appState() == constants.DeviceState.JOINING_GRID:
+        elif app_state_obj.appState() == constants.DeviceState.DISCOVERY:
+            print("D ", end="", flush = True) # sit printing 'Ds' while discovering MC
+            # device_di_w.write() # only need to write this once since QoS Durable
+            # receiving a MC HB and DI will transition to FOUND_NEW_CONTROLLER
+
+        elif app_state_obj.appState() == constants.DeviceState.FOUND_NEW_CONTROLLER:
+            print("Found Master Controller (MC)")
+            app_state_obj.setAppState(constants.DeviceState.POWER_UP_AUTH) # Ask to PU
+
+        elif app_state_obj.appState() == constants.DeviceState.POWER_UP_AUTH:
             count_in_state +=1
-            if count_in_state % 5 == 0: # request to membership every 5 sec
-                print("Device asking to join grid")
-                app_state_obj.clearOutstandingRequest()
+            if count_in_state % 5 == 0: # request to power up every 5 sec
+                print("Device asking to power up")
+                #app_state_obj.clearOutstandingRequest()
                 #device_mmr_w.write()
-
-        elif app_state_obj.appState() == constants.DeviceState.JOINED_GRID:
-            print("Device Joined Grid - start HB")
-            #device_hb_w.start() # start sending heartbeats
-            app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE) # return idle
-            
+                 
         elif app_state_obj.appState() == constants.DeviceState.WAIT_CMD_IDLE:
+            # Here we sit waiting for a command
             #print("Device awating command")
             print(".", end="", flush=True)
+            
                 
-        elif app_state_obj.appState() == constants.DeviceState.POWERING_UP:
-            print("Device POWERED_UP as Requested")
+        elif app_state_obj.appState() == constants.DeviceState.ENERGIZE:
+            print("Device Energize Start Requested")
             # publish an STS if new state asked for 
             if app_state_obj.devSrcXitionStateChange():
                 #device_sts_w.write()
