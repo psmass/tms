@@ -186,7 +186,12 @@ class HeartbeatGD_Rdr(ddsEntities.Reader):
         # print("RRD_RDR CFT ID installed")
         participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Heartbeats 
 
-
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the HB Reader, we don't want to print the sample, but rather just echo an 'HB'
+    def handler(self, data):
+        print ("HB", end="", flush=True)
+        
+        
 # MC HB Topic Writer
 class HeartbeatMC_Wtr(ddsEntities.Writer): 
     def __init__(self, participant, app_state_obj):
@@ -222,9 +227,14 @@ class HeartbeatMC_Rdr(ddsEntities.Reader):
         #
         # cft_topic.filter_parameters = [self._app_state_obj.deviceID()]
         # print("RRD_RDR CFT ID installed")
-        participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Heartbeats 
-
-
+        participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Heartbeats
+        
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the HB Reader, we don't want to print the sample, but rather just echo an 'HB'
+    def handler(self, data):
+        print ("HB", end="", flush=True)
+        
+        
 # Generator Device DI Topic Writer        
 class DeviceInfoGD_Wtr(ddsEntities.Writer):
     def __init__(self, participant, app_state_obj):
@@ -307,18 +317,6 @@ class DeviceInfoMC_Rdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
-
-
-
-
-
-
-
-
-
-
-
-
         
 # Device RRD Topic Writer        
 class RequestRspDevWtr(ddsEntities.Writer):
