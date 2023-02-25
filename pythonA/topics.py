@@ -51,23 +51,28 @@ class ApplicationStateObj():
     def __init__(self, role):
         self._role = role
         self._deviceId = ""
+        self._masterControllerId = ""
         # track device source transition, send STS on change (when ever they are different)
 #        self._device_source_transition_state = tmsConstants.tms_SourceTransition.ST_UNINITIALIZED
 #        self._requested_device_source_transition_state = constants.tms_SourceTransition.ST_UNINITIALIZED
 
         self._application_state = constants.ControllerState.INIT
         self._controller_rcvd_da = False
-        self._deviceIdSet = False # flag to send a ReqResp in response to request
+        self._deviceIdSet = False # flag indicates MC has received DI and _deviceId is valid
+        self._mcIdSet = False # flag to device, indicated it received DI and _masterControllerId is valid
         self._sequenceNumber = 0  # unique running sequence number
         self._rrSequenceNumber = self._sequenceNumber  # sequenceNumber of outstanding Request 
         self._outstandingRequest = False
         
-        # if Device Load the ID right away, if Controller, we have to wait for the Device Announcement
-        if (self._role != tmsConstants.tms_DeviceRole.ROLE_MICROGRID_CONTROLLER):
+        # Load the Device and Controller IDs respectively
+        if (self._role == tmsConstants.tms_DeviceRole.ROLE_MICROGRID_CONTROLLER):
+            self._masterControllerId=constants.CONTROLLER1_ID 
+            self._masterControllerIDSet = True
+            print("Master Controller ID set: ", self._masterControllerId)
+        else:
             self._deviceId=constants.DEVICE1_ID
-                
             self._deviceIdSet = True # not really used by Device
-            self.print_device_id()
+            print("Generator Device ID set: ", self._deviceId)
 
     def appState(self):
         return self._application_state
@@ -93,17 +98,22 @@ class ApplicationStateObj():
     def clearOutstandingRequest(self):
         self._outstandingRequest=False
  
-    def print_device_id(self):
-        print (self._deviceId)
-                   
+        
     # used by the controller to set the deviceID upon receiveing DA
     # Calling this also changes the Controllers state from INIT to FOUND_DEVICE
     def setDevId(self, deviceId ):
-        self._deviceId[idx]=deviceId
+        self._deviceId = deviceId
 
         self._deviceIdSet = True
-        self.print_device_id()
+        print(self._deviceId)
 
+    # used by the Device to set the MCID upon receiveing DIs and making MC selection process
+    def setMCId(self, mcId ):
+        self._masterControllerId = mcId
+
+        self._MCIdSet = True
+        print(self._masterControllerId)
+        
     def deviceId(self):
         return self._deviceId
 
@@ -114,6 +124,10 @@ class ApplicationStateObj():
     # used to set the Id in a sample about to be written by any topic   
     def setDevIdInSample (self, sample, idStrName):
         sample[idStrName]=self._deviceId
+
+    # used to set the Id in a sample about to be written by any topic   
+    def setMCIdInSample (self, sample, idStrName):
+        sample[idStrName]=self._masterControllerId
 
     def setDevReqSrcXitionState(self, newState):
         self._requested_device_source_transition_state = newState
@@ -183,7 +197,7 @@ class HeartbeatMC_Wtr(ddsEntities.Writer):
         self._thread_started = False  # track thread, to join() on exit only if started 
         self._app_state_obj = app_state_obj
 
-        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+        self._app_state_obj.setMCIdInSample(self._sample, "deviceId")
         
 
     def write(self): # need to overload to add sequence #
@@ -226,13 +240,13 @@ class DeviceInfoGD_Wtr(ddsEntities.Writer):
         self._sample["role"]= tmsConstants.tms_DeviceRole.ROLE_SOURCE
 
         # example of multi-nested assignment - not working
-        self._sample["product.modelName"]="MyGeneratorDeviceMfgr"
+        self._sample["product.modelName"]="MyGeneratorDevice"
 
     def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
         return self._sample
                     
 # Generator Device DI Topic Reader        
-class DeviceDG_Rdr(ddsEntities.Reader):
+class DeviceInfoGD_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
         ddsEntities.Reader.__init__(self, participant, 
                                     "tms::DeviceInfo", # DeviceInfo registered_type name
@@ -244,42 +258,42 @@ class DeviceDG_Rdr(ddsEntities.Reader):
         
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
-    # 
+    # The Device Received the MCs ID and save it
+    # TODO: Implement MC selection per TMS spec
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-        devId=data["deviceId"]
-        self._app_state_obj.setDevId(devId)
-        self._app_state_obj.setAppState( constants.ControllerState.FOUND_NEW_CONTROLLER)
+        mcId=data["deviceId"]
+        self._app_state_obj.setMCId(mcId)
+
 
 # MC DI Topic Writer        
 class DeviceInfoMC_Wtr(ddsEntities.Writer):
     def __init__(self, participant, app_state_obj):
         ddsEntities.Writer.__init__(self, participant,  False, 0.0,
                                     "tms::DeviceInfo", # DeviceInfo registered_type name
-                                    tmsConstants.generator_deviceMC_DEVICE_INFO_WRITER)
+                                    tmsConstants.master_controller.DEVICE_INFO_WRITER)
 
         self._app_state_obj = app_state_obj
-        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
+        self._app_state_obj.setMCIdInSample(self._sample, "deviceId")
         
         # Loadup  static fields in the C'tor (except deviceId as we have
         # common code to do this (see setHndlDevIdObj() below
-        self._sample["role"]= constants.tms_DeviceRole.ROLE_SOURCE
+        self._sample["role"]= tmsConstants.tms_DeviceRole.ROLE_MICROGRID_CONTROLLER
 
         # example of multi-nested assignment - not working
-        #self._sample["source[0].parameters[0].name"]="foo"
-        self._sample["modelName"]="MyDevice"
+        self._sample["product.modelName"]="MyMasterController"
 
     def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
         return self._sample
                 
 
 # MC DI Topic Reader        
-class DeviceMC_Rdr(ddsEntities.Reader):
+class DeviceInfoMC_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
         ddsEntities.Reader.__init__(self, participant, 
                                     "tms::DeviceInfo", # DeviceInfo registered_type name
-                                    tmsConstants.MC_DEVICE_INFO_READER)
+                                    tmsConstants.master_controller.DEVICE_INFO_READER)
 
         self._app_state_obj = app_state_obj
 
@@ -293,7 +307,7 @@ class DeviceMC_Rdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
-        self._app_state_obj.setAppState( constants.ControllerState.FOUND_NEW_DEVICE)
+
 
 
 

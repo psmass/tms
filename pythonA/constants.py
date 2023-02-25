@@ -22,7 +22,7 @@ QOS_URL = "file://../model_distroA/tmsExampleApp.xml"
 
 # the state classes are used by both the device/controller and the app_state_object
 DEVICE1_ID = "DGen1234"
-CONTROLER1_ID = "MC0001"
+CONTROLLER1_ID = "MC0001"
 
 HEARTBEAT_PERIOD=1.0
 
@@ -31,7 +31,7 @@ class ControllerState(IntEnum):
     DISCOVERY = 1
     FOUND_NEW_DEVICE = 2 
     WAIT_CMD_IDLE = 3
-    POWERING_UP_AUTH = 4
+    POWER_UP_AUTH = 4
     ENERGIZE = 5
     SHUT_DOWN = 6
     ERROR = 7 # received an out of order request

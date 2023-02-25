@@ -44,43 +44,21 @@ def device_main(domain_id):
     app_state_obj = topics.ApplicationStateObj(tmsConstants.tms_DeviceRole.ROLE_SOURCE)
     
     device_di_w = topics.DeviceInfoGD_Wtr(participant, app_state_obj)
+    device_di_r = topics.DeviceInfoGD_Rdr(participant, app_state_obj, device_di_w.writer.instance_handle)
     device_hb_w = topics.HeartbeatGD_Wtr(participant, app_state_obj)
     device_hb_r = topics.HeartbeatGD_Rdr(participant, app_state_obj, device_hb_w.writer.instance_handle)
 
-    """
-    device_mmr_w = topics.MicrogridMembershipRqstWtr(participant, app_state_obj)
-    device_rrd_w = topics.RequestRspDevWtr(participant, app_state_obj)
-    device_rrd_r = topics.RequestRspDevRdr(participant, app_state_obj,
-                                           device_rrd_w.writer.instance_handle)
-    device_mmo_r = topics.MicrogridMembershipOutcomeRdr(participant, app_state_obj)
-    device_str_r = topics.SrcTransitionRqstRdr(participant,
-                                               app_state_obj,
-                                               device_rrd_w)
-    device_sts_w = topics.SrcTransitionStateWtr(participant, app_state_obj)
-
-
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
-    # device_da_w.start() # start a statuses monitor thread on the DA Writer
-    # or...#listener
-    device_da_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
+    # device_di_w.start() # start a statuses monitor thread on the DA Writer
+    # or...#listener, Heartbeat is periodic and will run as a thread
+    device_di_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
                                     dds.StatusMask.ALL)
-    # device_mmr_w.start()# start a statuses monitor thread on Writer
-    # or..listener
-    device_mmr_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
-                                    dds.StatusMask.ALL)
-    # device_rrd_w.start()# start a statuses monitor thread on Writer
-    # or..listener
-    device_rrd_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
-                                    dds.StatusMask.ALL)                                   
-    # device_sts_w.start()# start a statuses monitor thread on Writer
-    # or..listener
-    device_sts_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
-                                    dds.StatusMask.ALL)                                   
 
+
+    
     # *** START READER THREADS (Reads data and monitors statuses)
-    device_rrd_r.start()
-    device_mmo_r.start()
-    device_str_r.start()
+    device_di_r.start()
+    device_hb_r.start()
     
     sleep(5) # let threads spin up and settle down (output readabilty)
 
@@ -142,7 +120,7 @@ def device_main(domain_id):
     #       request. It might use the app_state_obj to track the request instance,
     #       unregistering and disposing of it.
     #
-    """
+
     print("\n\n **** Starting State Machine")
     
     count_in_state = 0
@@ -159,7 +137,6 @@ def device_main(domain_id):
 
         elif app_state_obj.appState() == constants.DeviceState.DISCOVERY:
             print("D ", end="", flush = True) # sit printing 'Ds' while discovering MC
-            # device_di_w.write() # only need to write this once since QoS Durable
             # receiving a MC HB and DI will transition to FOUND_NEW_CONTROLLER
 
         elif app_state_obj.appState() == constants.DeviceState.FOUND_NEW_CONTROLLER:
@@ -201,19 +178,12 @@ def device_main(domain_id):
         
         sleep(1)
 
-    """
     # ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
-    # device_da_w.join()  # uncomment if Thread Monitor vs. Listener used
     # device_mmr_w.join() # uncomment if Thread Monitor vs. Listener used
-    # device_rrd_w.join() # uncomment if Thread Monitor vs. Listener used
-    # device_sts_w.join() # uncomment if Thread Monitor vs. Listener used
     if device_hb_w._thread_started: # incase we ^C prior to heartbeat.start() 
         device_hb_w.join() 
-    device_rrd_r.join()
-    device_mmo_r.join()
-    device_str_r.join()
-    """
-        
+    device_di_r.join()  
+         
     print("Device Exiting")
 
 
