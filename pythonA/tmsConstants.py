@@ -97,19 +97,19 @@ master_controller_AMC_STATE_READER = "MC_Subscriber::ActiveMicrogridControllerSt
 
 master_controller.AMC_STATE_READER = master_controller_AMC_STATE_READER
 
-master_controller_ATE_REQUEST_READER = "GD_Subscriber::AuthorizationToEnergizeRequestReader"
+master_controller_ATE_REQUEST_READER = "MC_Subscriber::AuthorizationToEnergizeRequestReader"
 
 master_controller.ATE_REQUEST_READER = master_controller_ATE_REQUEST_READER
 
-master_controller_ATE_RESULT_READER = "GD_Subscriber::AuthorizationToEnergizeResultReader"
+master_controller_ATE_RESULT_READER = "MC_Subscriber::AuthorizationToEnergizeResultReader"
 
 master_controller.ATE_RESULT_READER = master_controller_ATE_RESULT_READER
 
-master_controller_ESS_STATE_READER = "GD_Subscriber::EnergyStartStopStateReader"
+master_controller_ESS_STATE_READER = "MC_Subscriber::EnergyStartStopStateReader"
 
 master_controller.ESS_STATE_READER = master_controller_ESS_STATE_READER
 
-master_controller_REPLY_READER = "GD_Subscriber::ReplyReader"
+master_controller_REPLY_READER = "MC_Subscriber::ReplyReader"
 
 master_controller.REPLY_READER = master_controller_REPLY_READER
 

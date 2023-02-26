@@ -388,8 +388,8 @@ class ATEReqGD_Wtr(ddsEntities.Writer):
 class ATEReqMC_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj):
         ddsEntities.Reader.__init__(self, participant, 
-                                    "tms::ActiveMicrogridControllerState", # registered_type name
-                                    tmsConstants.master_controller.AMC_STATE_READER)
+                                    "tms::AuthorizationToEnergizeRequest", # registered_type name
+                                    tmsConstants.master_controller.ATE_REQUEST_READER)
 
         self._app_state_obj = app_state_obj
 
@@ -402,5 +402,5 @@ class ATEReqMC_Rdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-        self._app_state_obj._thisMCSelected = True
+
 
