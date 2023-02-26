@@ -52,6 +52,7 @@ class ApplicationStateObj():
         self._role = role
         self._deviceId = ""
         self._masterControllerId = ""
+        self._thisMCSelected = False
         # track device source transition, send STS on change (when ever they are different)
 #        self._device_source_transition_state = tmsConstants.tms_SourceTransition.ST_UNINITIALIZED
 #        self._requested_device_source_transition_state = constants.tms_SourceTransition.ST_UNINITIALIZED
@@ -333,7 +334,7 @@ class AMCStateGD_Wtr(ddsEntities.Writer):
         self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
 
     def set_mc_in_sample(self, mcId):
-        self._sample["masterId"]=mcId
+        self._sample["masterId"] = mcId
                                             
         
 
@@ -356,7 +357,7 @@ class AMCStateMC_Rdr(ddsEntities.Reader):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         print ("This Master Controller ID: {id} has been selected".format(id=data["masterId"]))
-        self._app_state_obj.setAppState(constants.ControllerState.INIT)
+        self._app_state_obj._thisMCSelected = True
 
         
 

@@ -151,7 +151,11 @@ def controller_main(domain_id):
         elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
             # this state in case we get a DA and not an MMR so hold waiting for MMR
             # Note: DA is durable, so we can get a DA followed immediately by a DA
-            print("Controller Found a New Device, awaiting Authorization Request")
+            print("Controller Found a New Device, awaiting to be Selected")
+            if app_state_obj._thisMCSelected:
+                # go to background Idle waiting for AuthorizationToPowerupRequest
+                app_state_obj.setAppState(constants.ControllerState.WAIT_CMD_IDLE)
+                                          
 
         elif app_state_obj.appState() == constants.ControllerState.POWER_UP_AUTH:
             print("Controller allowing Device to JOIN grid")
