@@ -47,6 +47,8 @@ def controller_main(domain_id):
     controller_hb_r = topics.HeartbeatMC_Rdr(participant, app_state_obj,
                                              controller_hb_w.writer.instance_handle)
 
+    controller_amc_state_r = topics.AMCStateMC_Rdr(participant, app_state_obj)
+
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # device_di_w.start() # start a statuses monitor thread on the DA Writer
     # or...#listener, Heartbeat is periodic and will run as a thread
@@ -58,6 +60,7 @@ def controller_main(domain_id):
     # *** START READER THREADS (Reads data and monitors statuses)
     controller_di_r.start()
     controller_hb_r.start()
+    controller_amc_state_r.start()
 
 
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)

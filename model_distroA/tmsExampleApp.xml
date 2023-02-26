@@ -27,11 +27,11 @@
         <const name="ESS_REQUEST_WRITER" type="string" value="&quot;MC_Publisher::EnergyStartStopRequestWriter&quot;"/>
         <const name="DEVICE_INFO_READER" type="string" value="&quot;MC_Subscriber::DeviceInfoReader&quot;"/>
         <const name="HEARTBEAT_READER" type="string" value="&quot;MC_Subscriber::HeartbeatReader&quot;"/>
-        <const name="AMC_STATE_READER" type="string" value="&quot;GD_Subscriber::ActiveMicrogridControllerStateReader&quot;"/>
-        <const name="ATE_REQUEST_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeRequestReader&quot;"/>
-        <const name="ATE_RESULT_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeResultReader&quot;"/>
-        <const name="ESS_STATE_READER" type="string" value="&quot;GD_Subscriber::EnergyStartStopStateReader&quot;"/>
-        <const name="REPLY_READER" type="string" value="&quot;GD_Subscriber::ReplyReader&quot;"/>
+        <const name="AMC_STATE_READER" type="string" value="&quot;MC_Subscriber::ActiveMicrogridControllerStateReader&quot;"/>
+        <const name="ATE_REQUEST_READER" type="string" value="&quot;MC_Subscriber::AuthorizationToEnergizeRequestReader&quot;"/>
+        <const name="ATE_RESULT_READER" type="string" value="&quot;MC_Subscriber::AuthorizationToEnergizeResultReader&quot;"/>
+        <const name="ESS_STATE_READER" type="string" value="&quot;MC_Subscriber::EnergyStartStopStateReader&quot;"/>
+        <const name="REPLY_READER" type="string" value="&quot;MC_Subscriber::ReplyReader&quot;"/>
       </module>
       <module name="tms">
         <module name="topic">

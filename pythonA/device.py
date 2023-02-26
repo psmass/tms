@@ -47,7 +47,9 @@ def device_main(domain_id):
     device_di_r = topics.DeviceInfoGD_Rdr(participant, app_state_obj, device_di_w.writer.instance_handle)
     device_hb_w = topics.HeartbeatGD_Wtr(participant, app_state_obj)
     device_hb_r = topics.HeartbeatGD_Rdr(participant, app_state_obj, device_hb_w.writer.instance_handle)
+    device_amc_state_w = topics.AMCStateGD_Wtr(participant, app_state_obj)
 
+    
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # device_di_w.start() # start a statuses monitor thread on the DA Writer
     # or...#listener, Heartbeat is periodic and will run as a thread
@@ -138,12 +140,18 @@ def device_main(domain_id):
 
         elif app_state_obj.appState() == constants.DeviceState.DISCOVERY:
             print("D ", end="", flush = True) # sit printing 'Ds' while discovering MC
-            # receiving a DI will set the mcId (TODO: Controller Selection algorithm)
+            # receiving a DI will set the mcId 
             if app_state_obj._mcIdSet:
                 app_state_obj.setAppState(constants.DeviceState.FOUND_NEW_CONTROLLER)
 
         elif app_state_obj.appState() == constants.DeviceState.FOUND_NEW_CONTROLLER:
-            print("Found Master Controller (MC)")
+            print("Found Master Controller (MC)") 
+            # TODO: Implement tms Master Controller Selection Algorithm.
+            # Here once we know an MC, we'll select it first come, first serve
+            # returning an ActiveMicrogridControllerState
+            device_amc_state_w.set_mc_in_sample(app_state_obj._masterControllerId)
+            device_amc_state_w.write()
+
             app_state_obj.setAppState(constants.DeviceState.POWER_UP_AUTH) # Ask to PU
 
         elif app_state_obj.appState() == constants.DeviceState.POWER_UP_AUTH:

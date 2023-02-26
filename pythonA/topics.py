@@ -321,24 +321,47 @@ class DeviceInfoMC_Rdr(ddsEntities.Reader):
         self._app_state_obj.setDevId(devId)
         self._app_state_obj.setAppState(constants.ControllerState.INIT)
 
-        
-# Device RRD Topic Writer        
-class RequestRspDevWtr(ddsEntities.Writer):
+
+# Generator Device Active Microgrid Controller State (MC Selection) Topic Writer        
+class AMCStateGD_Wtr(ddsEntities.Writer):
     def __init__(self, participant, app_state_obj):
-        ddsEntities.Writer.__init__(self, participant, False, 0.0,
-                                    constants.REQUEST_RESPONSE_TYPE_NAME,
-                                    constants.REQUEST_RESPONSE_DEVICE_WRITER)
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
+                                    "tms::ActiveMicrogridControllerState", # registered_type reference
+                                    tmsConstants.generator_device.AMC_STATE_WRITER)
 
         self._app_state_obj = app_state_obj
-        self._sample["status.reason"]="DEVICE"
-        
-    def write(self, req_seq_no): # override default writer
-        print("Writing ReqRes (Device)", self._topic_type_name)
-        # set the Id field - we do this each time we write
-        self._app_state_obj.setDevIdInSample(self._sample, "relatedRequestId.deviceId")
-        self._sample["relatedRequestId.sequenceNumber"]=req_seq_no
-        self._writer.write(self._sample)
+        self._app_state_obj.setDevIdInSample(self._sample, "deviceId")
 
+    def set_mc_in_sample(self, mcId):
+        self._sample["masterId"]=mcId
+                                            
+        
+
+# MC Active Microgrid Controller State Topic Reader        
+class AMCStateMC_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::ActiveMicrogridControllerState", # registered_type name
+                                    tmsConstants.master_controller.AMC_STATE_READER)
+
+        self._app_state_obj = app_state_obj
+
+        # TODO - Put a CFT on the masterId for this controller (so we only get notified if we
+        # are the controller selected
+                
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
+    # 
+    def handler(self, data):
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+        print ("This Master Controller ID: {id} has been selected".format(id=data["masterId"]))
+        self._app_state_obj.setAppState(constants.ControllerState.INIT)
+
+        
+
+
+        
         
 # Device RRD Topic Reader        
 class RequestRspDevRdr(ddsEntities.Reader):

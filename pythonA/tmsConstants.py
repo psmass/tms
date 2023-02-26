@@ -93,7 +93,7 @@ master_controller_HEARTBEAT_READER = "MC_Subscriber::HeartbeatReader"
 
 master_controller.HEARTBEAT_READER = master_controller_HEARTBEAT_READER
 
-master_controller_AMC_STATE_READER = "GD_Subscriber::ActiveMicrogridControllerStateReader"
+master_controller_AMC_STATE_READER = "MC_Subscriber::ActiveMicrogridControllerStateReader"
 
 master_controller.AMC_STATE_READER = master_controller_AMC_STATE_READER
 
