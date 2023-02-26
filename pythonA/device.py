@@ -131,13 +131,16 @@ def device_main(domain_id):
 
         if app_state_obj.appState() == constants.DeviceState.INIT:
             print("Device Initialization ")
-            device_di_w.write() # only need to write this once since QoS Durable
-            device_hb_w.start() # start sending heartbeats
+            if not device_hb_w._thread_started: # Don't restart if reset DI 
+                device_di_w.write() # only need to write this once since QoS Durable
+                device_hb_w.start() # start sending heartbeats
             app_state_obj.setAppState(constants.DeviceState.DISCOVERY)
 
         elif app_state_obj.appState() == constants.DeviceState.DISCOVERY:
             print("D ", end="", flush = True) # sit printing 'Ds' while discovering MC
-            # receiving a MC HB and DI will transition to FOUND_NEW_CONTROLLER
+            # receiving a DI will set the mcId (TODO: Controller Selection algorithm)
+            if app_state_obj._mcIdSet:
+                app_state_obj.setAppState(constants.DeviceState.FOUND_NEW_CONTROLLER)
 
         elif app_state_obj.appState() == constants.DeviceState.FOUND_NEW_CONTROLLER:
             print("Found Master Controller (MC)")
@@ -146,7 +149,7 @@ def device_main(domain_id):
         elif app_state_obj.appState() == constants.DeviceState.POWER_UP_AUTH:
             count_in_state +=1
             if count_in_state % 5 == 0: # request to power up every 5 sec
-                print("Device asking to power up")
+                print("Device requesting Authorization")
                 #app_state_obj.clearOutstandingRequest()
                 #device_mmr_w.write()
                  

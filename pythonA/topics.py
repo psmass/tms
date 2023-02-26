@@ -111,7 +111,7 @@ class ApplicationStateObj():
     def setMCId(self, mcId ):
         self._masterControllerId = mcId
 
-        self._MCIdSet = True
+        self._mcIdSet = True
         print(self._masterControllerId)
         
     def deviceId(self):
@@ -254,7 +254,8 @@ class DeviceInfoGD_Wtr(ddsEntities.Writer):
 
     def get_data_sample(self): # Used to get the preloaded fingerprint/deviceID
         return self._sample
-                    
+
+    
 # Generator Device DI Topic Reader        
 class DeviceInfoGD_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj, ignore_wtr_instance_hndl):
@@ -275,6 +276,7 @@ class DeviceInfoGD_Rdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
         mcId=data["deviceId"]
         self._app_state_obj.setMCId(mcId)
+        self._app_state_obj.setAppState(constants.DeviceState.INIT)
 
 
 # MC DI Topic Writer        
@@ -317,6 +319,8 @@ class DeviceInfoMC_Rdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
+        self._app_state_obj.setAppState(constants.ControllerState.INIT)
+
         
 # Device RRD Topic Writer        
 class RequestRspDevWtr(ddsEntities.Writer):

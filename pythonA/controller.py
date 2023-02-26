@@ -134,13 +134,16 @@ def controller_main(domain_id):
 
         if app_state_obj.appState() == constants.ControllerState.INIT:
             print("Controller Initializing")
-            controller_di_w.write() # only need to write this once since QoS Durable
-            controller_hb_w.start() # start sending heartbeats
+            if not controller_hb_w._thread_started: # Don't restart if reset DI 
+                controller_di_w.write() # only need to write this once since QoS Durable
+                controller_hb_w.start() # start sending heartbeats
             app_state_obj.setAppState(constants.ControllerState.DISCOVERY)
 
         elif app_state_obj.appState() == constants.ControllerState.DISCOVERY:
             print("D ", end="", flush = True) # sit printing 'Ds' while discovering MC
-            # receiving a MC HB and DI will transition to FOUND_NEW_CONTROLLER
+            # receiving DI will set the deviceId
+            if app_state_obj._deviceIdSet:
+                app_state_obj.setAppState(constants.ControllerState.FOUND_NEW_DEVICE)
             
         elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
             # this state in case we get a DA and not an MMR so hold waiting for MMR
