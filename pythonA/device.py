@@ -48,6 +48,7 @@ def device_main(domain_id):
     device_hb_w = topics.HeartbeatGD_Wtr(participant, app_state_obj)
     device_hb_r = topics.HeartbeatGD_Rdr(participant, app_state_obj, device_hb_w.writer.instance_handle)
     device_amc_state_w = topics.AMCStateGD_Wtr(participant, app_state_obj)
+    device_ate_req_w = topics.ATEReqGD_Wtr(participant, app_state_obj)
 
     
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
@@ -145,7 +146,7 @@ def device_main(domain_id):
                 app_state_obj.setAppState(constants.DeviceState.FOUND_NEW_CONTROLLER)
 
         elif app_state_obj.appState() == constants.DeviceState.FOUND_NEW_CONTROLLER:
-            print("Found Master Controller (MC)") 
+            print("Found and Selecting Master Controller (MC)") 
             # TODO: Implement tms Master Controller Selection Algorithm.
             # Here once we know an MC, we'll select it first come, first serve
             # returning an ActiveMicrogridControllerState
@@ -156,10 +157,10 @@ def device_main(domain_id):
 
         elif app_state_obj.appState() == constants.DeviceState.POWER_UP_AUTH:
             count_in_state +=1
-            if count_in_state % 5 == 0: # request to power up every 5 sec
+            if count_in_state % 10 == 0: # request to power up every 10 sec
                 print("Device requesting Authorization")
-                #app_state_obj.clearOutstandingRequest()
-                #device_mmr_w.write()
+                app_state_obj.clearOutstandingRequest()
+                device_ate_req_w.write()
                  
         elif app_state_obj.appState() == constants.DeviceState.WAIT_CMD_IDLE:
             # Here we sit waiting for a command

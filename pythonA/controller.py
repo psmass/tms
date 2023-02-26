@@ -154,6 +154,8 @@ def controller_main(domain_id):
             print("Controller Found a New Device, awaiting to be Selected")
             if app_state_obj._thisMCSelected:
                 # go to background Idle waiting for AuthorizationToPowerupRequest
+                print ("This Master Controller ID: {id} has been selected"
+                       .format(id=app_state_obj._masterControllerId))
                 app_state_obj.setAppState(constants.ControllerState.WAIT_CMD_IDLE)
                                           
 
