@@ -404,3 +404,82 @@ class ATEReqMC_Rdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
 
 
+        
+# MC Generator Device AuthorizationToEnergizeReply Topic Writer        
+class ATERepMC_Wtr(ddsEntities.Writer):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
+                                    "tms::AuthorizationToEnergizeReply", # registered_type reference
+                                    tmsConstants.master_controller.ATE_REPLY_WRITER)
+
+        self._app_state_obj = app_state_obj
+        self._app_state_obj.setDevIdInSample(self._sample, "requestId.requestingDeviceId")
+        self._app_state_obj.setDevIdInSample(self._sample, "energizeRequestingDeviceId")
+
+
+    def write(self): # Override to modify requestId and to set outstanding request
+        print("Writing ", self._topic_type_name)
+
+        self._sample["sequenceId"]=self._app_state_obj.rrSequenceNumber()
+        self._sample["energizeSequenceId"]=self._sample["sequenceId"]
+        self._writer.write(self._sample)
+          
+
+# Generator Device  Active AuthorizationToEnergizeReply Topic Reader        
+class ATERepGD_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::AuthorizationToEnergizeReply", # registered_type name
+                                    tmsConstants.generator_device.ATE_REPLY_READER)
+
+        self._app_state_obj = app_state_obj
+
+        # TODO - Put a CFT 
+                
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
+    # 
+    def handler(self, data):
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+
+        
+# Generator Device AuthorizationToEnergizeResult Topic Writer        
+class ATEResultGD_Wtr(ddsEntities.Writer):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
+                                    "tms::AuthorizationToEnergizeResult", # registered_type reference
+                                    tmsConstants.generator_device.ATE_RESULT_WRITER)
+
+        self._app_state_obj = app_state_obj
+        self._app_state_obj.setDevIdInSample(self._sample, "requestId.requestingDeviceId")
+        self._app_state_obj.setDevIdInSample(self._sample, "energizeRequestingDeviceId")
+
+
+    def write(self): # Override to modify requestId and to set outstanding request
+        print("Writing ", self._topic_type_name)
+
+        self._sample["sequenceId"]=self._app_state_obj.rrSequenceNumber()
+        self._sample["energizeSequenceId"]=self._sample["sequenceId"]
+        self._writer.write(self._sample)
+        
+        
+
+# MC Active AuthorizationToEnergizeResult Topic Reader        
+class ATEResultMC_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::AuthorizationToEnergizeResult", # registered_type name
+                                    tmsConstants.master_controller.ATE_RESULT_READER)
+
+        self._app_state_obj = app_state_obj
+
+        # TODO - Put a CFT on the masterId for this controller (so we only get notified if we
+        # are the controller selected
+                
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
+    # 
+    def handler(self, data):
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)

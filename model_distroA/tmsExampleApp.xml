@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:////Applications/rti_connext_dds-7.0.0/bin/../resource/app/app_support/rtiddsgen/schema/rti_dds_profiles.xsd">
 <types>
+<const name="RADIAN_MAX" type="int32" value="3.1416"/>
       <module name="generator_device">
         <const name="DEVICE1" type="string" value="&quot;TMSParticipantLib::GeneratorDevice1&quot;"/>
         <const name="DEVICE_INFO_WRITER" type="string" value="&quot;GD_Publisher::DeviceInfoWriter&quot;"/>
@@ -29,8 +30,8 @@
         <const name="ESS_STATE_READER" type="string" value="&quot;MC_Subscriber::EnergyStartStopStateReader&quot;"/>
         <const name="REPLY_READER" type="string" value="&quot;MC_Subscriber::ReplyReader&quot;"/>
       </module>
-  <module name="tms">
-   <module name="topic">
+<module name="tms">
+  <module name="topic">
     <const name="TOPIC_HEARTBEAT" type="string" value="&quot;Heartbeat&quot;"/>
     <const name="TOPIC_DEVICE_INFO" type="string" value="&quot;DeviceInfo&quot;"/>
     <const name="TOPIC_DEVICE_ICON" type="string" value="&quot;DeviceIcon&quot;"/>
@@ -1061,7 +1062,7 @@
       <member name="voltage" type="float32"/>
       <member name="frequency" type="float32" min="0"/>
       <member name="amperage" type="float32"/>
-      <member name="phaseOffset" type="float32"/> <!--min="-RADIAN_MAX" max="RADIAN_MAX"/-->
+      <member name="phaseOffset" type="float32" min="-RADIAN_MAX" max="RADIAN_MAX"/>
       <member name="realPower" type="float32"/>
       <member name="reactivePower" type="float32"/>
     </struct>
@@ -1605,5 +1606,4 @@
         </domain_participant_qos>
       </domain_participant>
     </domain_participant_library>
-
 </dds>
