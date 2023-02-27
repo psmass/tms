@@ -6,7 +6,7 @@
  */
 
 /* Value slightly greater than pi, used as a limit for radian measurements. */
-const int32 RADIAN_MAX = 3.1416;
+#define RADIAN_MAX 3.1416
 
 module tms {
 
