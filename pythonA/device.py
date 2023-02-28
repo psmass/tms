@@ -49,6 +49,7 @@ def device_main(domain_id):
     device_hb_r = topics.HeartbeatGD_Rdr(participant, app_state_obj, device_hb_w.writer.instance_handle)
     device_amc_state_w = topics.AMCStateGD_Wtr(participant, app_state_obj)
     device_ate_req_w = topics.ATEReqGD_Wtr(participant, app_state_obj)
+    device_ate_rep_r = topics.ATERepGD_Rdr(participant, app_state_obj)
 
     
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
@@ -62,6 +63,7 @@ def device_main(domain_id):
     # *** START READER THREADS (Reads data and monitors statuses)
     device_di_r.start()
     device_hb_r.start()
+    device_ate_rep_r.start()
     
     sleep(5) # let threads spin up and settle down (output readabilty)
 
@@ -194,7 +196,8 @@ def device_main(domain_id):
     # device_mmr_w.join() # uncomment if Thread Monitor vs. Listener used
     if device_hb_w._thread_started: # incase we ^C prior to heartbeat.start() 
         device_hb_w.join() 
-    device_di_r.join()  
+    device_di_r.join()
+    device_ate_rep_r.join()
          
     print("Device Exiting")
 

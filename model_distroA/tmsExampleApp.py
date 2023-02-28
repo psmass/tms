@@ -59,9 +59,17 @@ generator_device_ATE_REPLY_READER = "GD_Subscriber::AuthorizationToEnergizeReply
 
 generator_device.ATE_REPLY_READER = generator_device_ATE_REPLY_READER
 
+generator_device_ATE_REPLY_CFT = "AuthorizationToEnergizeReply::MyFilter"
+
+generator_device.ATE_REPLY_CFT = generator_device_ATE_REPLY_CFT
+
 generator_device_ESS_REQUEST_READER = "GD_Subscriber::EnergyStartStopRequestReader"
 
 generator_device.ESS_REQUEST_READER = generator_device_ESS_REQUEST_READER
+
+generator_device_ESS_REQUEST_CFT = "EnergyStartStopRequest::MyFilter"
+
+generator_device.ESS_REQUEST_CFT = generator_device_ESS_REQUEST_CFT
 
 master_controller = idl.get_module("master_controller")
 
@@ -93,23 +101,23 @@ master_controller_HEARTBEAT_READER = "MC_Subscriber::HeartbeatReader"
 
 master_controller.HEARTBEAT_READER = master_controller_HEARTBEAT_READER
 
-master_controller_AMC_STATE_READER = "GD_Subscriber::ActiveMicrogridControllerStateReader"
+master_controller_AMC_STATE_READER = "MC_Subscriber::ActiveMicrogridControllerStateReader"
 
 master_controller.AMC_STATE_READER = master_controller_AMC_STATE_READER
 
-master_controller_ATE_REQUEST_READER = "GD_Subscriber::AuthorizationToEnergizeRequestReader"
+master_controller_ATE_REQUEST_READER = "MC_Subscriber::AuthorizationToEnergizeRequestReader"
 
 master_controller.ATE_REQUEST_READER = master_controller_ATE_REQUEST_READER
 
-master_controller_ATE_RESULT_READER = "GD_Subscriber::AuthorizationToEnergizeResultReader"
+master_controller_ATE_RESULT_READER = "MC_Subscriber::AuthorizationToEnergizeResultReader"
 
 master_controller.ATE_RESULT_READER = master_controller_ATE_RESULT_READER
 
-master_controller_ESS_STATE_READER = "GD_Subscriber::EnergyStartStopStateReader"
+master_controller_ESS_STATE_READER = "MC_Subscriber::EnergyStartStopStateReader"
 
 master_controller.ESS_STATE_READER = master_controller_ESS_STATE_READER
 
-master_controller_REPLY_READER = "GD_Subscriber::ReplyReader"
+master_controller_REPLY_READER = "MC_Subscriber::ReplyReader"
 
 master_controller.REPLY_READER = master_controller_REPLY_READER
 
@@ -263,7 +271,7 @@ tms_topic_TOPIC_DC_LOAD_SHARING_STATE = "DcLoadSharingState"
 
 tms.topic.TOPIC_DC_LOAD_SHARING_STATE = tms_topic_TOPIC_DC_LOAD_SHARING_STATE
 
-tms_topic_TOPIC_DC_SUMMARY_MEASUREMENT_UPDATE = "GeneratorDeviceDcSummaryMeasurementUpdate"
+tms_topic_TOPIC_DC_SUMMARY_MEASUREMENT_UPDATE = "DcSummaryMeasurementUpdate"
 
 tms.topic.TOPIC_DC_SUMMARY_MEASUREMENT_UPDATE = tms_topic_TOPIC_DC_SUMMARY_MEASUREMENT_UPDATE
 
@@ -705,7 +713,7 @@ tms_IdentitySequence_MINLEN = 0
 
 tms.IdentitySequence_MINLEN = tms_IdentitySequence_MINLEN
 
-tms_IdentitySequence_MAXLEN = tms.MAX_PORTS
+tms_IdentitySequence_MAXLEN = (tms.MAX_PORTS)
 
 tms.IdentitySequence_MAXLEN = tms_IdentitySequence_MAXLEN
 
@@ -722,10 +730,10 @@ tms_GlobalTradeItemNumber_LEN = 14
 tms.GlobalTradeItemNumber_LEN = tms_GlobalTradeItemNumber_LEN
 
 @idl.alias(
-    annotations = [idl.array([tms.GlobalTradeItemNumber_LEN]),]
+    annotations = [idl.array([(tms.GlobalTradeItemNumber_LEN)]),]
 )
 class tms_GlobalTradeItemNumber:
-    value: Sequence[idl.char] = field(default_factory = idl.array_factory(idl.char, [tms.GlobalTradeItemNumber_LEN]))
+    value: Sequence[idl.char] = field(default_factory = idl.array_factory(idl.char, [(tms.GlobalTradeItemNumber_LEN)]))
 
 tms.GlobalTradeItemNumber = tms_GlobalTradeItemNumber
 
@@ -746,10 +754,10 @@ tms_NatoStockNumber_LEN = 13
 tms.NatoStockNumber_LEN = tms_NatoStockNumber_LEN
 
 @idl.alias(
-    annotations = [idl.array([tms.NatoStockNumber_LEN]),]
+    annotations = [idl.array([(tms.NatoStockNumber_LEN)]),]
 )
 class tms_NatoStockNumber:
-    value: Sequence[idl.char] = field(default_factory = idl.array_factory(idl.char, [tms.NatoStockNumber_LEN]))
+    value: Sequence[idl.char] = field(default_factory = idl.array_factory(idl.char, [(tms.NatoStockNumber_LEN)]))
 
 tms.NatoStockNumber = tms_NatoStockNumber
 
@@ -805,7 +813,7 @@ tms_PowerPortNumberSequence_MINLEN = 0
 
 tms.PowerPortNumberSequence_MINLEN = tms_PowerPortNumberSequence_MINLEN
 
-tms_PowerPortNumberSequence_MAXLEN = tms.MAX_PORTS
+tms_PowerPortNumberSequence_MAXLEN = (tms.MAX_PORTS)
 
 tms.PowerPortNumberSequence_MAXLEN = tms_PowerPortNumberSequence_MAXLEN
 
@@ -1155,7 +1163,7 @@ tms_StorageCellStateSequence_MINLEN = 0
 
 tms.StorageCellStateSequence_MINLEN = tms_StorageCellStateSequence_MINLEN
 
-tms_StorageCellStateSequence_MAXLEN = tms.MAXLEN_storageCells
+tms_StorageCellStateSequence_MAXLEN = (tms.MAXLEN_storageCells)
 
 tms.StorageCellStateSequence_MAXLEN = tms_StorageCellStateSequence_MAXLEN
 
@@ -1310,7 +1318,7 @@ tms_LoadSharingInfoSequence_MINLEN = 1
 
 tms.LoadSharingInfoSequence_MINLEN = tms_LoadSharingInfoSequence_MINLEN
 
-tms_LoadSharingInfoSequence_MAXLEN = tms.MAX_PORTS
+tms_LoadSharingInfoSequence_MAXLEN = (tms.MAX_PORTS)
 
 tms.LoadSharingInfoSequence_MAXLEN = tms_LoadSharingInfoSequence_MAXLEN
 
@@ -1536,7 +1544,7 @@ tms_PowerPortInfoSequence_MINLEN = 0
 
 tms.PowerPortInfoSequence_MINLEN = tms_PowerPortInfoSequence_MINLEN
 
-tms_PowerPortInfoSequence_MAXLEN = tms.MAX_PORTS
+tms_PowerPortInfoSequence_MAXLEN = (tms.MAX_PORTS)
 
 tms.PowerPortInfoSequence_MAXLEN = tms_PowerPortInfoSequence_MAXLEN
 
@@ -1592,7 +1600,7 @@ tms_GroundingCircuitStateSequence_MINLEN = 0
 
 tms.GroundingCircuitStateSequence_MINLEN = tms_GroundingCircuitStateSequence_MINLEN
 
-tms_GroundingCircuitStateSequence_MAXLEN = tms.MAX_GROUNDING_CIRCUITS
+tms_GroundingCircuitStateSequence_MAXLEN = (tms.MAX_GROUNDING_CIRCUITS)
 
 tms.GroundingCircuitStateSequence_MAXLEN = tms_GroundingCircuitStateSequence_MAXLEN
 
@@ -1629,7 +1637,7 @@ tms_GroundingInfoSequence_MINLEN = 0
 
 tms.GroundingInfoSequence_MINLEN = tms_GroundingInfoSequence_MINLEN
 
-tms_GroundingInfoSequence_MAXLEN = tms.MAX_GROUNDING_CIRCUITS
+tms_GroundingInfoSequence_MAXLEN = (tms.MAX_GROUNDING_CIRCUITS)
 
 tms.GroundingInfoSequence_MAXLEN = tms_GroundingInfoSequence_MAXLEN
 
@@ -1724,7 +1732,7 @@ tms_PowerPortStatusSequence_MINLEN = 0
 
 tms.PowerPortStatusSequence_MINLEN = tms_PowerPortStatusSequence_MINLEN
 
-tms_PowerPortStatusSequence_MAXLEN = tms.MAX_PORTS
+tms_PowerPortStatusSequence_MAXLEN = (tms.MAX_PORTS)
 
 tms.PowerPortStatusSequence_MAXLEN = tms_PowerPortStatusSequence_MAXLEN
 
@@ -2181,7 +2189,7 @@ tms_ConversionTapInfoSequence_MINLEN = 1
 
 tms.ConversionTapInfoSequence_MINLEN = tms_ConversionTapInfoSequence_MINLEN
 
-tms_ConversionTapInfoSequence_MAXLEN = tms.MAX_TAPS
+tms_ConversionTapInfoSequence_MAXLEN = (tms.MAX_TAPS)
 
 tms.ConversionTapInfoSequence_MAXLEN = tms_ConversionTapInfoSequence_MAXLEN
 
@@ -2205,7 +2213,7 @@ tms_PowerPortConversionInfoSequence_MINLEN = 1
 
 tms.PowerPortConversionInfoSequence_MINLEN = tms_PowerPortConversionInfoSequence_MINLEN
 
-tms_PowerPortConversionInfoSequence_MAXLEN = tms.MAX_PORTS
+tms_PowerPortConversionInfoSequence_MAXLEN = (tms.MAX_PORTS)
 
 tms.PowerPortConversionInfoSequence_MAXLEN = tms_PowerPortConversionInfoSequence_MAXLEN
 
@@ -2337,6 +2345,148 @@ class tms_ActiveMicrogridControllerState:
 
 tms.ActiveMicrogridControllerState = tms_ActiveMicrogridControllerState
 
+tms_ac = idl.get_module("tms_ac")
+
+tms.ac = tms_ac
+
+tms_ac_PhaseAngleSequence_MINLEN = 0
+
+tms.ac.PhaseAngleSequence_MINLEN = tms_ac_PhaseAngleSequence_MINLEN
+
+tms_ac_PhaseAngleSequence_MAXLEN = 3
+
+tms.ac.PhaseAngleSequence_MAXLEN = tms_ac_PhaseAngleSequence_MAXLEN
+
+@idl.alias(
+    annotations = [idl.bound(tms.ac.PhaseAngleSequence_MAXLEN),]
+)
+class tms_ac_PhaseAngleSequence:
+    value: Sequence[idl.float32] = field(default_factory = idl.array_factory(idl.float32))
+
+tms.ac.PhaseAngleSequence = tms_ac_PhaseAngleSequence
+
+@idl.struct
+class tms_ac_PowerLineMeasurement:
+    voltage: idl.float32 = 0.0
+    frequency: idl.float32 = 0.0
+    amperage: idl.float32 = 0.0
+    phaseOffset: idl.float32 = 0.0
+    realPower: idl.float32 = 0.0
+    reactivePower: idl.float32 = 0.0
+
+tms.ac.PowerLineMeasurement = tms_ac_PowerLineMeasurement
+
+tms_ac_PowerLineMeasurementSequence_MINLEN = 1
+
+tms.ac.PowerLineMeasurementSequence_MINLEN = tms_ac_PowerLineMeasurementSequence_MINLEN
+
+tms_ac_PowerLineMeasurementSequence_MAXLEN = 4
+
+tms.ac.PowerLineMeasurementSequence_MAXLEN = tms_ac_PowerLineMeasurementSequence_MAXLEN
+
+@idl.alias(
+    annotations = [idl.bound(tms.ac.PowerLineMeasurementSequence_MAXLEN),]
+)
+class tms_ac_PowerLineMeasurementSequence:
+    value: Sequence[tms.ac.PowerLineMeasurement] = field(default_factory = list)
+
+tms.ac.PowerLineMeasurementSequence = tms_ac_PowerLineMeasurementSequence
+
+@idl.struct
+class tms_ac_PowerPortMeasurement:
+    portNumber: idl.int32 = 0
+    line: tms.ac.PowerLineMeasurementSequence = field(default_factory = tms.ac.PowerLineMeasurementSequence)
+    phaseAngle: tms.ac.PhaseAngleSequence = field(default_factory = tms.ac.PhaseAngleSequence)
+    realPowerRateOfChange: idl.float32 = 0.0
+    reactivePowerRateOfChange: idl.float32 = 0.0
+
+tms.ac.PowerPortMeasurement = tms_ac_PowerPortMeasurement
+
+tms_ac_PowerPortMeasurementSequence_MINLEN = 0
+
+tms.ac.PowerPortMeasurementSequence_MINLEN = tms_ac_PowerPortMeasurementSequence_MINLEN
+
+tms_ac_PowerPortMeasurementSequence_MAXLEN = (tms.MAX_PORTS)
+
+tms.ac.PowerPortMeasurementSequence_MAXLEN = tms_ac_PowerPortMeasurementSequence_MAXLEN
+
+@idl.alias(
+    annotations = [idl.bound(tms.ac.PowerPortMeasurementSequence_MAXLEN),]
+)
+class tms_ac_PowerPortMeasurementSequence:
+    value: Sequence[tms.ac.PowerPortMeasurement] = field(default_factory = list)
+
+tms.ac.PowerPortMeasurementSequence = tms_ac_PowerPortMeasurementSequence
+
+@idl.struct(
+    member_annotations = {
+        'deviceId': [idl.key, idl.bound(tms.Identity_MAXLEN)],
+    }
+)
+class tms_ac_MeasurementUpdate:
+    deviceId: str = ""
+    timeMeasured: tms.ClockMonotonic = field(default_factory = tms.ClockMonotonic)
+    externalMeasurement: tms.ac.PowerPortMeasurementSequence = field(default_factory = tms.ac.PowerPortMeasurementSequence)
+    internalMeasurement: tms.ac.PowerPortMeasurementSequence = field(default_factory = tms.ac.PowerPortMeasurementSequence)
+
+tms.ac.MeasurementUpdate = tms_ac_MeasurementUpdate
+
+@idl.struct
+class tms_ac_LoadSharingParameters:
+    portNumber: idl.int32 = 0
+    referenceFrequency: tms.ControlCurve = field(default_factory = tms.ControlCurve)
+    referenceVoltage: tms.ControlCurve = field(default_factory = tms.ControlCurve)
+    minRealPower: idl.float32 = 0.0
+    maxRealPower: idl.float32 = 0.0
+    minFrequency: idl.float32 = 0.0
+    maxFrequency: idl.float32 = 0.0
+    minReactivePower: idl.float32 = 0.0
+    maxReactivePower: idl.float32 = 0.0
+    minVoltage: idl.float32 = 0.0
+    maxVoltage: idl.float32 = 0.0
+
+tms.ac.LoadSharingParameters = tms_ac_LoadSharingParameters
+
+tms_ac_LoadSharingParameterSequence_MINLEN = 1
+
+tms.ac.LoadSharingParameterSequence_MINLEN = tms_ac_LoadSharingParameterSequence_MINLEN
+
+tms_ac_LoadSharingParameterSequence_MAXLEN = (tms.MAX_PORTS)
+
+tms.ac.LoadSharingParameterSequence_MAXLEN = tms_ac_LoadSharingParameterSequence_MAXLEN
+
+@idl.alias(
+    annotations = [idl.bound(tms.ac.LoadSharingParameterSequence_MAXLEN),]
+)
+class tms_ac_LoadSharingParameterSequence:
+    value: Sequence[tms.ac.LoadSharingParameters] = field(default_factory = list)
+
+tms.ac.LoadSharingParameterSequence = tms_ac_LoadSharingParameterSequence
+
+@idl.struct(
+    member_annotations = {
+        'requestId': [idl.key, ],
+    }
+)
+class tms_ac_LoadSharingRequest:
+    requestId: tms.PowerPortConfigRequest = field(default_factory = tms.PowerPortConfigRequest)
+    sequenceId: idl.uint64 = 0
+    parameters: tms.ac.LoadSharingParameters = field(default_factory = tms.ac.LoadSharingParameters)
+
+tms.ac.LoadSharingRequest = tms_ac_LoadSharingRequest
+
+@idl.struct(
+    member_annotations = {
+        'deviceId': [idl.key, idl.bound(tms.Identity_MAXLEN)],
+    }
+)
+class tms_ac_LoadSharingState:
+    deviceId: str = ""
+    config: tms.ConfigId = tms.ConfigId.CONFIG_UNKNOWN
+    parameters: tms.ac.LoadSharingParameterSequence = field(default_factory = tms.ac.LoadSharingParameterSequence)
+
+tms.ac.LoadSharingState = tms_ac_LoadSharingState
+
 tms_dc = idl.get_module("tms_dc")
 
 tms.dc = tms_dc
@@ -2377,7 +2527,7 @@ tms_dc_PowerPortMeasurementSequence_MINLEN = 0
 
 tms.dc.PowerPortMeasurementSequence_MINLEN = tms_dc_PowerPortMeasurementSequence_MINLEN
 
-tms_dc_PowerPortMeasurementSequence_MAXLEN = tms.MAX_PORTS
+tms_dc_PowerPortMeasurementSequence_MAXLEN = (tms.MAX_PORTS)
 
 tms.dc.PowerPortMeasurementSequence_MAXLEN = tms_dc_PowerPortMeasurementSequence_MAXLEN
 
@@ -2417,7 +2567,7 @@ tms_dc_LoadSharingParameterSequence_MINLEN = 1
 
 tms.dc.LoadSharingParameterSequence_MINLEN = tms_dc_LoadSharingParameterSequence_MINLEN
 
-tms_dc_LoadSharingParameterSequence_MAXLEN = tms.MAX_PORTS
+tms_dc_LoadSharingParameterSequence_MAXLEN = (tms.MAX_PORTS)
 
 tms.dc.LoadSharingParameterSequence_MAXLEN = tms_dc_LoadSharingParameterSequence_MAXLEN
 

@@ -13,7 +13,9 @@
         <const name="DEVICE_INFO_READER" type="string" value="&quot;GD_Subscriber::DeviceInfoReader&quot;"/>
         <const name="HEARTBEAT_READER" type="string" value="&quot;GD_Subscriber::HeartbeatReader&quot;"/>
         <const name="ATE_REPLY_READER" type="string" value="&quot;GD_Subscriber::AuthorizationToEnergizeReplyReader&quot;"/>
+        <const name="ATE_REPLY_CFT" type="string" value="&quot;AuthorizationToEnergizeReply::MyFilter&quot;"/>
         <const name="ESS_REQUEST_READER" type="string" value="&quot;GD_Subscriber::EnergyStartStopRequestReader&quot;"/>
+        <const name="ESS_REQUEST_CFT" type="string" value="&quot;EnergyStartStopRequest::MyFilter&quot;"/>
       </module>
       <module name="master_controller">
         <const name="MASTER_CONTROLLER1" type="string" value="&quot;TMSParticipantLib::MasterController1&quot;"/>

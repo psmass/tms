@@ -50,8 +50,8 @@ class ApplicationStateObj():
     # objects, indexed by the deviceId (or hashed to an idx)
     def __init__(self, role):
         self._role = role
-        self._deviceId = ""
-        self._masterControllerId = ""
+        self._deviceId = ''
+        self._masterControllerId = ''
         self._thisMCSelected = False
         # track device source transition, send STS on change (when ever they are different)
 #        self._device_source_transition_state = tmsConstants.tms_SourceTransition.ST_UNINITIALIZED
@@ -386,12 +386,13 @@ class ATEReqGD_Wtr(ddsEntities.Writer):
 
 # MC Active AuthorizationToEnergizeRequest Topic Reader        
 class ATEReqMC_Rdr(ddsEntities.Reader):
-    def __init__(self, participant, app_state_obj):
+    def __init__(self, participant, app_state_obj, ATE_reply_wtr):
         ddsEntities.Reader.__init__(self, participant, 
                                     "tms::AuthorizationToEnergizeRequest", # registered_type name
                                     tmsConstants.master_controller.ATE_REQUEST_READER)
 
         self._app_state_obj = app_state_obj
+        self._ate_reply_wtr = ATE_reply_wtr
 
         # TODO - Put a CFT on the masterId for this controller (so we only get notified if we
         # are the controller selected
@@ -402,7 +403,21 @@ class ATEReqMC_Rdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
+        #print ("ATE-reply-sample: ", self._ate_reply_wtr._sample)
 
+        # copy request info into ATE reply and reply accepting the request
+        self._ate_reply_wtr._sample["relatedRequestId.requestingDeviceId"] = \
+        data["requestId.requestingDeviceId"]
+        self._ate_reply_wtr._sample["relatedSequenceId"]=data["sequenceId"]      
+        self._ate_reply_wtr._sample["energizeRequestingDeviceId"]=data["energizeRequestingDeviceId"]
+        self._ate_reply_wtr._sample["energizeSequenceId"]=data["energizeSequenceId"]
+        self._ate_reply_wtr._sample["accept"]=True
+        self._ate_reply_wtr._sample["deny"]=False
+        self._ate_reply_wtr._sample["userId"]=self._app_state_obj._masterControllerId
+        self._ate_reply_wtr._sample["timeOfReview.epoch"]=2
+        self._ate_reply_wtr._sample["timeOfReview.seconds"]=35
+        self._ate_reply_wtr._sample["timeOfReview.nanoseconds"]=55
+        self._ate_reply_wtr.write()
 
         
 # MC Generator Device AuthorizationToEnergizeReply Topic Writer        
@@ -413,15 +428,12 @@ class ATERepMC_Wtr(ddsEntities.Writer):
                                     tmsConstants.master_controller.ATE_REPLY_WRITER)
 
         self._app_state_obj = app_state_obj
-        self._app_state_obj.setDevIdInSample(self._sample, "requestId.requestingDeviceId")
-        self._app_state_obj.setDevIdInSample(self._sample, "energizeRequestingDeviceId")
+        self._sample["deviceId"]=self._app_state_obj._masterControllerId # preload with this deviceId
 
 
     def write(self): # Override to modify requestId and to set outstanding request
         print("Writing ", self._topic_type_name)
-
-        self._sample["sequenceId"]=self._app_state_obj.rrSequenceNumber()
-        self._sample["energizeSequenceId"]=self._sample["sequenceId"]
+        # print(self._sample)
         self._writer.write(self._sample)
           
 
@@ -434,7 +446,12 @@ class ATERepGD_Rdr(ddsEntities.Reader):
 
         self._app_state_obj = app_state_obj
 
-        # TODO - Put a CFT 
+        # Install the content filter for the devices Id, so we only ATE Replies to this device
+        cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
+                                                              tmsConstants.generator_device.ATE_REPLY_CFT)
+        param = "\'" + self._app_state_obj._deviceId +  "\'"
+        cft_topic.filter_parameters = [param]
+        print("ATE_REPLY_RDR CFT ID installed")
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # For the DI Reader, we extract the DeviceId and save it in our app_state_obj

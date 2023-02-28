@@ -48,8 +48,10 @@ def controller_main(domain_id):
                                              controller_hb_w.writer.instance_handle)
 
     controller_amc_state_r = topics.AMCStateMC_Rdr(participant, app_state_obj)
-    controller_ate_req_r = topics.ATEReqMC_Rdr(participant, app_state_obj)
-
+    controller_ate_rep_w = topics.ATERepMC_Wtr(participant, app_state_obj)
+    controller_ate_req_r = topics.ATEReqMC_Rdr(participant, app_state_obj, controller_ate_rep_w)
+    controller_ate_result_r = topics.ATEResultMC_Rdr(participant, app_state_obj)
+    
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # device_di_w.start() # start a statuses monitor thread on the DA Writer
     # or...#listener, Heartbeat is periodic and will run as a thread
@@ -63,7 +65,7 @@ def controller_main(domain_id):
     controller_hb_r.start()
     controller_amc_state_r.start()
     controller_ate_req_r.start()
-    
+    controller_ate_result_r.start()
 
 
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
@@ -213,6 +215,7 @@ def controller_main(domain_id):
     if controller_hb_w._thread_started: # incase we ^C prior to heartbeat.start() 
         controller_hb_w.join()
     controller_di_r.join()
+    controller_ate_result_r.join()
 
     print("Controller Exiting")
 
