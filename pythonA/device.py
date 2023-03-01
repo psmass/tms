@@ -49,7 +49,8 @@ def device_main(domain_id):
     device_hb_r = topics.HeartbeatGD_Rdr(participant, app_state_obj, device_hb_w.writer.instance_handle)
     device_amc_state_w = topics.AMCStateGD_Wtr(participant, app_state_obj)
     device_ate_req_w = topics.ATEReqGD_Wtr(participant, app_state_obj)
-    device_ate_rep_r = topics.ATERepGD_Rdr(participant, app_state_obj)
+    device_ate_res_w = topics.ATEResultGD_Wtr(participant, app_state_obj)
+    device_ate_rep_r = topics.ATERepGD_Rdr(participant, app_state_obj, device_ate_res_w)
 
     
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)

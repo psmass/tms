@@ -53,9 +53,8 @@ class ApplicationStateObj():
         self._deviceId = ''
         self._masterControllerId = ''
         self._thisMCSelected = False
-        # track device source transition, send STS on change (when ever they are different)
-#        self._device_source_transition_state = tmsConstants.tms_SourceTransition.ST_UNINITIALIZED
-#        self._requested_device_source_transition_state = constants.tms_SourceTransition.ST_UNINITIALIZED
+        self._authorizedForEnergizing = False
+        self._deviceStopStartLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN 
 
         self._application_state = constants.ControllerState.INIT
         self._controller_rcvd_da = False
@@ -432,6 +431,7 @@ class ATERepMC_Wtr(ddsEntities.Writer):
 
 
     def write(self): # Override to modify requestId and to set outstanding request
+        # This sample is filled out from the ATE_Request Topic in it's handler()
         print("Writing ", self._topic_type_name)
         # print(self._sample)
         self._writer.write(self._sample)
@@ -439,12 +439,13 @@ class ATERepMC_Wtr(ddsEntities.Writer):
 
 # Generator Device  Active AuthorizationToEnergizeReply Topic Reader        
 class ATERepGD_Rdr(ddsEntities.Reader):
-    def __init__(self, participant, app_state_obj):
+    def __init__(self, participant, app_state_obj, ate_result_wtr):
         ddsEntities.Reader.__init__(self, participant, 
                                     "tms::AuthorizationToEnergizeReply", # registered_type name
                                     tmsConstants.generator_device.ATE_REPLY_READER)
 
         self._app_state_obj = app_state_obj
+        self._ate_result_wtr = ate_result_wtr
 
         # Install the content filter for the devices Id, so we only ATE Replies to this device
         cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
@@ -459,7 +460,23 @@ class ATERepGD_Rdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
-
+        if data["accept"]:
+            print("Authorized to Energize by Master Controller: ", data["userId"])
+            self._app_state_obj._authorizedForEnergizing = True
+            # copy reply info into ATEResult sample and send result
+            self._ate_result_wtr._sample["relatedRequestId.requestingDeviceId"] = \
+            data["relatedRequestId.requestingDeviceId"]
+            self._ate_result_wtr._sample["relatedSequenceId"]=data["relatedSequenceId"]
+            self._ate_result_wtr._sample["authorizationDeviceId"]=data["deviceId"]
+            self._ate_result_wtr._sample["energizeRequestingDeviceId"]=data["energizeRequestingDeviceId"]
+            self._ate_result_wtr._sample["energizeSequenceId"]=data["energizeSequenceId"]
+            self._ate_result_wtr._sample["userId"]=data["userId"]
+            self._ate_result_wtr._sample["accepted"]=True
+            self._ate_result_wtr._sample["responseReceived"]=True
+            # EnergizeReqestValid validates that this device requested to Energize
+            self._ate_result_wtr._sample["energizeRequestValid"]=self._app_state_obj._authorizedForEnergizing
+            self._ate_result_wtr._sample["authorizationReviewValid"]=True
+            self._ate_result_wtr.write()
         
 # Generator Device AuthorizationToEnergizeResult Topic Writer        
 class ATEResultGD_Wtr(ddsEntities.Writer):
@@ -469,15 +486,13 @@ class ATEResultGD_Wtr(ddsEntities.Writer):
                                     tmsConstants.generator_device.ATE_RESULT_WRITER)
 
         self._app_state_obj = app_state_obj
-        self._app_state_obj.setDevIdInSample(self._sample, "requestId.requestingDeviceId")
-        self._app_state_obj.setDevIdInSample(self._sample, "energizeRequestingDeviceId")
+        self._sample["responseReceived"]=False # initialize false (set True in ATERepGD Rdr)
+        self._sample["authorizationReviewValid"]=False
 
 
     def write(self): # Override to modify requestId and to set outstanding request
+        # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
         print("Writing ", self._topic_type_name)
-
-        self._sample["sequenceId"]=self._app_state_obj.rrSequenceNumber()
-        self._sample["energizeSequenceId"]=self._sample["sequenceId"]
         self._writer.write(self._sample)
         
         
