@@ -164,6 +164,8 @@ def device_main(domain_id):
                 print("Device requesting Authorization")
                 app_state_obj.clearOutstandingRequest()
                 device_ate_req_w.write()
+            if app_state_obj._authorizedForEnergizing: # goto Idle and await commands
+                app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE) 
                  
         elif app_state_obj.appState() == constants.DeviceState.WAIT_CMD_IDLE:
             # Here we sit waiting for a command
