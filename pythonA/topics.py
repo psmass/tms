@@ -538,6 +538,7 @@ class ESSReqMC_Wtr(ddsEntities.Writer):
     def write(self, target_dev_id, new_state): # Override to modify requestId and to set outstanding request
         print("Writing ", self._topic_type_name)
         self._sample["requestId.targetDeviceId"]=target_dev_id
+        self._sample["sequenceId"] = self._app_state_obj.rrSequenceNumber()
         self._sample["fromLevel"] = self._app_state_obj._deviceStopStartPresentLevel
         self._sample["toLevel"] = new_state
         self._writer.write(self._sample)
@@ -546,12 +547,13 @@ class ESSReqMC_Wtr(ddsEntities.Writer):
        
 # Generator Device EnergyStartStopRequest Topic Reader        
 class ESSReqGD_Rdr(ddsEntities.Reader):
-    def __init__(self, participant, app_state_obj):
+    def __init__(self, participant, app_state_obj, reply_wtr):
         ddsEntities.Reader.__init__(self, participant, 
                                     "tms::EnergyStartStopRequest", # registered_type name
                                     tmsConstants.generator_device.ESS_REQUEST_READER)
 
         self._app_state_obj = app_state_obj
+        self._reply_wtr = reply_wtr
 
 
         # Install the content filter for the devices Id, so we only ATE Replies to this device
@@ -559,7 +561,7 @@ class ESSReqGD_Rdr(ddsEntities.Reader):
                                                               tmsConstants.generator_device.ESS_REQUEST_CFT)
         param = "\'" + self._app_state_obj._deviceId +  "\'"
         cft_topic.filter_parameters = [param]
-        print("ATE_REPLY_RDR CFT ID installed")
+        print("ESS_REQUEST_RDR CFT ID installed")
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
@@ -567,6 +569,13 @@ class ESSReqGD_Rdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
+        self._reply_wtr._sample["requestingDeviceId"]=data["requestId.requestingDeviceId"]
+        # self._reply_wtr._sample["targetDeviceId"] --- Filled out in ReplyGD_wtr
+        # self._reply_wtr._sample["config"] ---- default CONFIG_UNKNOWN is good
+        self._reply_wtr._sample["requestSequenceId"]=data["sequenceId"]
+        self._reply_wtr._sample["status.code"]=tmsConstants.tms_ReplyCode.REPLY_OK
+        self._reply_wtr._sample["status.reason"]="MC Requested it"
+        self._reply_wtr.write()
 
         
 # Generator Device Reply Topic Writer        
@@ -577,6 +586,9 @@ class ReplyGD_Wtr(ddsEntities.Writer):
                                     tmsConstants.generator_device.REPLY_WRITER)
 
         self._app_state_obj = app_state_obj
+        # targetDeviceId - identity of device that is sending this reply
+        # Reply begin sent for ESSReq and filled out from the ESSReqGD_Rdr() above
+        self._sample["targetDeviceId"]=self._app_state_obj._deviceId 
 
 
     def write(self): # Override to modify requestId and to set outstanding request

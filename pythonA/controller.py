@@ -146,6 +146,7 @@ def controller_main(domain_id):
             app_state_obj.setAppState(constants.ControllerState.SHUT_DOWN)
 
         if app_state_obj.appState() == constants.ControllerState.INIT:
+            # reset state vars
             app_state_obj._thisMCSelected=False
             app_state_obj._authorizedForEnergizing=False
             print("CONTROLLER STATE: INIT")

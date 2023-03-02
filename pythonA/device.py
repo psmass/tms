@@ -51,8 +51,8 @@ def device_main(domain_id):
     device_ate_req_w = topics.ATEReqGD_Wtr(participant, app_state_obj)
     device_ate_res_w = topics.ATEResultGD_Wtr(participant, app_state_obj)
     device_ate_rep_r = topics.ATERepGD_Rdr(participant, app_state_obj, device_ate_res_w)
-    device_ess_req_r = topics.ESSReqGD_Rdr(participant, app_state_obj)
     device_reply_w = topics.ReplyGD_Wtr(participant, app_state_obj)
+    device_ess_req_r = topics.ESSReqGD_Rdr(participant, app_state_obj, device_reply_w)
     device_ess_state_w = topics.ESSStateGD_Wtr(participant, app_state_obj)
 
     
