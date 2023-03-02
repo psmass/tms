@@ -51,6 +51,9 @@ def device_main(domain_id):
     device_ate_req_w = topics.ATEReqGD_Wtr(participant, app_state_obj)
     device_ate_res_w = topics.ATEResultGD_Wtr(participant, app_state_obj)
     device_ate_rep_r = topics.ATERepGD_Rdr(participant, app_state_obj, device_ate_res_w)
+    device_ess_req_r = topics.ESSReqGD_Rdr(participant, app_state_obj)
+    device_reply_w = topics.ReplyGD_Wtr(participant, app_state_obj)
+    device_ess_state_w = topics.ESSStateGD_Wtr(participant, app_state_obj)
 
     
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
@@ -65,6 +68,7 @@ def device_main(domain_id):
     device_di_r.start()
     device_hb_r.start()
     device_ate_rep_r.start()
+    device_ess_req_r.start()
     
     sleep(5) # let threads spin up and settle down (output readabilty)
 
@@ -201,6 +205,7 @@ def device_main(domain_id):
         device_hb_w.join() 
     device_di_r.join()
     device_ate_rep_r.join()
+    device_ess_req_r.join()
          
     print("Device Exiting")
 

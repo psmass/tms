@@ -383,7 +383,7 @@ class ATEReqGD_Wtr(ddsEntities.Writer):
         
         
 
-# MC Active AuthorizationToEnergizeRequest Topic Reader        
+# MC AuthorizationToEnergizeRequest Topic Reader        
 class ATEReqMC_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj, ATE_reply_wtr):
         ddsEntities.Reader.__init__(self, participant, 
@@ -437,7 +437,7 @@ class ATERepMC_Wtr(ddsEntities.Writer):
         self._writer.write(self._sample)
           
 
-# Generator Device  Active AuthorizationToEnergizeReply Topic Reader        
+# Generator Device  AuthorizationToEnergizeReply Topic Reader        
 class ATERepGD_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj, ate_result_wtr):
         ddsEntities.Reader.__init__(self, participant, 
@@ -497,7 +497,7 @@ class ATEResultGD_Wtr(ddsEntities.Writer):
         
         
 
-# MC Active AuthorizationToEnergizeResult Topic Reader        
+# MC AuthorizationToEnergizeResult Topic Reader        
 class ATEResultMC_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj):
         ddsEntities.Reader.__init__(self, participant, 
@@ -515,3 +515,116 @@ class ATEResultMC_Rdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
+
+
+# MC EnergyStartStopReuest rizationToEnergizeResult Topic Writer   
+class ESSReqMC_Wtr(ddsEntities.Writer):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
+                                    "tms::EnergyStartStopRequest", # registered_type reference
+                                    tmsConstants.master_controller.ESS_REQUEST_WRITER)
+
+        self._app_state_obj = app_state_obj
+        #self._sample["responseReceived"]=False # initialize false (set True in ATERepGD Rdr)
+        #self._sample["authorizationReviewValid"]=False
+
+
+    def write(self): # Override to modify requestId and to set outstanding request
+        print("Writing ", self._topic_type_name)
+        self._writer.write(self._sample)
+        
+        
+       
+# Generator Device EnergyStartStopRequest Topic Reader        
+class ESSReqGD_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::EnergyStartStopRequest", # registered_type name
+                                    tmsConstants.generator_device.ESS_REQUEST_READER)
+
+        self._app_state_obj = app_state_obj
+
+        # TODO - Put a CFT on the masterId for this controller (so we only get notified if we
+        # are the controller selected
+                
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
+    # 
+    def handler(self, data):
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+
+        
+# Generator Device Reply Topic Writer        
+class ReplyGD_Wtr(ddsEntities.Writer):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
+                                    "tms::Reply", # registered_type reference
+                                    tmsConstants.generator_device.REPLY_WRITER)
+
+        self._app_state_obj = app_state_obj
+
+
+    def write(self): # Override to modify requestId and to set outstanding request
+        # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
+        print("Writing ", self._topic_type_name)
+        self._writer.write(self._sample)
+        
+        
+
+# MC Active Reply Topic Reader        
+class ReplyMC_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::Reply", # registered_type name
+                                    tmsConstants.master_controller.REPLY_READER)
+
+        self._app_state_obj = app_state_obj
+
+        # TODO - Put a CFT on the masterId for this controller (so we only get notified if we
+        # are the controller selected                
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
+    # 
+    def handler(self, data):
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+
+
+
+# Generator Device EnergyStartStopState Topic Writer        
+class ESSStateGD_Wtr(ddsEntities.Writer):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Writer.__init__(self, participant,  False, 0.0,
+                                    "tms::EnergyStartStopState", # registered_type reference
+                                    tmsConstants.generator_device.ESS_STATE_WRITER)
+
+        self._app_state_obj = app_state_obj
+
+
+    def write(self): # Override to modify requestId and to set outstanding request
+        # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
+        print("Writing ", self._topic_type_name)
+        self._writer.write(self._sample)
+        
+        
+
+# MC  EnergyStartStopState Topic Reader        
+class ESSStateMC_Rdr(ddsEntities.Reader):
+    def __init__(self, participant, app_state_obj):
+        ddsEntities.Reader.__init__(self, participant, 
+                                    "tms::EnergyStartStopState", # registered_type name
+                                    tmsConstants.master_controller.ESS_STATE_READER)
+
+        self._app_state_obj = app_state_obj
+
+        # TODO - Put a CFT on the masterId for this controller (so we only get notified if we
+        # are the controller selected
+                
+    # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
+    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
+    # 
+    def handler(self, data):
+        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        #print (data, end="", flush=True)
+

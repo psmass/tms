@@ -51,6 +51,9 @@ def controller_main(domain_id):
     controller_ate_rep_w = topics.ATERepMC_Wtr(participant, app_state_obj)
     controller_ate_req_r = topics.ATEReqMC_Rdr(participant, app_state_obj, controller_ate_rep_w)
     controller_ate_result_r = topics.ATEResultMC_Rdr(participant, app_state_obj)
+    controller_ess_req_w = topics.ESSReqMC_Wtr(participant, app_state_obj)
+    controller_reply_r = topics.ReplyMC_Rdr(participant, app_state_obj)
+    controller_ess_state_r = topics.ESSStateMC_Rdr(participant, app_state_obj)
     
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
     # device_di_w.start() # start a statuses monitor thread on the DA Writer
@@ -66,6 +69,8 @@ def controller_main(domain_id):
     controller_amc_state_r.start()
     controller_ate_req_r.start()
     controller_ate_result_r.start()
+    controller_reply_r.start()
+    controller_ess_state_r.start()
 
 
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
@@ -163,26 +168,6 @@ def controller_main(domain_id):
                        .format(id=app_state_obj._masterControllerId))
                 app_state_obj.setAppState(constants.ControllerState.WAIT_CMD_IDLE)
                                           
-
-        elif app_state_obj.appState() == constants.ControllerState.POWER_UP_AUTH:
-            print("Controller allowing Device to JOIN grid")
-            # waiting for MMR causes RR to be sent (from MMR reader), and MMO, then
-            # the state is set to POWERING_UP
-
-            # at this point we know we received a DA and a MMR. If the controller
-            # comes up late, it gets them back-to-back - so we go from INIT straight
-            # to JOINING GRID. At this point we know and that the DeviceId has
-            # been loaded into the app_state_obj. So populate remaining writers
-            # if a new DA came in to reset to this state
-            """
-            app_state_obj.clearOutstandingRequest() 
-            controller_mmo_w.fillInDevId()
-            controller_str_w.fillInDevId()
-
-            controller_mmo_w.setResult(constants.tms_MicrogridMembershipResult.MMR_COMPLETE)
-            controller_mmo_w.write()
-            """
-            app_state_obj.setAppState(constants.ControllerState.ENERGIZE)
                         
         elif app_state_obj.appState() == constants.ControllerState.ENERGIZE:
             print("Controller Issuing Energizing Request to device")
@@ -215,10 +200,13 @@ def controller_main(domain_id):
     if controller_hb_w._thread_started: # incase we ^C prior to heartbeat.start() 
         controller_hb_w.join()
     controller_di_r.join()
+    controller_amc_state_r.join()
+    controller_ate_req_r.join()
     controller_ate_result_r.join()
+    controller_reply_r.join()
+    controller_ess_state_r.join()
 
     print("Controller Exiting")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
