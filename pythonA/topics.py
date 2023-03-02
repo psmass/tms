@@ -53,11 +53,14 @@ class ApplicationStateObj():
         self._deviceId = ''
         self._masterControllerId = ''
         self._thisMCSelected = False
+        # the authorizedForEnergizing flag is used both by the device and the MC (assuming on of
+        # these objects per device (an array of them in a real controller). I
         self._authorizedForEnergizing = False
-        self._deviceStopStartLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN 
+        # implementations may want to save all of the ESS_state data members received
+        self._deviceStopStartPresentLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN
+        self._deviceStopStartFutureLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN 
 
         self._application_state = constants.ControllerState.INIT
-        self._controller_rcvd_da = False
         self._deviceIdSet = False # flag indicates MC has received DI and _deviceId is valid
         self._mcIdSet = False # flag to device, indicated it received DI and _masterControllerId is valid
         self._sequenceNumber = 0  # unique running sequence number
@@ -354,6 +357,8 @@ class AMCStateMC_Rdr(ddsEntities.Reader):
     # 
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("This Master Controller ID: {id} has been selected"
+               .format(id=self._app_state_obj._masterControllerId))
         #print (data, end="", flush=True)
         self._app_state_obj._thisMCSelected = True
 
@@ -416,6 +421,8 @@ class ATEReqMC_Rdr(ddsEntities.Reader):
         self._ate_reply_wtr._sample["timeOfReview.epoch"]=2
         self._ate_reply_wtr._sample["timeOfReview.seconds"]=35
         self._ate_reply_wtr._sample["timeOfReview.nanoseconds"]=55
+        # in the MCs app_state_obj - set that the device is authorized
+        self._app_state_obj._authorizedForEnergizing = True
         self._ate_reply_wtr.write()
 
         
@@ -525,12 +532,14 @@ class ESSReqMC_Wtr(ddsEntities.Writer):
                                     tmsConstants.master_controller.ESS_REQUEST_WRITER)
 
         self._app_state_obj = app_state_obj
-        #self._sample["responseReceived"]=False # initialize false (set True in ATERepGD Rdr)
-        #self._sample["authorizationReviewValid"]=False
+        self._sample["requestId.requestingDeviceId"]=self._app_state_obj._masterControllerId
 
 
-    def write(self): # Override to modify requestId and to set outstanding request
+    def write(self, target_dev_id, new_state): # Override to modify requestId and to set outstanding request
         print("Writing ", self._topic_type_name)
+        self._sample["requestId.targetDeviceId"]=target_dev_id
+        self._sample["fromLevel"] = self._app_state_obj._deviceStopStartPresentLevel
+        self._sample["toLevel"] = new_state
         self._writer.write(self._sample)
         
         
@@ -544,8 +553,13 @@ class ESSReqGD_Rdr(ddsEntities.Reader):
 
         self._app_state_obj = app_state_obj
 
-        # TODO - Put a CFT on the masterId for this controller (so we only get notified if we
-        # are the controller selected
+
+        # Install the content filter for the devices Id, so we only ATE Replies to this device
+        cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
+                                                              tmsConstants.generator_device.ESS_REQUEST_CFT)
+        param = "\'" + self._app_state_obj._deviceId +  "\'"
+        cft_topic.filter_parameters = [param]
+        print("ATE_REPLY_RDR CFT ID installed")
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
@@ -572,7 +586,7 @@ class ReplyGD_Wtr(ddsEntities.Writer):
         
         
 
-# MC Active Reply Topic Reader        
+# MC Reply Topic Reader        
 class ReplyMC_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj):
         ddsEntities.Reader.__init__(self, participant, 
@@ -591,7 +605,6 @@ class ReplyMC_Rdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
 
 
-
 # Generator Device EnergyStartStopState Topic Writer        
 class ESSStateGD_Wtr(ddsEntities.Writer):
     def __init__(self, participant, app_state_obj):
@@ -600,13 +613,23 @@ class ESSStateGD_Wtr(ddsEntities.Writer):
                                     tmsConstants.generator_device.ESS_STATE_WRITER)
 
         self._app_state_obj = app_state_obj
-
+        self._app_state_obj._deviceStopStartPresentLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF
+        self._app_state_obj._deviceStopStartFutureLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF
+        
+        # load up static sample fields
+        self._sample["deviceId"]=self._app_state_obj._deviceId
+        # device is intialized OFF
+        self._sample["presentLevel"]=tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF
+        self._sample["futureLevel"]=tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF
+        self._sample["requestLock"]=False
+        self._sample["presentLevelReason"]=tmsConstants.tms_PowerSwitchReason.PSR_STARTUP
+        self._sample["presentLevelActor"]=self._app_state_obj._deviceId # initially this device
+        self._sample["futureLevelReason"]=tmsConstants.tms_PowerSwitchTransitionCode.PSTC_COMPLETE
 
     def write(self): # Override to modify requestId and to set outstanding request
         # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
         print("Writing ", self._topic_type_name)
         self._writer.write(self._sample)
-        
         
 
 # MC  EnergyStartStopState Topic Reader        
@@ -627,4 +650,12 @@ class ESSStateMC_Rdr(ddsEntities.Reader):
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
+        # save relevant information in our app_state_obj for later use
+        self._app_state_obj._deviceId=data["deviceId"] # Device Info topic may not be in yet.
+        self._app_state_obj._deviceStopStartPresentLevel = data["presentLevel"]
+        self._app_state_obj._deviceStopStartFutureLevel = data["futureLevel"]
+        
+        print("Device {d_id} Engery State: {e_state}".
+              format(d_id=self._app_state_obj._deviceId,
+                     e_state=self._app_state_obj._deviceStopStartPresentLevel))
 

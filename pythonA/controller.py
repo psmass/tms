@@ -146,10 +146,13 @@ def controller_main(domain_id):
             app_state_obj.setAppState(constants.ControllerState.SHUT_DOWN)
 
         if app_state_obj.appState() == constants.ControllerState.INIT:
-            print("Controller Initializing")
+            app_state_obj._thisMCSelected=False
+            app_state_obj._authorizedForEnergizing=False
+            print("CONTROLLER STATE: INIT")
             if not controller_hb_w._thread_started: # Don't restart if reset DI 
                 controller_di_w.write() # only need to write this once since QoS Durable
                 controller_hb_w.start() # start sending heartbeats
+                
             app_state_obj.setAppState(constants.ControllerState.DISCOVERY)
 
         elif app_state_obj.appState() == constants.ControllerState.DISCOVERY:
@@ -161,32 +164,43 @@ def controller_main(domain_id):
         elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
             # this state in case we get a DA and not an MMR so hold waiting for MMR
             # Note: DA is durable, so we can get a DA followed immediately by a DA
-            print("Controller Found a New Device, awaiting to be Selected")
-            if app_state_obj._thisMCSelected:
+            print("D ", end="", flush = True) # sit printing 'Ds' while discovering Device
+            # hold here until this MC has been selected and the device has been
+            # authorized
+            if app_state_obj._thisMCSelected and app_state_obj._authorizedForEnergizing:
                 # go to background Idle waiting for AuthorizationToPowerupRequest
-                print ("This Master Controller ID: {id} has been selected"
-                       .format(id=app_state_obj._masterControllerId))
-                app_state_obj.setAppState(constants.ControllerState.WAIT_CMD_IDLE)
-                                          
+                app_state_obj.setAppState(constants.ControllerState.ENERGIZE)
                         
         elif app_state_obj.appState() == constants.ControllerState.ENERGIZE:
-            print("Controller Issuing Energizing Request to device")
-            """
-            controller_str_w.setTransition(constants.tms_SourceTransition.ST_POWER_UP)
-            controller_str_w.write()
-            app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
-            """
+            print("CONTROLLER STATE: ENERGIZE")
+            print("Controller Energizing device {d_id}, current State: {e_state}".
+                  format(d_id=app_state_obj._deviceId,
+                     e_state=app_state_obj._deviceStopStartPresentLevel))
+
+            # In example, if we find a device is off, we'll turn it on, here since
+            # we know the device just announced itself and the request is sent
+            # reliably we only need to send it once. If the device goes away, we'll
+            # loose hearbeat and expect to go back through DISCOVERY with it.
+            if app_state_obj._deviceStopStartPresentLevel \
+                ==  tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF:
+                # we are going to go from OFF -> OPERATIONAL - a real device probably
+                # would need to transition through other states. Below we'll hand in
+                # the deviceId only because in a real system the MC might be tracking
+                # an array of app_state_objs
+                controller_ess_req_w.write(app_state_obj._deviceId,
+                    tmsConstants.tms_EnergyStartStopLevel.ESSL_OPERATIONAL)
+            app_state_obj.setAppState(constants.ControllerState.WAIT_CMD_IDLE)
             
         elif app_state_obj.appState() == constants.ControllerState.WAIT_CMD_IDLE:
             #print("Controller Steady-state - Waiting for other Device Requests")
             print(".", end="", flush=True)
 
         elif app_state_obj.appState() == constants.ControllerState.SHUT_DOWN:
-            print("Controller Shutting down")
+            print("CONTROLLER STATE: SHUTDOWN")
             shutdown = True
 
         elif app_state_obj.appState() == constants.ControllerState.ERROR:
-            print("ERROR - Unexpected Event, resetting Target Device")
+            print("CONTROLLER STATE: ERROR - Unexpected Event, resetting Target Device")
             # TODO: Printout, Device and event
             app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
 

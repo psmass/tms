@@ -140,10 +140,19 @@ def device_main(domain_id):
             app_state_obj.setAppState(constants.DeviceState.SHUT_DOWN)
 
         if app_state_obj.appState() == constants.DeviceState.INIT:
-            print("Device Initialization ")
+            print("DEVICE STATE: INIT")
+            # reset state vars 
+            app_state_obj._authorizedForEnergizing = False
+            app_state_obj._masterControllerId = ''
+            app_state_obj._deviceStopStartPresentLevel =\
+                tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN
+            app_state_obj. _deviceStopStartFutureLevel = \
+                tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN 
             if not device_hb_w._thread_started: # Don't restart if reset DI 
                 device_di_w.write() # only need to write this once since QoS Durable
                 device_hb_w.start() # start sending heartbeats
+                device_ess_state_w.write() # publish on start
+                
             app_state_obj.setAppState(constants.DeviceState.DISCOVERY)
 
         elif app_state_obj.appState() == constants.DeviceState.DISCOVERY:
@@ -153,7 +162,7 @@ def device_main(domain_id):
                 app_state_obj.setAppState(constants.DeviceState.FOUND_NEW_CONTROLLER)
 
         elif app_state_obj.appState() == constants.DeviceState.FOUND_NEW_CONTROLLER:
-            print("Found and Selecting Master Controller (MC)") 
+            print("DEVICE STATE: FOUND NEW CONTROLLER") 
             # TODO: Implement tms Master Controller Selection Algorithm.
             # Here once we know an MC, we'll select it first come, first serve
             # returning an ActiveMicrogridControllerState
@@ -163,9 +172,12 @@ def device_main(domain_id):
             app_state_obj.setAppState(constants.DeviceState.POWER_UP_AUTH) # Ask to PU
 
         elif app_state_obj.appState() == constants.DeviceState.POWER_UP_AUTH:
+            print("P ", end="", flush = True) # sit printing 'Ps' - POWER_UP_AUTH
+            # Theoretically, sending this once should work or if the MC went
+            # away, we'd go back through discovery. We know there is a good MC
+            # and the request is sent reliably.
             count_in_state +=1
             if count_in_state % 10 == 0: # request to power up every 10 sec
-                print("Device requesting Authorization")
                 app_state_obj.clearOutstandingRequest()
                 device_ate_req_w.write()
             if app_state_obj._authorizedForEnergizing: # goto Idle and await commands
@@ -178,7 +190,7 @@ def device_main(domain_id):
             
                 
         elif app_state_obj.appState() == constants.DeviceState.ENERGIZE:
-            print("Device Energize Start Requested")
+            print("DEVICE STATE: ENGERGIZE")
             # publish an STS if new state asked for 
             if app_state_obj.devSrcXitionStateChange():
                 #device_sts_w.write()
@@ -186,11 +198,11 @@ def device_main(domain_id):
             app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE) # return idle
 
         elif app_state_obj.appState() == constants.DeviceState.SHUT_DOWN:
-            print("Device Shutting down")
+            print("DEVICE STATE: SHUT_DOWN")
             shutdown = True
                                    
         elif app_state_obj.appState() == constants.DeviceState.ERROR:
-            print("ERROR - Unexpected Event, resetting Device")
+            print("DEVICE STATE: ERROR - Unexpected Event, resetting Device")
             # TODO: Printout currentState, and Event that occurred
             app_state_obj.setAppState(constants.DeviceState.JOINING_GRID)
 
