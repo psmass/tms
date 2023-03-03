@@ -566,3 +566,130 @@ INFO:root:Starting State Machine
 INFO:root:Writing (Default Writer) - tms::DeviceInfo 
 INFO:root:Writer Thread running for MC_Publisher::HeartbeatWriter
 INFO:root:Writer Subs: 3 3
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Writer Subs: 2 -1
+INFO:root:Writer Subs: 2 -1
+INFO:root:Controller Exiting
+INFO:root:Controller Powering Up
+INFO:root:Writer Topic MC_Publisher::DeviceInfoWriter created
+INFO:root:Reader Topic MC_Subscriber::DeviceInfoReader created
+INFO:root:Writer Topic MC_Publisher::HeartbeatWriter created
+INFO:root:Reader Topic MC_Subscriber::HeartbeatReader created
+INFO:root:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+INFO:root:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+INFO:root:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+INFO:root:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+INFO:root:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+INFO:root:Reader Topic MC_Subscriber::ReplyReader created
+INFO:root:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+INFO:root:Reader Thread running for MC_Subscriber::DeviceInfoReader
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Reader Thread running for MC_Subscriber::HeartbeatReader
+INFO:root:Writer Subs: 2 2
+INFO:root:Reader Pubs: 0 0
+INFO:root:Reader Pubs: 0 0
+INFO:root:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+INFO:root:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+INFO:root:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+INFO:root:Reader Thread running for MC_Subscriber::ReplyReader
+INFO:root:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 3 1
+INFO:root:Starting State Machine
+INFO:root:Writing (Default Writer) - tms::DeviceInfo 
+INFO:root:Writer Thread running for MC_Publisher::HeartbeatWriter
+INFO:root:Writer Subs: 3 3
+INFO:root:Writing (Default Writer) - tms::AuthorizationToEnergizeReply 
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Writer Subs: 2 -1
+INFO:root:Controller Exiting
+INFO:root:Controller Powering Up
+INFO:root:Writer Topic MC_Publisher::DeviceInfoWriter created
+INFO:root:Reader Topic MC_Subscriber::DeviceInfoReader created
+INFO:root:Writer Topic MC_Publisher::HeartbeatWriter created
+INFO:root:Reader Topic MC_Subscriber::HeartbeatReader created
+INFO:root:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+INFO:root:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+INFO:root:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+INFO:root:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+INFO:root:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+INFO:root:Reader Topic MC_Subscriber::ReplyReader created
+INFO:root:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+INFO:root:Reader Thread running for MC_Subscriber::DeviceInfoReader
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Reader Thread running for MC_Subscriber::HeartbeatReader
+INFO:root:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+INFO:root:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+INFO:root:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+INFO:root:Reader Thread running for MC_Subscriber::ReplyReader
+INFO:root:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+INFO:root:Writer Subs: 2 2
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Starting State Machine
+INFO:root:Writing (Default Writer) - tms::DeviceInfo 
+INFO:root:Writer Thread running for MC_Publisher::HeartbeatWriter
+INFO:root:Writer Subs: 2 2
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 3 1
+INFO:root:Writer Subs: 3 1
+INFO:root:Writing (Default Writer) - tms::AuthorizationToEnergizeReply 
+INFO:root:Controller Exiting
+INFO:root:Controller Powering Up
+INFO:root:Writer Topic MC_Publisher::DeviceInfoWriter created
+INFO:root:Reader Topic MC_Subscriber::DeviceInfoReader created
+INFO:root:Writer Topic MC_Publisher::HeartbeatWriter created
+INFO:root:Reader Topic MC_Subscriber::HeartbeatReader created
+INFO:root:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+INFO:root:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+INFO:root:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+INFO:root:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+INFO:root:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+INFO:root:Reader Topic MC_Subscriber::ReplyReader created
+INFO:root:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Reader Thread running for MC_Subscriber::DeviceInfoReader
+INFO:root:Writer Subs: 3 3
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for MC_Subscriber::HeartbeatReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+INFO:root:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+INFO:root:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for MC_Subscriber::ReplyReader
+INFO:root:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Starting State Machine
+INFO:root:Writing (Default Writer) - tms::DeviceInfo 
+INFO:root:Writer Thread running for MC_Publisher::HeartbeatWriter
+INFO:root:Writer Subs: 3 3
+INFO:root:Writing (Default Writer) - tms::AuthorizationToEnergizeReply 

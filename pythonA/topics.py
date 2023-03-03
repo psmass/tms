@@ -409,13 +409,6 @@ class ATERepMC_Wtr(ddsEntities.Writer):
         self._sample["deviceId"]=self._app_state_obj._masterControllerId # preload with this deviceId
 
 
-    def write(self): # Override to modify requestId and to set outstanding request
-        # This sample is filled out from the ATE_Request Topic in it's handler()
-        print("\nWriting ", self._topic_type_name)
-        # print(self._sample)
-        self._writer.write(self._sample)
-          
-
 # Generator Device  AuthorizationToEnergizeReply Topic Reader        
 class ATERepGD_Rdr(ddsEntities.Reader):
     def __init__(self, participant, app_state_obj, ate_result_wtr):
@@ -455,7 +448,8 @@ class ATERepGD_Rdr(ddsEntities.Reader):
             self._ate_result_wtr._sample["energizeRequestValid"]=self._app_state_obj._authorizedForEnergizing
             self._ate_result_wtr._sample["authorizationReviewValid"]=True
             self._ate_result_wtr.write()
-        
+
+            
 # Generator Device AuthorizationToEnergizeResult Topic Writer        
 class ATEResultGD_Wtr(ddsEntities.Writer):
     def __init__(self, participant, app_state_obj):
@@ -466,13 +460,6 @@ class ATEResultGD_Wtr(ddsEntities.Writer):
         self._app_state_obj = app_state_obj
         self._sample["responseReceived"]=False # initialize false (set True in ATERepGD Rdr)
         self._sample["authorizationReviewValid"]=False
-
-
-    def write(self): # Override to modify requestId and to set outstanding request
-        # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
-        print("\nWriting ", self._topic_type_name)
-        self._writer.write(self._sample)
-        
         
 
 # MC AuthorizationToEnergizeResult Topic Reader        
@@ -511,8 +498,7 @@ class ESSReqMC_Wtr(ddsEntities.Writer):
         self._sample["sequenceId"] = self._app_state_obj.rrSequenceNumber()
         self._sample["fromLevel"] = self._app_state_obj._deviceStartStopPresentLevel
         self._sample["toLevel"] = new_state
-        self._writer.write(self._sample)
-        
+        self._writer.write(self._sample)        
         
        
 # Generator Device EnergyStartStopRequest Topic Reader        
@@ -559,13 +545,6 @@ class ReplyGD_Wtr(ddsEntities.Writer):
         # targetDeviceId - identity of device that is sending this reply
         # Reply begin sent for ESSReq and filled out from the ESSReqGD_Rdr() above
         self._sample["targetDeviceId"]=self._app_state_obj._deviceId 
-
-
-    def write(self): # Override to modify requestId and to set outstanding request
-        # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
-        print("\nWriting ", self._topic_type_name)
-        self._writer.write(self._sample)
-        
         
 
 # MC Reply Topic Reader        
@@ -608,11 +587,6 @@ class ESSStateGD_Wtr(ddsEntities.Writer):
         self._sample["presentLevelActor"]=self._app_state_obj._deviceId # initially this device
         self._sample["futureLevelReason"]=tmsConstants.tms_PowerSwitchTransitionCode.PSTC_COMPLETE
 
-    def write(self): # Override to modify requestId and to set outstanding request
-        # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
-        print("\nWriting ", self._topic_type_name)
-        self._writer.write(self._sample)
-        
 
 # MC  EnergyStartStopState Topic Reader        
 class ESSStateMC_Rdr(ddsEntities.Reader):
