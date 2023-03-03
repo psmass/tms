@@ -65,7 +65,7 @@ class Writer(threading.Thread):
                 status_mask = self._writer.status_changes
                 st = self._writer.publication_matched_status
                 if dds.StatusMask.PUBLICATION_MATCHED in status_mask:
-                    print("Writer Subs: {0} {1}".format(st.current_count, st.current_count_change))
+                    logging.info("Writer Subs: {0} {1}".format(st.current_count, st.current_count_change))
             elif self._periodic:  # no active condition, check if periodic
                 self.write()
     

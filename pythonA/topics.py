@@ -109,14 +109,14 @@ class ApplicationStateObj():
         self._deviceId = deviceId
 
         self._deviceIdSet = True
-        print(self._deviceId)
+        print("Found Device Id: ", self._deviceId)
 
     # used by the Device to set the MCID upon receiveing DIs and making MC selection process
     def setMCId(self, mcId ):
         self._masterControllerId = mcId
 
         self._mcIdSet = True
-        print(self._masterControllerId)
+        print("Found Controller Id: ", self._masterControllerId)
         
     def deviceId(self):
         return self._deviceId
@@ -164,11 +164,7 @@ class HeartbeatGD_Rdr(ddsEntities.Reader):
         self._app_state_obj = app_state_obj
         
         # TODO: Install the content filter to only receive active MC
-        # cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
-        #                                                      constants.REQUEST_RESPONSE_DEVICE_CFT)
-        #
-        # cft_topic.filter_parameters = [self._app_state_obj.deviceID()]
-        # print("RRD_RDR CFT ID installed")
+
         participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Heartbeats 
 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
@@ -207,11 +203,7 @@ class HeartbeatMC_Rdr(ddsEntities.Reader):
         self._app_state_obj = app_state_obj
         
         # TODO: Install the content filter to only receive active MC
-        # cft_topic = dds.DynamicData.ContentFilteredTopic.find(self._participant,
-        #                                                      constants.REQUEST_RESPONSE_DEVICE_CFT)
-        #
-        # cft_topic.filter_parameters = [self._app_state_obj.deviceID()]
-        # print("RRD_RDR CFT ID installed")
+
         participant.ignore_datawriter(ignore_wtr_instance_hndl) # don't read our own Heartbeats
         
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
@@ -257,7 +249,7 @@ class DeviceInfoGD_Rdr(ddsEntities.Reader):
     # The Device Received the MCs ID and save it
     # TODO: Implement MC selection per TMS spec
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         mcId=data["deviceId"]
         self._app_state_obj.setMCId(mcId)
@@ -300,7 +292,7 @@ class DeviceInfoMC_Rdr(ddsEntities.Reader):
     # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
     # 
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
@@ -337,8 +329,8 @@ class AMCStateMC_Rdr(ddsEntities.Reader):
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # 
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
-        print ("This Master Controller ID: {id} has been selected"
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nThis Master Controller ID: {id} has been selected"
                .format(id=self._app_state_obj._masterControllerId))
         #print (data, end="", flush=True)
         self._app_state_obj._thisMCSelected = True
@@ -357,15 +349,15 @@ class ATEReqGD_Wtr(ddsEntities.Writer):
 
 
     def write(self): # Override to modify requestId and to set outstanding request
-        print("Writing ", self._topic_type_name)
+        print("\nWriting ", self._topic_type_name)
 
         if not self._app_state_obj.outstandingRequest():
-            # print("Writing ", self._topic_type_name)
+            # print("\nWriting ", self._topic_type_name)
             self._sample["sequenceId"]=self._app_state_obj.rrSequenceNumber()
             self._sample["energizeSequenceId"]=self._sample["sequenceId"]
             self._writer.write(self._sample)
         else:
-            print("** Application Error - Attempting to send a request while one is outstanding") 
+            print("\n** Application Error - Attempting to send a request while one is outstanding") 
         
         
 
@@ -385,7 +377,7 @@ class ATEReqMC_Rdr(ddsEntities.Reader):
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # 
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         #print ("ATE-reply-sample: ", self._ate_reply_wtr._sample)
 
@@ -419,7 +411,7 @@ class ATERepMC_Wtr(ddsEntities.Writer):
 
     def write(self): # Override to modify requestId and to set outstanding request
         # This sample is filled out from the ATE_Request Topic in it's handler()
-        print("Writing ", self._topic_type_name)
+        print("\nWriting ", self._topic_type_name)
         # print(self._sample)
         self._writer.write(self._sample)
           
@@ -439,15 +431,15 @@ class ATERepGD_Rdr(ddsEntities.Reader):
                                                               tmsConstants.generator_device.ATE_REPLY_CFT)
         param = "\'" + self._app_state_obj._deviceId +  "\'"
         cft_topic.filter_parameters = [param]
-        print("ATE_REPLY_RDR CFT ID installed")
+        logging.info("ATE_REPLY_RDR CFT ID installed")
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # 
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         if data["accept"]:
-            print("Authorized to Energize by Master Controller: ", data["userId"])
+            print("\nAuthorized to Energize by Master Controller: ", data["userId"])
             self._app_state_obj._authorizedForEnergizing = True
             # copy reply info into ATEResult sample and send result
             self._ate_result_wtr._sample["relatedRequestId.requestingDeviceId"] = \
@@ -478,7 +470,7 @@ class ATEResultGD_Wtr(ddsEntities.Writer):
 
     def write(self): # Override to modify requestId and to set outstanding request
         # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
-        print("Writing ", self._topic_type_name)
+        print("\nWriting ", self._topic_type_name)
         self._writer.write(self._sample)
         
         
@@ -498,7 +490,7 @@ class ATEResultMC_Rdr(ddsEntities.Reader):
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # 
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
 
 
@@ -514,7 +506,7 @@ class ESSReqMC_Wtr(ddsEntities.Writer):
 
 
     def write(self, target_dev_id, new_state): # Override to modify requestId and to set outstanding request
-        print("Writing ", self._topic_type_name)
+        print("\nWriting ", self._topic_type_name)
         self._sample["requestId.targetDeviceId"]=target_dev_id
         self._sample["sequenceId"] = self._app_state_obj.rrSequenceNumber()
         self._sample["fromLevel"] = self._app_state_obj._deviceStartStopPresentLevel
@@ -539,12 +531,12 @@ class ESSReqGD_Rdr(ddsEntities.Reader):
                                                               tmsConstants.generator_device.ESS_REQUEST_CFT)
         param = "\'" + self._app_state_obj._deviceId +  "\'"
         cft_topic.filter_parameters = [param]
-        print("ESS_REQUEST_RDR CFT ID installed")
+        logging.info("ESS_REQUEST_RDR CFT ID installed")
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # 
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         self._app_state_obj._deviceStartStopFutureLevel=data["toLevel"]
         self._reply_wtr._sample["requestingDeviceId"]=data["requestId.requestingDeviceId"]
@@ -571,7 +563,7 @@ class ReplyGD_Wtr(ddsEntities.Writer):
 
     def write(self): # Override to modify requestId and to set outstanding request
         # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
-        print("Writing ", self._topic_type_name)
+        print("\nWriting ", self._topic_type_name)
         self._writer.write(self._sample)
         
         
@@ -591,7 +583,7 @@ class ReplyMC_Rdr(ddsEntities.Reader):
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # 
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
 
 
@@ -618,7 +610,7 @@ class ESSStateGD_Wtr(ddsEntities.Writer):
 
     def write(self): # Override to modify requestId and to set outstanding request
         # Most of the ATEResultGD_Wtr Sample is filled out in the ATERepGD_Rdr
-        print("Writing ", self._topic_type_name)
+        print("\nWriting ", self._topic_type_name)
         self._writer.write(self._sample)
         
 
@@ -637,14 +629,14 @@ class ESSStateMC_Rdr(ddsEntities.Reader):
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
     # 
     def handler(self, data):
-        print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
+        print ("\nReceived sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         # save relevant information in our app_state_obj for later use
         self._app_state_obj._deviceId=data["deviceId"] # Device Info topic may not be in yet.
         self._app_state_obj._deviceStartStopPresentLevel = data["presentLevel"]
         self._app_state_obj._deviceStartStopFutureLevel = data["futureLevel"]
         
-        print("Device {d_id} Engery State: {e_state}".
+        print("\nDevice {d_id} Engery State: {e_state}".
               format(d_id=self._app_state_obj._deviceId,
                      e_state=self._app_state_obj._deviceStartStopPresentLevel))
 
