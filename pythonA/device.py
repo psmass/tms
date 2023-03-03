@@ -82,31 +82,32 @@ def device_main(domain_id):
     # outstanding request is cleared (either by receiving a correlated RR
     # or manually via the app_state_obj.clearOutstandingReq().)
     #
-    # Note - while we might expect an RR to come in before a response
-    # e.g., if we post an MMR, we expect a RR followed by a MMO. While
-    # both are sent reliably, the order is not guaranteed as the RR
-    # could have gotten lost and need to be resent by DDS.
     #
     # The state machine will transition to ERROR if an unexpected command
     # or response is received (i.e., the SM is not in the proper state
     # to expect one - e.g., say an unsolicited MMO comes in, we cannot
     # assume we sent an MMR and should transition to JOINING_GRID.)
     #
-    # INIT - send DA and transition to JOINING_GRID
+    # INIT - send DI, ESS State and start  Heartbeat. Transition to DISCOVERY
+    #        reset state vars reset from DI. Note DI setMCId so leave that
+    #        the _mcIdSet flag true
     #
-    # JOINING_GRID - send MMR, wait for MMO, transition to JOINING GRID
+    # DISCOVERY - wait for MasterController DI, select MC.
+    #             Transition to FOUND_NEW_CONTROLLER
     #
-    # WAIT_CMD_IDLE - Device Received MMO with good Membership Result
-    #                and has joined the grid. It now waits for a command/
-    #                request from the controler. Their should be a state
-    #                for each possible command supported (and a catch-all
-    #                for unsupported commands). 
-    #              - In this example we'll wait for a SourceTransitionRequest
-    #                (STR - ST_POWER_UP) and transiton to POWERING_UP
-    #                The example does not support other transitons, as
-    #                a state would need to be supported for each.
+    # FOUND_NEW_CONTROLLER - Set the new controller and transition immediately
+    #                        to POWER_UP_AUTH. Here, on a real device,  we'd do
+    #                        the MC selection process              
     #
-    # POWERING_UP - RECEIVED STR, handle and return to WAIT_CMD_IDLE
+    # POWER_UP_AUTH - send out AuthorizationToEnergize request every 10 sec
+    #                 note: theoretically we only need to send this once as its
+    #                 reliable. If the MC went away and came back we'd get a new DI
+    #                 and go back through INIT. Once we are Authorized,
+    #                 transition to WAIT_CMD_ILDE
+    #
+    # WAIT_CMD_IDLE - Idle State, check for things to do and do them
+    #
+    # ENERGIZE - one example of something to do when present and future state differ
     #
     # SHUT_DOWN     Device has been turned-off (CTRL-C) - Shutdown
     #
@@ -116,19 +117,6 @@ def device_main(domain_id):
     # else          Logical default if no states were matched, (theortically
     #               can't occur, unless bug in Device code)
     #
-    # NOTE: With this version of TMS Data-model, all requests contain a keyed sampleID.
-    #       Since the SampleID contains a unique "SequenceID" all requests are unique
-    #       instances, and should be disposed of, or essentially we 'leak' memory.
-    #       Having unique instances of every sample, essentially makes the idea of
-    #       key'd managed resources per-instance effectively useless. This was corrected
-    #       in later TMS data-models.
-    #       Of course, since requests are sent reliably, we need to wait at least
-    #       a second to allow a potential retransmission. Since repeated requests of
-    #       the same topic is infrequent, and this issue has been corrected in
-    #       subsequent TMS Data-models, we won't dispose of them. One way to do
-    #       this is to have a DISPOSE_REQUEST state we transition to after each
-    #       request. It might use the app_state_obj to track the request instance,
-    #       unregistering and disposing of it.
     #
 
     print("\n\n **** Starting State Machine")
@@ -187,15 +175,24 @@ def device_main(domain_id):
             # Here we sit waiting for a command
             #print("Device awating command")
             print(".", end="", flush=True)
-            
+            if app_state_obj._deviceStartStopPresentLevel != \
+               app_state_obj._deviceStartStopFutureLevel:
+                app_state_obj.setAppState(constants.DeviceState.ENERGIZE)
+               
                 
         elif app_state_obj.appState() == constants.DeviceState.ENERGIZE:
             print("DEVICE STATE: ENGERGIZE")
-            # publish an STS if new state asked for 
-            if app_state_obj.devSrcXitionStateChange():
-                #device_sts_w.write()
-                print("Source Transition in old model")
-            app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE) # return idle
+            # energize in a separate state as likely we'd have lots of things
+            # to check before just writing the state change, also, a real
+            # generator would likely neeed to transition through a number of
+            # states to go from OFF to OPERATIONAL
+            # assumes we did what the generator does to get to the future level
+            app_state_obj._deviceStartStopPresentLevel = app_state_obj._deviceStartStopFutureLevel 
+            device_ess_state_w._sample["presentLevel"]=\
+                                         app_state_obj._deviceStartStopPresentLevel 
+            device_ess_state_w.write()
+ 
+            app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE) # return idle loop
 
         elif app_state_obj.appState() == constants.DeviceState.SHUT_DOWN:
             print("DEVICE STATE: SHUT_DOWN")

@@ -92,27 +92,31 @@ def controller_main(domain_id):
     # outstanding request is cleared (either by receiving a correlated RR
     # or manually via the app_state_obj.clearOutstandingReq().)
     #
-    # Note - while we might expect an RR to come in before a response
-    # e.g., if we post an STR, we expect a RR followed by a STS. While
-    # both are sent reliably, the order is not guaranteed as the RR
-    # could have gotten lost and need to be resent by DDS.
-    #
     # The state machine will transition to ERROR if an unexpected command
     # or response is received (i.e., the SM is not in the proper state
     # to expect one) 
     #
-    # INIT - Waits for a DA to transition to FOUND_NEW_DEVICE
+    # INIT - send DI, ESS State and start  Heartbeat. Transition to DISCOVERY
+    #        reset state vars reset from DI. Note DI setMCId so leave that
+    #        the _mcIdSet flag true
     #
-    # FOUND_NEW_DEVICE - fills in DeviceId (from DA) and waits for MMR
+    # DISCOVERY - wait for Device DI.
+    #             Transition to FOUND_NEW_DEVICE
     #
-    # JOINING_GRID - Received MMR, sending MMO, transition to POWERING_UP
+    # FOUND_NEW_DEVICE -  We check that this MC has been selected and that the
+    #            device is AuthorizedForEnergization
     #
-    # POWERING_UP - Send STR, transition to Steady State
+    # POWER_UP_AUTH - Note used - Powerup reply is sent when we recieve
+    #                 (from the) the Powerup request topic reader        
     #
-    # STEADY_STATE - Controller can have logic here to handle other functions
-    #               In this example we just sit, printing '.'.
-    #               Leave this state by either a new DA (go back to JOINING_GRID
-    #               or CTRL-C for SHUT_DOWN
+    # WAIT_CMD_IDLE - Idle State, check for things to do and do them
+    #
+    # ENERGIZE - This state is transitioned to after FOUND_NEW_DEVICE
+    #            we check that the device is OFF and send a request to
+    #            EngergizeStartStop OPERATIONAL. Here, we don't bother
+    #            to repeat the request but assume it was received since
+    #            loss of device would be noted wiht loss of Heartbeat and
+    #            the request to energize is sent reliable.
     #
     # SHUT_DOWN     Device has been turned-off (CTRL-C) - Shutdown
     #
@@ -120,24 +124,9 @@ def controller_main(domain_id):
     #               occured (SM has no basis to select next state)
     #
     # else          Logical default if no states were matched, (theortically
-    #               can't occur, unless bug in Controller code)
+    #               can't occur, unless bug in Device code)
     #
-    # NOTE: With this version of TMS Data-model, all requests contain a keyed sampleID.
-    #       Since the SampleID contains a unique "SequenceID" all requests are unique
-    #       instances, and should be disposed of, or essentially we 'leak' memory.
-    #       Having unique instances of every sample, essentially makes the idea of
-    #       key'd managed resources per-instance effectively useless. This was corrected
-    #       in later TMS data-models.
-    #       Of course, since requests are sent reliably, we need to wait at least
-    #       a second to allow a potential retransmission. Since repeated requests of
-    #       the same topic is infrequent, and this issue has been corrected in
-    #       subsequent TMS Data-models, we won't dispose of them. One way to do
-    #       this is to have a DISPOSE_REQUEST state we transition to after each
-    #       request. It might use the app_state_obj to track the request instance,
-    #       unregistering and disposing of it.
     #
-    #       For a controller managing more than one device, one would want to dispose
-    #       of all writer instances as a Device departs the grid.
     
     print("\n\n **** Starting State Machine")
     
@@ -163,8 +152,6 @@ def controller_main(domain_id):
                 app_state_obj.setAppState(constants.ControllerState.FOUND_NEW_DEVICE)
             
         elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
-            # this state in case we get a DA and not an MMR so hold waiting for MMR
-            # Note: DA is durable, so we can get a DA followed immediately by a DA
             print("D ", end="", flush = True) # sit printing 'Ds' while discovering Device
             # hold here until this MC has been selected and the device has been
             # authorized
@@ -176,13 +163,13 @@ def controller_main(domain_id):
             print("CONTROLLER STATE: ENERGIZE")
             print("Controller Energizing device {d_id}, current State: {e_state}".
                   format(d_id=app_state_obj._deviceId,
-                     e_state=app_state_obj._deviceStopStartPresentLevel))
+                     e_state=app_state_obj._deviceStartStopPresentLevel))
 
             # In example, if we find a device is off, we'll turn it on, here since
             # we know the device just announced itself and the request is sent
             # reliably we only need to send it once. If the device goes away, we'll
             # loose hearbeat and expect to go back through DISCOVERY with it.
-            if app_state_obj._deviceStopStartPresentLevel \
+            if app_state_obj._deviceStartStopPresentLevel \
                 ==  tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF:
                 # we are going to go from OFF -> OPERATIONAL - a real device probably
                 # would need to transition through other states. Below we'll hand in

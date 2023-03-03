@@ -57,8 +57,8 @@ class ApplicationStateObj():
         # these objects per device (an array of them in a real controller). I
         self._authorizedForEnergizing = False
         # implementations may want to save all of the ESS_state data members received
-        self._deviceStopStartPresentLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN
-        self._deviceStopStartFutureLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN 
+        self._deviceStartStopPresentLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN
+        self._deviceStartStopFutureLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN 
 
         self._application_state = constants.ControllerState.INIT
         self._deviceIdSet = False # flag indicates MC has received DI and _deviceId is valid
@@ -131,25 +131,6 @@ class ApplicationStateObj():
     # used to set the Id in a sample about to be written by any topic   
     def setMCIdInSample (self, sample, idStrName):
         sample[idStrName]=self._masterControllerId
-
-    def setDevReqSrcXitionState(self, newState):
-        self._requested_device_source_transition_state = newState
-
-    def devSrcState(self):
-        return self._device_source_transition_state
-
-    def setDevSrcState(self, srcState):
-        self._device_source_transition_state=srcState
-
-    def devSrcXitionStateChange(self):
-        change = False
-        if self._device_source_transition_state != \
-            self._requested_device_source_transition_state:
-            # set them equal
-            self._device_source_transition_state = \
-            self._requested_device_source_transition_state
-            change = True
-        return change
     
 
 # Generator Device HB Topic Writer
@@ -353,7 +334,6 @@ class AMCStateMC_Rdr(ddsEntities.Reader):
         # are the controller selected
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
-    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
     # 
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
@@ -402,7 +382,6 @@ class ATEReqMC_Rdr(ddsEntities.Reader):
         # are the controller selected
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
-    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
     # 
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
@@ -462,7 +441,6 @@ class ATERepGD_Rdr(ddsEntities.Reader):
         print("ATE_REPLY_RDR CFT ID installed")
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
-    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
     # 
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
@@ -517,7 +495,6 @@ class ATEResultMC_Rdr(ddsEntities.Reader):
         # are the controller selected
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
-    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
     # 
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
@@ -539,7 +516,7 @@ class ESSReqMC_Wtr(ddsEntities.Writer):
         print("Writing ", self._topic_type_name)
         self._sample["requestId.targetDeviceId"]=target_dev_id
         self._sample["sequenceId"] = self._app_state_obj.rrSequenceNumber()
-        self._sample["fromLevel"] = self._app_state_obj._deviceStopStartPresentLevel
+        self._sample["fromLevel"] = self._app_state_obj._deviceStartStopPresentLevel
         self._sample["toLevel"] = new_state
         self._writer.write(self._sample)
         
@@ -564,11 +541,11 @@ class ESSReqGD_Rdr(ddsEntities.Reader):
         print("ESS_REQUEST_RDR CFT ID installed")
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
-    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
     # 
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
+        self._app_state_obj._deviceStartStopFutureLevel=data["toLevel"]
         self._reply_wtr._sample["requestingDeviceId"]=data["requestId.requestingDeviceId"]
         # self._reply_wtr._sample["targetDeviceId"] --- Filled out in ReplyGD_wtr
         # self._reply_wtr._sample["config"] ---- default CONFIG_UNKNOWN is good
@@ -608,9 +585,9 @@ class ReplyMC_Rdr(ddsEntities.Reader):
         self._app_state_obj = app_state_obj
 
         # TODO - Put a CFT on the masterId for this controller (so we only get notified if we
-        # are the controller selected                
+        # are the controller selected
+        
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
-    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
     # 
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
@@ -625,8 +602,8 @@ class ESSStateGD_Wtr(ddsEntities.Writer):
                                     tmsConstants.generator_device.ESS_STATE_WRITER)
 
         self._app_state_obj = app_state_obj
-        self._app_state_obj._deviceStopStartPresentLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF
-        self._app_state_obj._deviceStopStartFutureLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF
+        self._app_state_obj._deviceStartStopPresentLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF
+        self._app_state_obj._deviceStartStopFutureLevel = tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF
         
         # load up static sample fields
         self._sample["deviceId"]=self._app_state_obj._deviceId
@@ -657,17 +634,16 @@ class ESSStateMC_Rdr(ddsEntities.Reader):
         # are the controller selected
                 
     # Topic Context Reader Handler (overrides ddsEntities.py Default Hander)
-    # For the DI Reader, we extract the DeviceId and save it in our app_state_obj
     # 
     def handler(self, data):
         print ("Received sample for topic {r_name}".format(r_name=self._reader_name))
         #print (data, end="", flush=True)
         # save relevant information in our app_state_obj for later use
         self._app_state_obj._deviceId=data["deviceId"] # Device Info topic may not be in yet.
-        self._app_state_obj._deviceStopStartPresentLevel = data["presentLevel"]
-        self._app_state_obj._deviceStopStartFutureLevel = data["futureLevel"]
+        self._app_state_obj._deviceStartStopPresentLevel = data["presentLevel"]
+        self._app_state_obj._deviceStartStopFutureLevel = data["futureLevel"]
         
         print("Device {d_id} Engery State: {e_state}".
               format(d_id=self._app_state_obj._deviceId,
-                     e_state=self._app_state_obj._deviceStopStartPresentLevel))
+                     e_state=self._app_state_obj._deviceStartStopPresentLevel))
 
