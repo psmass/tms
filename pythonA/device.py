@@ -12,6 +12,7 @@
 
 
 import sys
+import logging
 import tmsConstants
 import constants
 import argparse
@@ -28,6 +29,7 @@ filepath = osPath.dirname(osPath.realpath(__file__))
 
 def device_main(domain_id):
     print("Device Powering Up")
+    logging.info('Device Powering Up')
 
     shutdown = False
     
@@ -120,6 +122,7 @@ def device_main(domain_id):
     #
 
     print("\n\n **** Starting State Machine")
+    logging.info('Starting State Machine')
     
     count_in_state = 0
 
@@ -128,7 +131,7 @@ def device_main(domain_id):
             app_state_obj.setAppState(constants.DeviceState.SHUT_DOWN)
 
         if app_state_obj.appState() == constants.DeviceState.INIT:
-            print("DEVICE STATE: INIT")
+            print("\nDEVICE STATE: INIT")
             # reset state vars 
             app_state_obj._authorizedForEnergizing = False
             app_state_obj._masterControllerId = ''
@@ -150,7 +153,7 @@ def device_main(domain_id):
                 app_state_obj.setAppState(constants.DeviceState.FOUND_NEW_CONTROLLER)
 
         elif app_state_obj.appState() == constants.DeviceState.FOUND_NEW_CONTROLLER:
-            print("DEVICE STATE: FOUND NEW CONTROLLER") 
+            print("\nDEVICE STATE: FOUND NEW CONTROLLER") 
             # TODO: Implement tms Master Controller Selection Algorithm.
             # Here once we know an MC, we'll select it first come, first serve
             # returning an ActiveMicrogridControllerState
@@ -181,7 +184,7 @@ def device_main(domain_id):
                
                 
         elif app_state_obj.appState() == constants.DeviceState.ENERGIZE:
-            print("DEVICE STATE: ENGERGIZE")
+            print("\nDEVICE STATE: ENGERGIZE")
             # energize in a separate state as likely we'd have lots of things
             # to check before just writing the state change, also, a real
             # generator would likely neeed to transition through a number of
@@ -195,16 +198,16 @@ def device_main(domain_id):
             app_state_obj.setAppState(constants.DeviceState.WAIT_CMD_IDLE) # return idle loop
 
         elif app_state_obj.appState() == constants.DeviceState.SHUT_DOWN:
-            print("DEVICE STATE: SHUT_DOWN")
+            print("\nDEVICE STATE: SHUT_DOWN")
             shutdown = True
                                    
         elif app_state_obj.appState() == constants.DeviceState.ERROR:
-            print("DEVICE STATE: ERROR - Unexpected Event, resetting Device")
+            print("\nDEVICE STATE: ERROR - Unexpected Event, resetting Device")
             # TODO: Printout currentState, and Event that occurred
             app_state_obj.setAppState(constants.DeviceState.JOINING_GRID)
 
         else:
-            print("Device in undefined state")
+            logging.error("State Machine else clause hit - Device in undefined state")
         
         sleep(1)
 
@@ -217,9 +220,11 @@ def device_main(domain_id):
     device_ess_req_r.join()
          
     print("Device Exiting")
+    logging.info('Device Exiting')
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='device.log', encoding='utf-8', level=logging.INFO)
     parser = argparse.ArgumentParser(
         description="RTI Connext DDS Example: Command Response Device)"
     )

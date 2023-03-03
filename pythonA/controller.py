@@ -11,6 +11,7 @@
  */
 """
 import sys
+import logging
 import argparse
 from os import path as osPath
 from time import sleep
@@ -26,6 +27,7 @@ filepath = osPath.dirname(osPath.realpath(__file__))
 
 def controller_main(domain_id):
     print("Controller Powering Up")
+    logging.info('Controller Powering Up')
 
     shutdown = False
 
@@ -129,6 +131,7 @@ def controller_main(domain_id):
     #
     
     print("\n\n **** Starting State Machine")
+    logging.info('Starting State Machine')
     
     while not shutdown:
         if not application.run_flag:
@@ -138,7 +141,7 @@ def controller_main(domain_id):
             # reset state vars
             app_state_obj._thisMCSelected=False
             app_state_obj._authorizedForEnergizing=False
-            print("CONTROLLER STATE: INIT")
+            print("\nCONTROLLER STATE: INIT")
             if not controller_hb_w._thread_started: # Don't restart if reset DI 
                 controller_di_w.write() # only need to write this once since QoS Durable
                 controller_hb_w.start() # start sending heartbeats
@@ -152,7 +155,7 @@ def controller_main(domain_id):
                 app_state_obj.setAppState(constants.ControllerState.FOUND_NEW_DEVICE)
             
         elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
-            print("D ", end="", flush = True) # sit printing 'Ds' while discovering Device
+            print("F ", end="", flush = True) # sit printing 'Ds' while discovering Device
             # hold here until this MC has been selected and the device has been
             # authorized
             if app_state_obj._thisMCSelected and app_state_obj._authorizedForEnergizing:
@@ -160,7 +163,7 @@ def controller_main(domain_id):
                 app_state_obj.setAppState(constants.ControllerState.ENERGIZE)
                         
         elif app_state_obj.appState() == constants.ControllerState.ENERGIZE:
-            print("CONTROLLER STATE: ENERGIZE")
+            print("\nCONTROLLER STATE: ENERGIZE")
             print("Controller Energizing device {d_id}, current State: {e_state}".
                   format(d_id=app_state_obj._deviceId,
                      e_state=app_state_obj._deviceStartStopPresentLevel))
@@ -184,16 +187,16 @@ def controller_main(domain_id):
             print(".", end="", flush=True)
 
         elif app_state_obj.appState() == constants.ControllerState.SHUT_DOWN:
-            print("CONTROLLER STATE: SHUTDOWN")
+            print("\nCONTROLLER STATE: SHUTDOWN")
             shutdown = True
 
         elif app_state_obj.appState() == constants.ControllerState.ERROR:
-            print("CONTROLLER STATE: ERROR - Unexpected Event, resetting Target Device")
+            print("\nCONTROLLER STATE: ERROR - Unexpected Event, resetting Target Device")
             # TODO: Printout, Device and event
             app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
 
         else:
-            print("Device in undefined state")
+            logging.error('State Machine hit default(impossible?) else clause')
 
         sleep(1)
 
@@ -209,8 +212,10 @@ def controller_main(domain_id):
     controller_ess_state_r.join()
 
     print("Controller Exiting")
+    logging.info('Controller Exiting')
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='controller.log', encoding='utf-8', level=logging.INFO)
     parser = argparse.ArgumentParser(
         description="RTI Connext DDS Example: Command Response Controller)"
     )

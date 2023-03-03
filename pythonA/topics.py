@@ -40,6 +40,7 @@ import constants
 import tmsConstants
 import rti.connextdds as dds
 from time import sleep
+import logging
 
 class ApplicationStateObj():
     # this object will hold the deviceId and state, it will be

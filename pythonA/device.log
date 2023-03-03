@@ -1,0 +1,134 @@
+INFO:root:Device Powering Up
+INFO:root:Writer Topic GD_Publisher::DeviceInfoWriter created
+INFO:root:Reader Topic GD_Subscriber::DeviceInfoReader created
+INFO:root:Writer Topic GD_Publisher::HeartbeatWriter created
+INFO:root:Reader Topic GD_Subscriber::HeartbeatReader created
+INFO:root:Writer Topic GD_Publisher::ActiveMicrogridControllerStateWriter created
+INFO:root:Writer Topic GD_Publisher::AuthorizationToEnergizeRequestWriter created
+INFO:root:Writer Topic GD_Publisher::AuthorizationToEnergizeResultWriter created
+INFO:root:Reader Topic GD_Subscriber::AuthorizationToEnergizeReplyReader created
+INFO:root:Writer Topic GD_Publisher::ReplyWriter created
+INFO:root:Reader Topic GD_Subscriber::EnergyStartStopRequestReader created
+INFO:root:Writer Topic GD_Publisher::EnergyStartStopStateWriter created
+INFO:root:Reader Thread running for GD_Subscriber::DeviceInfoReader
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 2 2
+INFO:root:Reader Thread running for GD_Subscriber::HeartbeatReader
+INFO:root:Reader Pubs: 0 0
+INFO:root:Reader Thread running for GD_Subscriber::AuthorizationToEnergizeReplyReader
+INFO:root:Reader Pubs: 0 0
+INFO:root:Reader Thread running for GD_Subscriber::EnergyStartStopRequestReader
+INFO:root:Starting State Machine
+INFO:root:Writing (Default Writer) - tms::DeviceInfo 
+INFO:root:Writer Thread running for GD_Publisher::HeartbeatWriter
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 3 1
+INFO:root:Writing (Default Writer) - tms::ActiveMicrogridControllerState 
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 2 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Device Exiting
+INFO:root:Device Powering Up
+INFO:root:Writer Topic GD_Publisher::DeviceInfoWriter created
+INFO:root:Reader Topic GD_Subscriber::DeviceInfoReader created
+INFO:root:Writer Topic GD_Publisher::HeartbeatWriter created
+INFO:root:Reader Topic GD_Subscriber::HeartbeatReader created
+INFO:root:Writer Topic GD_Publisher::ActiveMicrogridControllerStateWriter created
+INFO:root:Writer Topic GD_Publisher::AuthorizationToEnergizeRequestWriter created
+INFO:root:Writer Topic GD_Publisher::AuthorizationToEnergizeResultWriter created
+INFO:root:Reader Topic GD_Subscriber::AuthorizationToEnergizeReplyReader created
+INFO:root:Writer Topic GD_Publisher::ReplyWriter created
+INFO:root:Reader Topic GD_Subscriber::EnergyStartStopRequestReader created
+INFO:root:Writer Topic GD_Publisher::EnergyStartStopStateWriter created
+INFO:root:Reader Thread running for GD_Subscriber::DeviceInfoReader
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 3 3
+INFO:root:Reader Thread running for GD_Subscriber::HeartbeatReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for GD_Subscriber::AuthorizationToEnergizeReplyReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for GD_Subscriber::EnergyStartStopRequestReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Starting State Machine
+INFO:root:Writing (Default Writer) - tms::DeviceInfo 
+INFO:root:Writer Thread running for GD_Publisher::HeartbeatWriter
+INFO:root:Writing (Default Writer) - tms::ActiveMicrogridControllerState 
+INFO:root:Device Exiting
+INFO:root:Device Powering Up
+INFO:root:Writer Topic GD_Publisher::DeviceInfoWriter created
+INFO:root:Reader Topic GD_Subscriber::DeviceInfoReader created
+INFO:root:Writer Topic GD_Publisher::HeartbeatWriter created
+INFO:root:Reader Topic GD_Subscriber::HeartbeatReader created
+INFO:root:Writer Topic GD_Publisher::ActiveMicrogridControllerStateWriter created
+INFO:root:Writer Topic GD_Publisher::AuthorizationToEnergizeRequestWriter created
+INFO:root:Writer Topic GD_Publisher::AuthorizationToEnergizeResultWriter created
+INFO:root:Reader Topic GD_Subscriber::AuthorizationToEnergizeReplyReader created
+INFO:root:Writer Topic GD_Publisher::ReplyWriter created
+INFO:root:Reader Topic GD_Subscriber::EnergyStartStopRequestReader created
+INFO:root:Writer Topic GD_Publisher::EnergyStartStopStateWriter created
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 2 2
+INFO:root:Reader Thread running for GD_Subscriber::DeviceInfoReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for GD_Subscriber::HeartbeatReader
+INFO:root:Reader Thread running for GD_Subscriber::AuthorizationToEnergizeReplyReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for GD_Subscriber::EnergyStartStopRequestReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 3 1
+INFO:root:Starting State Machine
+INFO:root:Writing (Default Writer) - tms::DeviceInfo 
+INFO:root:Writer Thread running for GD_Publisher::HeartbeatWriter
+INFO:root:Writing (Default Writer) - tms::ActiveMicrogridControllerState 
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Reader Pubs: 0 -1
+INFO:root:Writer Subs: 2 -1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 3 1
+INFO:root:Writing (Default Writer) - tms::ActiveMicrogridControllerState 
+INFO:root:Device Exiting
+INFO:root:Device Powering Up
+INFO:root:Writer Topic GD_Publisher::DeviceInfoWriter created
+INFO:root:Reader Topic GD_Subscriber::DeviceInfoReader created
+INFO:root:Writer Topic GD_Publisher::HeartbeatWriter created
+INFO:root:Reader Topic GD_Subscriber::HeartbeatReader created
+INFO:root:Writer Topic GD_Publisher::ActiveMicrogridControllerStateWriter created
+INFO:root:Writer Topic GD_Publisher::AuthorizationToEnergizeRequestWriter created
+INFO:root:Writer Topic GD_Publisher::AuthorizationToEnergizeResultWriter created
+INFO:root:Reader Topic GD_Subscriber::AuthorizationToEnergizeReplyReader created
+INFO:root:Writer Topic GD_Publisher::ReplyWriter created
+INFO:root:Reader Topic GD_Subscriber::EnergyStartStopRequestReader created
+INFO:root:Writer Topic GD_Publisher::EnergyStartStopStateWriter created
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 2 2
+INFO:root:Reader Thread running for GD_Subscriber::DeviceInfoReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for GD_Subscriber::HeartbeatReader
+INFO:root:Reader Thread running for GD_Subscriber::AuthorizationToEnergizeReplyReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Thread running for GD_Subscriber::EnergyStartStopRequestReader
+INFO:root:Reader Pubs: 1 1
+INFO:root:Reader Pubs: 1 1
+INFO:root:DeviceInfo Listener Callback On Publication Match 
+INFO:root:Writer Subs: 3 1
+INFO:root:Starting State Machine
+INFO:root:Writing (Default Writer) - tms::DeviceInfo 
+INFO:root:Writer Thread running for GD_Publisher::HeartbeatWriter
+INFO:root:Writing (Default Writer) - tms::ActiveMicrogridControllerState 
