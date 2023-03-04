@@ -9,4 +9,4 @@ python/.#*
 python/#*
 python/__pycache__/*
 python/venv/*
-
+pythonA/*.log
