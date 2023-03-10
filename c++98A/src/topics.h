@@ -1,0 +1,237 @@
+/*
+ * (c) Copyright, Real-Time Innovations, 2022.  All rights reserved.
+ * RTI grants Licensee a license to use, modify, compile, and create derivative
+ * works of the software solely for use with RTI Connext DDS. Licensee may
+ * redistribute copies of the software provided that all such copies are subject
+ * to this license. The software is provided "as is", with no warranty of any
+ * type, including any warranty for fitness for any purpose. RTI is under no
+ * obligation to maintain or support the software. RTI shall not be liable for
+ * any incidental or consequential damages arising out of the use or inability
+ * to use the software.
+ * 
+ * 
+ INSTANTIATE YOUR TOPICS IN THIS FILE
+
+ Your topics must inherit either a ddsEntities.Reader or ddsEnities.Writer
+ They MUST implement / override the handler() member functions to deal with
+ topic specific fields (read/write) and will likely need extended member functions
+ and data members to do specific functions based on application and specific
+ topic status/state.
+
+ You may also set filters and DDS event conditions as those may be topic dependent.
+ Example, the a device application instance only needs concern itself with commands
+ directed to it's target device ID. As such, code should be included in the configuration
+ command to filter on the targetId fields that match this devices id.
+
+ Filtering on controller bound topics is probably not desired as the controller usually
+ needs to see all status and responses from a device unless there are multiple controllers
+ where some topic field values are used to load balance.
+
+ If you don't wish to run writer threads for event or a periodic topics you may omit
+ calling the writer.start(). If you would prefer to use a listener to montior events
+ you will need to modify the ddsEntities.py infrastructure file.
+
+ Periodic writers may be created by placing a call to a topic handler while loop.
+
+ */
+
+#ifndef TOPICS_H
+#define TOPICS_H
+
+#include <iostream>
+#include "ddsEntities.h"
+#include "tmsExampleApp.h"
+#include "tmsExampleAppSupport.h"
+#include "constants.h"
+#include "topics_T.h"
+
+
+namespace topics
+{
+
+  class ApplicationStateObj {
+
+    public:
+    ApplicationStateObj(enum tms::DeviceRole role);
+    
+      ~ApplicationStateObj() {};
+
+    DDS_UnsignedLong sequenceNumber(void) {
+      return this->sequence_number++;
+    }
+
+    DDS_UnsignedLong rrSequenceNumber() {
+      if (!this->outstandingRequest) {
+	this->r_sequence_number=this->sequenceNumber();
+	this->outstandingRequest=true;
+      }
+      return this->r_sequence_number;
+    }
+
+    private:
+    enum ControllerState controllerState;
+    enum DeviceState genDeviceState;
+    enum tms::DeviceRole role;
+    enum tms::EnergyStartStopLevel  deviceStartStopPresentLevel;
+    enum tms::EnergyStartStopLevel  deviceStartStopFutureLevel;
+
+    DDS_Char * deviceId;
+    DDS_Char * masterControllerId;
+    bool  thisMCSelected;  // designates that the device has selected this MC
+    bool  authorizedForEnergizing;
+    bool  deviceIdSet;
+    bool  mcIdSet;
+    DDS_UnsignedLong sequence_number;   // Unique running sequence
+    DDS_UnsignedLong r_sequence_number; // Current out standing request SN
+    bool outstandingRequest;
+    
+
+  };
+
+  // Generator Device Heartbeat Writer  
+  class HeartbeatGD_Wtr : public TopicWtr<tms::Heartbeat,
+					  tms::HeartbeatTypeSupport,
+					  tms::HeartbeatDataWriter> {
+    public:
+      HeartbeatGD_Wtr(const DDSDomainParticipant * participant, 
+                      const DDSPublisher * publisher,
+		      ApplicationStateObj * appStateObj,
+                      const bool periodic = true, 
+                      const int period = 1 ) :
+            TopicWtr(
+		     participant, 
+		     publisher,
+		     periodic,
+		     period,
+		     tms::QOS_LIBRARY,
+		     "Medium",                          // QoS Profile name from XML 
+		     tms::topic::TOPIC_HEARTBEAT,       // str name of topic
+		     generator_device::HEARTBEAT_WRITER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	
+      };
+
+      void writeData(void) {
+	this->getTopicSample()->sequenceNumber =  this->appStateObj->sequenceNumber();
+	this->write();
+      };
+
+     
+    private:
+    ApplicationStateObj * appStateObj;
+
+  };
+    
+  // Generator Device Heartbeat Reader  
+  class HeartbeatGD_Rdr : public TopicRdr<tms::Heartbeat,
+					  tms::HeartbeatTypeSupport,
+					  tms::HeartbeatDataReader,
+					  tms::HeartbeatSeq> {
+    public:
+      HeartbeatGD_Rdr(const DDSDomainParticipant * participant, 
+                      const DDSSubscriber * subscriber,
+		      const Cft filter,   // Not Used - pass in an empty filter
+		      ApplicationStateObj * appStateObj //,
+		      //const DDS_InstanceHandle_t  ignoreWtrInstanceHdl
+                     ) :
+            TopicRdr(
+		     participant, 
+		     subscriber,
+		     filter,
+		     tms::QOS_LIBRARY,
+		     "Medium",                          // QoS Profile name from XML 
+		     tms::topic::TOPIC_HEARTBEAT,       // str name of topic
+		     generator_device::HEARTBEAT_READER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	// TODO: participant->ignore_topic(ignoreWtrInstanceHdl);
+	
+      };
+
+    void handler(const tms::Heartbeat * data) {
+      std::cout << "HB" << std::flush; // just print "HB"s
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj; // we don't appear to use this object
+
+  };
+
+  // Master Contoller Heartbeat Writer  
+  class HeartbeatMC_Wtr : public TopicWtr<tms::Heartbeat,
+					  tms::HeartbeatTypeSupport,
+					  tms::HeartbeatDataWriter> {
+    public:
+      HeartbeatMC_Wtr(const DDSDomainParticipant * participant, 
+                      const DDSPublisher * publisher,
+		      ApplicationStateObj * appStateObj,
+                      const bool periodic = true, 
+                      const int period = 1 ) :
+            TopicWtr(
+		     participant, 
+		     publisher,
+		     periodic,
+		     period,
+		     tms::QOS_LIBRARY,
+		     "Medium",                           // QoS Profile name from XML 
+		     tms::topic::TOPIC_HEARTBEAT,        // str name of topic
+		     master_controller::HEARTBEAT_WRITER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	
+      };
+
+      void writeData(void) {
+	this->getTopicSample()->sequenceNumber =  this->appStateObj->sequenceNumber();
+	this->write();
+      };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+
+  };
+    
+  // Master Controller Heartbeat Reader  
+  class HeartbeatMC_Rdr : public TopicRdr<tms::Heartbeat,
+					  tms::HeartbeatTypeSupport,
+					  tms::HeartbeatDataReader,
+					  tms::HeartbeatSeq> {
+    public:
+      HeartbeatMC_Rdr(const DDSDomainParticipant * participant, 
+                      const DDSSubscriber * subscriber,
+		      const Cft filter,
+		      ApplicationStateObj * appStateObj // ,
+		      //const DDS_InstanceHandle_t & ignoreWtrInstanceHdl		      
+                     ) :
+            TopicRdr(
+		     participant, 
+		     subscriber,
+		     filter,
+		     tms::QOS_LIBRARY,
+		     "Medium",                          // QoS Profile name from XML 
+		     tms::topic::TOPIC_HEARTBEAT,       // str name of topic
+		     master_controller::HEARTBEAT_READER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	// TODO: participant->ignore_topic(ignoreWtrInstanceHdl);
+	
+      };
+
+    void handler(const tms::Heartbeat * data) {
+      std::cout << "HB" << std::flush; // just print "HB"s
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+  };
+
+
+} // namespace topics
+
+
+#endif // TOPICS_H
