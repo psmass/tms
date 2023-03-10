@@ -68,6 +68,13 @@ namespace topics
       return this->r_sequence_number;
     }
 
+    DDS_Char * myID(void) {
+      if (role == tms::ROLE_MICROGRID_CONTROLLER)
+	return masterControllerId;
+      else
+	return deviceId;
+    }
+
     private:
     enum ControllerState controllerState;
     enum DeviceState genDeviceState;
@@ -110,14 +117,16 @@ namespace topics
 		     ) {
 	
 	this->appStateObj=appStateObj;
+	this->getTopicSample()->deviceId = appStateObj->myID(); // load my device ID
 	
       };
-
-      void writeData(void) {
+    
+      void write(void) {
+	//std::cout << " " << this->appStateObj->sequenceNumber() << std::flush;
 	this->getTopicSample()->sequenceNumber =  this->appStateObj->sequenceNumber();
-	this->write();
+	this->topicWriter->write(*this->topicSample, DDS_HANDLE_NIL);
       };
-
+    
      
     private:
     ApplicationStateObj * appStateObj;
@@ -182,12 +191,13 @@ namespace topics
 		     ) {
 	
 	this->appStateObj=appStateObj;
+	this->getTopicSample()->deviceId = appStateObj->myID(); // load my device ID
 	
       };
 
-      void writeData(void) {
+      void write(void) {
 	this->getTopicSample()->sequenceNumber =  this->appStateObj->sequenceNumber();
-	this->write();
+	this->topicWriter->write(*this->topicSample, DDS_HANDLE_NIL);;
       };
      
     private:

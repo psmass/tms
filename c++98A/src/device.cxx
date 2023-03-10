@@ -111,7 +111,7 @@ extern "C" int run_device_application(int domain_id) {
     }
 
     // App specific Object used to track global state 
-    topics::ApplicationStateObj app_state_obj(tms::ROLE_MICROGRID_CONTROLLER);
+    topics::ApplicationStateObj app_state_obj(tms::ROLE_SOURCE);
 					  
     // create the device writer first since this devices ID is loaded in the c'tor
     topics::HeartbeatGD_Wtr device_hb_w(participant, publisher, &app_state_obj);
