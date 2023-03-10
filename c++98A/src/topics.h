@@ -75,6 +75,8 @@ namespace topics
 	return deviceId;
     }
 
+    enum tms::DeviceRole myRole() {return this->role;}
+
     private:
     enum ControllerState controllerState;
     enum DeviceState genDeviceState;
@@ -241,6 +243,153 @@ namespace topics
   };
 
 
+  // Generator Device Device Info Writer  
+  class DeviceInfoGD_Wtr : public TopicWtr<tms::DeviceInfo,
+					  tms::DeviceInfoTypeSupport,
+					  tms::DeviceInfoDataWriter> {
+    public:
+      DeviceInfoGD_Wtr(const DDSDomainParticipant * participant, 
+                      const DDSPublisher * publisher,
+		      ApplicationStateObj * appStateObj,
+                      const bool periodic = false, 
+                      const int period = 0 ) :
+            TopicWtr(
+		     participant, 
+		     publisher,
+		     periodic,
+		     period,
+		     tms::QOS_LIBRARY,
+		     "PublishLast",                       // QoS Profile name from XML 
+		     tms::topic::TOPIC_DEVICE_INFO,       // str name of topic
+		     generator_device::DEVICE_INFO_WRITER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	this->getTopicSample()->deviceId = appStateObj->myID(); // load my device ID
+	this->getTopicSample()->role = appStateObj->myRole();   // load device role
+	// example of multinested assignment
+	this->getTopicSample()->product.modelName = (DDS_Char *)"MyGeneratorDevice";
+
+	
+      };
+         
+    private:
+    ApplicationStateObj * appStateObj;
+
+  };
+    
+  // Generator Device DeviceInfo Reader  
+  class DeviceInfoGD_Rdr : public TopicRdr<tms::DeviceInfo,
+					  tms::DeviceInfoTypeSupport,
+					  tms::DeviceInfoDataReader,
+					  tms::DeviceInfoSeq> {
+    public:
+      DeviceInfoGD_Rdr(const DDSDomainParticipant * participant, 
+                      const DDSSubscriber * subscriber,
+		      const Cft filter,   // Not Used - pass in an empty filter
+		      ApplicationStateObj * appStateObj //,
+		      //const DDS_InstanceHandle_t  ignoreWtrInstanceHdl
+                     ) :
+            TopicRdr(
+		     participant, 
+		     subscriber,
+		     filter,
+		     tms::QOS_LIBRARY,
+		     "PublishLast",                       // QoS Profile name from XML 
+		     tms::topic::TOPIC_DEVICE_INFO,       // str name of topic
+		     generator_device::DEVICE_INFO_READER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	// TODO: participant->ignore_topic(ignoreWtrInstanceHdl);
+	
+      };
+
+    void handler(const tms::DeviceInfo * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_DEVICE_INFO
+		<< std::flush; 
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj; // we don't appear to use this object
+
+  };
+
+  // Master Contoller DeviceInfo Writer  
+  class DeviceInfoMC_Wtr : public TopicWtr<tms::DeviceInfo,
+					  tms::DeviceInfoTypeSupport,
+					  tms::DeviceInfoDataWriter> {
+    public:
+      DeviceInfoMC_Wtr(const DDSDomainParticipant * participant, 
+                      const DDSPublisher * publisher,
+		      ApplicationStateObj * appStateObj,
+                      const bool periodic = false, 
+                      const int period = 0 ) :
+            TopicWtr(
+		     participant, 
+		     publisher,
+		     periodic,
+		     period,
+		     tms::QOS_LIBRARY,
+		     "PublishLast",                        // QoS Profile name from XML 
+		     tms::topic::TOPIC_DEVICE_INFO,        // str name of topic
+		     master_controller::DEVICE_INFO_WRITER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	this->getTopicSample()->deviceId = appStateObj->myID(); // load my MC ID
+	this->getTopicSample()->role = appStateObj->myRole();   // load MC role
+	// example of multinested assignment
+	this->getTopicSample()->product.modelName = (DDS_Char *) "MyMasterController";
+	
+      };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+
+  };
+    
+  // Master Controller DeviceInfo Reader  
+  class DeviceInfoMC_Rdr : public TopicRdr<tms::DeviceInfo,
+					  tms::DeviceInfoTypeSupport,
+					  tms::DeviceInfoDataReader,
+					  tms::DeviceInfoSeq> {
+    public:
+      DeviceInfoMC_Rdr(const DDSDomainParticipant * participant, 
+                      const DDSSubscriber * subscriber,
+		      const Cft filter,
+		      ApplicationStateObj * appStateObj // ,
+		      //const DDS_InstanceHandle_t & ignoreWtrInstanceHdl		      
+                     ) :
+            TopicRdr(
+		     participant, 
+		     subscriber,
+		     filter,
+		     tms::QOS_LIBRARY,
+		     "PublishLast",                        // QoS Profile name from XML 
+		     tms::topic::TOPIC_DEVICE_INFO,        // str name of topic
+		     master_controller::DEVICE_INFO_READER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	// TODO: participant->ignore_topic(ignoreWtrInstanceHdl);
+	
+      };
+
+    void handler(const tms::Heartbeat * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_DEVICE_INFO
+		<< std::flush;
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+    
+  };
+
+
+  
 } // namespace topics
 
 

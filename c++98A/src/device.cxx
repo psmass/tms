@@ -126,6 +126,14 @@ extern "C" int run_device_application(int domain_id) {
 				//device_hb_w.publication_handle
 					);
 
+    topics::DeviceInfoGD_Wtr device_di_w(participant, publisher, &app_state_obj);
+    topics::DeviceInfoGD_Rdr device_di_r(participant,
+				subscriber,
+				hb_cft,
+				&app_state_obj //,
+				//device_hb_w.publication_handle
+					);
+    
     // Create a listener if we'd rather use vs. event waitset thread.
     // Here we use a Default listener we created, but you can create your own
     // listener(s) (and as many as you need if topic specific)
@@ -146,6 +154,10 @@ extern "C" int run_device_application(int domain_id) {
 
     device_hb_w.runThread();
     device_hb_r.runThread();
+    device_di_r.runThread();
+
+
+    device_di_w.write();
 
     while (!application::shutdown_requested)  {
         // Device State Machine goes here;
@@ -158,6 +170,8 @@ extern "C" int run_device_application(int domain_id) {
     
     pthread_cancel(device_hb_r.Reader::getThreadId());
     pthread_cancel(device_hb_w.Writer::getThreadId());
+    pthread_cancel(device_di_r.Reader::getThreadId());
+    
     delete listener;
     // give threads a second to shut down
     NDDSUtility::sleep(wait_period); // give time for entities to shutdown

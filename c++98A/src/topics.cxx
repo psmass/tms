@@ -37,7 +37,7 @@ ApplicationStateObj::ApplicationStateObj(enum tms::DeviceRole role) {
 	else if (role == tms::ROLE_SOURCE) {
 	  this->masterControllerId = (DDS_Char *) "";
 	  this->mcIdSet = false;
-	  this->deviceId= (DDS_Char *) "DEVICE1_ID";
+	  this->deviceId= (DDS_Char *) DEVICE1_ID;
 	  this->deviceIdSet = true;
 	}
 	else
