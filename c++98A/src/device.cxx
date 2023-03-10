@@ -122,8 +122,8 @@ extern "C" int run_device_application(int domain_id) {
     topics::HeartbeatGD_Rdr device_hb_r(participant,
 				subscriber,
 				hb_cft,
-					&app_state_obj //,
-					      //device_hb_w.publication_handle
+				&app_state_obj //,
+				//device_hb_w.publication_handle
 					);
 
     // Create a listener if we'd rather use vs. event waitset thread.
@@ -143,15 +143,9 @@ extern "C" int run_device_application(int domain_id) {
     Cft cdr_cft(param_list, "targetDeviceId.resourceId = %0, targetDeviceId.id=%1" ); // create a filter for the ConfigureDeviceReader
     */
 
-    /*
-    // Instantiate Topic Readers and Writers w/threads
-    ConfigDevRdr config_dev_reader(participant, subscriber, cdr_cft); 
 
-    // config_dev_reader needs the devices state writer to update the currentState
-    config_dev_reader.setDevStateWtr(&device_state_writer);
-    config_dev_reader.runThread();
-    */
-    device_hb_w.runThread(); 
+    device_hb_w.runThread();
+    device_hb_r.runThread();
 
     while (!application::shutdown_requested)  {
         // Device State Machine goes here;

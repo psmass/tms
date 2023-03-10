@@ -122,17 +122,16 @@ extern "C" int run_controller_application(int domain_id) {
     topics::HeartbeatMC_Rdr controller_hb_r(participant,
 				    subscriber,
 				    hb_cft,
-					    &app_state_obj //,
-					    //controller_hb_w.publication_handle
-					    );
-    /*
+				    &app_state_obj //,
+				    //controller_hb_w.publication_handle
+				    );
+    
     // Create a listener if we'd rather use vs. event waitset thread.
     // Here we use a Default listener we created, but you can create your own
     // listener(s) (and as many as you need if topic specific)
     entities::DefaultDataWriterListener * listener = new entities::DefaultDataWriterListener();
     // not needed on hb, since periodic will run a thread (which monitors by default)
     // device_hb_w.getMyDataWriter()->set_listener(listener); 
-    */
 
     controller_hb_w.runThread();
     controller_hb_r.runThread();
@@ -148,7 +147,7 @@ extern "C" int run_controller_application(int domain_id) {
     
     pthread_cancel(controller_hb_r.Reader::getThreadId());
     pthread_cancel(controller_hb_w.Writer::getThreadId());
-    //delete listener;
+    delete listener;
 
     // give threads a second to shut down
     NDDSUtility::sleep(wait_period); // give time for entities to shutdown
@@ -169,8 +168,7 @@ int main(int argc, char *argv[]) {
 
     setup_signal_handlers();
 
-    return controller::run_controller_application(domain_id);
-    /*
+    
     try {
         return controller::run_controller_application(domain_id);
     }
@@ -180,7 +178,6 @@ int main(int argc, char *argv[]) {
                   << std::endl;
         return EXIT_FAILURE;
     }
-    */
 
     return EXIT_SUCCESS;
 }
