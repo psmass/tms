@@ -141,11 +141,11 @@ namespace topics
 					  tms::HeartbeatDataReader,
 					  tms::HeartbeatSeq> {
     public:
-      HeartbeatGD_Rdr(const DDSDomainParticipant * participant, 
+      HeartbeatGD_Rdr(DDSDomainParticipant * participant, 
                       const DDSSubscriber * subscriber,
 		      const Cft filter,   // Not Used - pass in an empty filter
-		      ApplicationStateObj * appStateObj //,
-		      //const DDS_InstanceHandle_t  ignoreWtrInstanceHdl
+		      ApplicationStateObj * appStateObj,
+		      const DDS_InstanceHandle_t  ignoreWtrInstanceHdl
                      ) :
             TopicRdr(
 		     participant, 
@@ -158,8 +158,8 @@ namespace topics
 		     ) {
 	
 	this->appStateObj=appStateObj;
-	// TODO: participant->ignore_topic(ignoreWtrInstanceHdl);
-	
+	participant->ignore_publication(ignoreWtrInstanceHdl);
+
       };
 
     void handler(const tms::Heartbeat * data) {
@@ -213,11 +213,11 @@ namespace topics
 					  tms::HeartbeatDataReader,
 					  tms::HeartbeatSeq> {
     public:
-      HeartbeatMC_Rdr(const DDSDomainParticipant * participant, 
+      HeartbeatMC_Rdr(DDSDomainParticipant * participant, 
                       const DDSSubscriber * subscriber,
 		      const Cft filter,
-		      ApplicationStateObj * appStateObj // ,
-		      //const DDS_InstanceHandle_t & ignoreWtrInstanceHdl		      
+		      ApplicationStateObj * appStateObj,
+		      const DDS_InstanceHandle_t & ignoreWtrInstanceHdl		      
                      ) :
             TopicRdr(
 		     participant, 
@@ -230,7 +230,7 @@ namespace topics
 		     ) {
 	
 	this->appStateObj=appStateObj;
-	// TODO: participant->ignore_topic(ignoreWtrInstanceHdl);
+	participant->ignore_publication(ignoreWtrInstanceHdl);
 	
       };
 
@@ -284,11 +284,11 @@ namespace topics
 					  tms::DeviceInfoDataReader,
 					  tms::DeviceInfoSeq> {
     public:
-      DeviceInfoGD_Rdr(const DDSDomainParticipant * participant, 
+      DeviceInfoGD_Rdr(DDSDomainParticipant * participant, 
                       const DDSSubscriber * subscriber,
 		      const Cft filter,   // Not Used - pass in an empty filter
-		      ApplicationStateObj * appStateObj //,
-		      //const DDS_InstanceHandle_t  ignoreWtrInstanceHdl
+		      ApplicationStateObj * appStateObj,
+		      const DDS_InstanceHandle_t  ignoreWtrInstanceHdl
                      ) :
             TopicRdr(
 		     participant, 
@@ -301,7 +301,7 @@ namespace topics
 		     ) {
 	
 	this->appStateObj=appStateObj;
-	// TODO: participant->ignore_topic(ignoreWtrInstanceHdl);
+        participant->ignore_publication(ignoreWtrInstanceHdl);
 	
       };
 
@@ -356,11 +356,11 @@ namespace topics
 					  tms::DeviceInfoDataReader,
 					  tms::DeviceInfoSeq> {
     public:
-      DeviceInfoMC_Rdr(const DDSDomainParticipant * participant, 
+      DeviceInfoMC_Rdr(DDSDomainParticipant * participant, 
                       const DDSSubscriber * subscriber,
 		      const Cft filter,
-		      ApplicationStateObj * appStateObj // ,
-		      //const DDS_InstanceHandle_t & ignoreWtrInstanceHdl		      
+		      ApplicationStateObj * appStateObj,
+		      const DDS_InstanceHandle_t  ignoreWtrInstanceHdl		      
                      ) :
             TopicRdr(
 		     participant, 
@@ -373,11 +373,11 @@ namespace topics
 		     ) {
 	
 	this->appStateObj=appStateObj;
-	// TODO: participant->ignore_topic(ignoreWtrInstanceHdl);
+	participant->ignore_publication(ignoreWtrInstanceHdl);
 	
       };
 
-    void handler(const tms::Heartbeat * data) {
+    void handler(const tms::DeviceInfo * data) {
       std::cout << "\nReceived sample for topic: "
 		<< tms::topic::TOPIC_DEVICE_INFO
 		<< std::flush;

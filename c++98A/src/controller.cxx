@@ -116,7 +116,8 @@ extern "C" int run_controller_application(int domain_id) {
 
     // create the device writer first since this devices ID is loaded in the c'tor
     topics::HeartbeatMC_Wtr controller_hb_w(participant, publisher, &app_state_obj);
-
+    DDS_InstanceHandle_t controller_hb_w_instance =
+      controller_hb_w.getMyDataWriter()->get_instance_handle();
     
     // Reader API take a filter, but controller does not need one
     topics::Cft hb_cft;        // create a disabled filter for the DeviceStatus Rdr
@@ -124,9 +125,20 @@ extern "C" int run_controller_application(int domain_id) {
     topics::HeartbeatMC_Rdr controller_hb_r(participant,
 				    subscriber,
 				    hb_cft,
-				    &app_state_obj //,
-				    //controller_hb_w.publication_handle
+				    &app_state_obj,
+				    controller_hb_w_instance
 				    );
+
+    topics::DeviceInfoMC_Wtr controller_di_w(participant, publisher, &app_state_obj);
+    DDS_InstanceHandle_t controller_di_w_instance =
+      controller_di_w.getMyDataWriter()->get_instance_handle();
+    topics::DeviceInfoMC_Rdr controller_di_r(participant,
+					 subscriber,
+					 hb_cft,
+					 &app_state_obj,
+					 controller_di_w_instance
+					 );
+
     
     // Create a listener if we'd rather use vs. event waitset thread.
     // Here we use a Default listener we created, but you can create your own
@@ -137,7 +149,10 @@ extern "C" int run_controller_application(int domain_id) {
 
     controller_hb_w.runThread();
     controller_hb_r.runThread();
+    controller_di_r.runThread();
 
+    controller_di_w.write();
+    
     while (!application::shutdown_requested)  {
         // Controller State Machine goes here;
         // In this case, we simply publish current deviceState upon change.
@@ -149,6 +164,7 @@ extern "C" int run_controller_application(int domain_id) {
     
     pthread_cancel(controller_hb_r.Reader::getThreadId());
     pthread_cancel(controller_hb_w.Writer::getThreadId());
+    pthread_cancel(controller_di_r.Reader::getThreadId());
     delete listener;
 
     // give threads a second to shut down

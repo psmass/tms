@@ -117,23 +117,26 @@ extern "C" int run_device_application(int domain_id) {
     // create the device writer first since this devices ID is loaded in the c'tor
     topics::HeartbeatGD_Wtr device_hb_w(participant, publisher, &app_state_obj);
 
+    DDS_InstanceHandle_t device_hb_w_instance = device_hb_w.getMyDataWriter()->get_instance_handle();
+
     // Reader API take a filter, but controller does not need one
     topics::Cft hb_cft;        // create a disabled filter for the DeviceStatus Rdr
     
     topics::HeartbeatGD_Rdr device_hb_r(participant,
 				subscriber,
 				hb_cft,
-				&app_state_obj //,
-				//device_hb_w.publication_handle
-					);
+				&app_state_obj,
+				device_hb_w_instance
+				);
 
     topics::DeviceInfoGD_Wtr device_di_w(participant, publisher, &app_state_obj);
+    DDS_InstanceHandle_t device_di_w_instance = device_di_w.getMyDataWriter()->get_instance_handle();
     topics::DeviceInfoGD_Rdr device_di_r(participant,
-				subscriber,
-				hb_cft,
-				&app_state_obj //,
-				//device_hb_w.publication_handle
-					);
+					 subscriber,
+					 hb_cft,
+					 &app_state_obj,
+					 device_di_w_instance
+					 );
     
     // Create a listener if we'd rather use vs. event waitset thread.
     // Here we use a Default listener we created, but you can create your own
