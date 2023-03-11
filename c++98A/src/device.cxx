@@ -79,9 +79,10 @@ extern "C" int run_device_application(int domain_id) {
     // create DDS containser entities: Participant, Publisher and Subscriber
     // (with default QoS Profiles, we'll put the  QoS on the Readers and Writers)
      DDSDomainParticipant * participant = 
-        DDSTheParticipantFactory->create_participant(
+        DDSTheParticipantFactory->create_participant_with_profile(
             domain_id,
-            DDS_PARTICIPANT_QOS_DEFAULT,
+            tms::QOS_LIBRARY,
+	    "LargeTopicParticipantQoS",  // Device Info Topic is huge
             NULL /* listener */,
             DDS_STATUS_MASK_NONE);
     if (participant == NULL) {

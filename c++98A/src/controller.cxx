@@ -78,11 +78,13 @@ extern "C" int run_controller_application(int domain_id) {
     // create DDS container entities: Participant, Publisher and Subscriber
     // (with default QoS Profiles, we'll put the  QoS on the Readers and Writers)
      DDSDomainParticipant * participant = 
-        DDSTheParticipantFactory->create_participant(
+        DDSTheParticipantFactory->create_participant_with_profile(
             domain_id,
-            DDS_PARTICIPANT_QOS_DEFAULT,
+            tms::QOS_LIBRARY,
+	    "LargeTopicParticipantQoS", // Device Info topic is huge
             NULL /* listener */,
             DDS_STATUS_MASK_NONE);
+    
     if (participant == NULL) {
         std::cout << "create_participant error" << std::endl;
         participant_shutdown(participant);
