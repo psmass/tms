@@ -139,7 +139,13 @@ extern "C" int run_controller_application(int domain_id) {
 					 controller_di_w_instance
 					 );
 
-    
+    topics::AMCStateMC_Rdr controller_amc_state_r(participant,
+						  subscriber,
+						  hb_cft,
+						  &app_state_obj
+						  );
+					    
+
     // Create a listener if we'd rather use vs. event waitset thread.
     // Here we use a Default listener we created, but you can create your own
     // listener(s) (and as many as you need if topic specific)
@@ -150,6 +156,7 @@ extern "C" int run_controller_application(int domain_id) {
     controller_hb_w.runThread();
     controller_hb_r.runThread();
     controller_di_r.runThread();
+    controller_amc_state_r.runThread();
 
     controller_di_w.write();
     

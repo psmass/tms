@@ -201,7 +201,7 @@ void TopicRdr<T,S,R,D>::process_data(const DDSConditionSeq active_conditions_seq
         DDS_SampleInfoSeq info_seq;
         DDS_ReturnCode_t retcode;
 
-        std::cout << this->topicName << " Reader Handler Executing" << std::endl; 
+        // std::cout << this->topicName << " Reader Handler Executing" << std::endl; 
 
         int active_conditions = active_conditions_seq.length();
 

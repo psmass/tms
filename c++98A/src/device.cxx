@@ -137,6 +137,8 @@ extern "C" int run_device_application(int domain_id) {
 					 &app_state_obj,
 					 device_di_w_instance
 					 );
+
+    topics::AMCStateGD_Wtr device_amc_state_w(participant, publisher, &app_state_obj);
     
     // Create a listener if we'd rather use vs. event waitset thread.
     // Here we use a Default listener we created, but you can create your own
@@ -162,6 +164,7 @@ extern "C" int run_device_application(int domain_id) {
 
 
     device_di_w.write();
+    device_amc_state_w.write();
 
     while (!application::shutdown_requested)  {
         // Device State Machine goes here;

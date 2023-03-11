@@ -75,6 +75,14 @@ namespace topics
 	return deviceId;
     }
 
+    DDS_Char * controllerID(void) {
+      return masterControllerId;
+    }
+
+    void setThisMCSelected(bool b){
+      this->thisMCSelected = b;
+    }
+
     enum tms::DeviceRole myRole() {return this->role;}
 
     private:
@@ -388,7 +396,79 @@ namespace topics
     
   };
 
+ // Generator Device Active Microgrid Controller State Writer  
+  class AMCStateGD_Wtr : public TopicWtr<tms::ActiveMicrogridControllerState,
+					 tms::ActiveMicrogridControllerStateTypeSupport,
+					 tms::ActiveMicrogridControllerStateDataWriter> {
+    public:
+      AMCStateGD_Wtr(const DDSDomainParticipant * participant, 
+                     const DDSPublisher * publisher,
+		     ApplicationStateObj * appStateObj,
+                     const bool periodic = false, 
+                     const int period = 0 ) :
+            TopicWtr(
+		     participant, 
+		     publisher,
+		     periodic,
+		     period,
+		     tms::QOS_LIBRARY,
+		     "PublishLast",                       // QoS Profile name from XML 
+		     tms::topic::TOPIC_ACTIVE_MICROGRID_CONTROLLER_STATE, // str name of topic
+		     generator_device::AMC_STATE_WRITER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	this->getTopicSample()->deviceId = appStateObj->myID(); 
 
+      };
+
+    void setMCIDinSample(DDS_Char * mcId) {
+      this->getTopicSample()->masterId = appStateObj->controllerID(); // Select MC
+    }
+    
+    private:
+    ApplicationStateObj * appStateObj;
+
+    };
+
+  // Master Controller ActiveMicrogridController Reader  
+  class AMCStateMC_Rdr : public TopicRdr<tms::ActiveMicrogridControllerState,
+					 tms::ActiveMicrogridControllerStateTypeSupport,
+					 tms::ActiveMicrogridControllerStateDataReader,
+					 tms::ActiveMicrogridControllerStateSeq> {
+    public:
+      AMCStateMC_Rdr(DDSDomainParticipant * participant, 
+                     const DDSSubscriber * subscriber,
+		     const Cft filter,
+		     ApplicationStateObj * appStateObj
+                     ) :
+            TopicRdr(
+		     participant, 
+		     subscriber,
+		     filter,
+		     tms::QOS_LIBRARY,
+		     "PublishLast",                       // QoS Profile name from XML 
+		     tms::topic::TOPIC_ACTIVE_MICROGRID_CONTROLLER_STATE, // str name of topic
+		     master_controller::AMC_STATE_READER  // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	
+      };
+
+    void handler(const tms::DeviceInfo * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_DEVICE_INFO
+		<< std::flush;
+      this->appStateObj->setThisMCSelected(true);
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+    
+  };
+
+  
   
 } // namespace topics
 
