@@ -400,7 +400,7 @@ namespace topics
     
   };
 
- // Generator Device Active Microgrid Controller State Writer  
+ // Generator Device ActiveMicrogridControllerState Writer  
   class AMCStateGD_Wtr : public TopicWtr<tms::ActiveMicrogridControllerState,
 					 tms::ActiveMicrogridControllerStateTypeSupport,
 					 tms::ActiveMicrogridControllerStateDataWriter> {
@@ -473,7 +473,7 @@ namespace topics
   };
 
 
-// Generator Device Authorization To Energize Request Writer  
+  // Generator Device AuthorizationToEnergizeRequest Writer  
   class ATEReqGD_Wtr : public TopicWtr<tms::AuthorizationToEnergizeRequest,
 				       tms::AuthorizationToEnergizeRequestTypeSupport,
 				       tms::AuthorizationToEnergizeRequestDataWriter> {
@@ -514,7 +514,7 @@ namespace topics
 
     };
 
-  // Master Controller Authorization To Energize Request Reader  
+  // Master Controller AuthorizationToEnergizeRequest Reader  
   class ATEReqMC_Rdr : public TopicRdr<tms::AuthorizationToEnergizeRequest,
 				       tms::AuthorizationToEnergizeRequestTypeSupport,
 				       tms::AuthorizationToEnergizeRequestDataReader,
@@ -551,8 +551,204 @@ namespace topics
     
   };
 
-
+  // Generator Device AuthorizationToEnergizeReply Reader  
+  class ATERepGD_Rdr : public TopicRdr<tms::AuthorizationToEnergizeReply,
+				       tms::AuthorizationToEnergizeReplyTypeSupport,
+				       tms::AuthorizationToEnergizeReplyDataReader,
+				       tms::AuthorizationToEnergizeReplySeq> {
+    public:
+      ATERepGD_Rdr(DDSDomainParticipant * participant, 
+                   const DDSSubscriber * subscriber,
+		   const Cft filter,   // Not Used - pass in an empty filter
+		   ApplicationStateObj * appStateObj
+                   ) :
+	TopicRdr(
+		 participant, 
+		 subscriber,
+		 filter,
+		 tms::QOS_LIBRARY,
+		 "Response",                          // QoS Profile name from XML 
+		 tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_REPLY, // str name of topic
+		 generator_device::ATE_REPLY_READER // str name of writer
+		 ) {
+	
+	this->appStateObj=appStateObj;
   
+      };
+
+    void handler(const tms::AuthorizationToEnergizeReply * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_REPLY
+		<< std::flush; 
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj; // we don't appear to use this object
+
+  };
+
+  // Master Contoller AuthorizationToEnergizeReply  Writer  
+  class ATERepMC_Wtr : public TopicWtr<tms::AuthorizationToEnergizeReply,
+					   tms::AuthorizationToEnergizeReplyTypeSupport,
+					   tms::AuthorizationToEnergizeReplyDataWriter> {
+    public:
+      ATERepMC_Wtr(const DDSDomainParticipant * participant, 
+                   const DDSPublisher * publisher,
+		   ApplicationStateObj * appStateObj,
+                   const bool periodic = false, 
+                   const int period = 0 ) :
+	TopicWtr(
+		 participant, 
+		 publisher,
+		 periodic,
+		 period,
+		 tms::QOS_LIBRARY,
+		 "Response",                         // QoS Profile name from XML 
+		 tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_REPLY,  // str name of topic
+		 master_controller::ATE_REPLY_WRITER // str name of writer
+		 ) {
+	
+	this->appStateObj=appStateObj;
+
+      };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+
+  };
+
+  // Generator Device AuthorizationToEnergizeResult Writer  
+  class ATEResultGD_Wtr : public TopicWtr<tms::AuthorizationToEnergizeResult,
+					  tms::AuthorizationToEnergizeResultTypeSupport,
+					  tms::AuthorizationToEnergizeResultDataWriter> {
+    public:
+      ATEResultGD_Wtr(const DDSDomainParticipant * participant, 
+                      const DDSPublisher * publisher,
+		      ApplicationStateObj * appStateObj,
+                      const bool periodic = false, 
+                      const int period = 0 ) :
+            TopicWtr(
+		     participant, 
+		     publisher,
+		     periodic,
+		     period,
+		     tms::QOS_LIBRARY,
+		     "Response",                          // QoS Profile name from XML 
+		     tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_RESULT, // str name of topic
+		     generator_device::ATE_RESULT_WRITER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;	
+
+      };
+    
+    private:
+    ApplicationStateObj * appStateObj;
+
+    };
+
+  // Master Controller AuthorizationToEnergizeResult Reader  
+  class ATEResultMC_Rdr : public TopicRdr<tms::AuthorizationToEnergizeResult,
+				         tms::AuthorizationToEnergizeResultTypeSupport,
+				         tms::AuthorizationToEnergizeResultDataReader,
+				         tms::AuthorizationToEnergizeResultSeq> {
+    public:
+      ATEResultMC_Rdr(DDSDomainParticipant * participant, 
+                     const DDSSubscriber * subscriber,
+		     const Cft filter,
+		     ApplicationStateObj * appStateObj
+                     ) :
+            TopicRdr(
+		     participant, 
+		     subscriber,
+		     filter,
+		     tms::QOS_LIBRARY,
+		     "Response",                           // QoS Profile name from XML 
+		     tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_RESULT, // str name of topic
+		     master_controller::ATE_RESULT_READER  // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	
+      };
+
+    void handler(const tms::AuthorizationToEnergizeRequest * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_RESULT
+		<< std::flush;
+ 
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+    
+  };
+
+  // Generator Device EnergyStartStopRequest Reader  
+  class EESReqGD_Rdr : public TopicRdr<tms::EnergyStartStopRequest,
+				       tms::EnergyStartStopRequestTypeSupport,
+				       tms::EnergyStartStopRequestDataReader,
+				       tms::EnergyStartStopRequestSeq> {
+    public:
+      EESReqGD_Rdr(DDSDomainParticipant * participant, 
+                   const DDSSubscriber * subscriber,
+		   const Cft filter,   // Not Used - pass in an empty filter
+		   ApplicationStateObj * appStateObj
+                   ) :
+	TopicRdr(
+		 participant, 
+		 subscriber,
+		 filter,
+		 tms::QOS_LIBRARY,
+		 "Command",                          // QoS Profile name from XML 
+		 tms::topic::TOPIC_ENERGY_START_STOP_REQUEST, // str name of topic
+		 generator_device::ESS_REQUEST_READER // str name of writer
+		 ) {
+	
+	this->appStateObj=appStateObj;
+  
+      };
+
+    void handler(const tms::EnergyStartStopRequest * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_ENERGY_START_STOP_REQUEST
+		<< std::flush; 
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj; // we don't appear to use this object
+
+  };
+
+  // Master Contoller EnergyStartStopRequest  Writer  
+  class ESSReqMC_Wtr : public TopicWtr<tms::EnergyStartStopRequest,
+				       tms::EnergyStartStopRequestTypeSupport,
+				       tms::EnergyStartStopRequestDataWriter> {
+    public:
+      ESSReqMC_Wtr(const DDSDomainParticipant * participant, 
+                   const DDSPublisher * publisher,
+		   ApplicationStateObj * appStateObj,
+                   const bool periodic = false, 
+                   const int period = 0 ) :
+	TopicWtr(
+		 participant, 
+		 publisher,
+		 periodic,
+		 period,
+		 tms::QOS_LIBRARY,
+		 "Command",                         // QoS Profile name from XML 
+		 tms::topic::TOPIC_ENERGY_START_STOP_REQUEST,  // str name of topic
+		 master_controller::ESS_REQUEST_WRITER // str name of writer
+		 ) {
+	
+	this->appStateObj=appStateObj;
+
+      };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+
+  };
   
   
 } // namespace topics
