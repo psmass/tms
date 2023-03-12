@@ -51,5 +51,5 @@ ApplicationStateObj::ApplicationStateObj(enum tms::DeviceRole role) {
         this->deviceStartStopFutureLevel = tms::ESSL_UNKNOWN;
 	this->sequence_number = 0;
 	this->r_sequence_number = 0;
-        this->outstandingRequest = false;
+        this->outstanding_request = false;
 }

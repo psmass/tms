@@ -61,9 +61,9 @@ namespace topics
     }
 
     DDS_UnsignedLong rrSequenceNumber() {
-      if (!this->outstandingRequest) {
+      if (!this->outstanding_request) {
 	this->r_sequence_number=this->sequenceNumber();
-	this->outstandingRequest=true;
+	this->outstanding_request=true;
       }
       return this->r_sequence_number;
     }
@@ -83,6 +83,10 @@ namespace topics
       this->thisMCSelected = b;
     }
 
+    bool outstandingRequest(void) {
+      return this->outstanding_request;
+    }
+
     enum tms::DeviceRole myRole() {return this->role;}
 
     private:
@@ -100,7 +104,7 @@ namespace topics
     bool  mcIdSet;
     DDS_UnsignedLong sequence_number;   // Unique running sequence
     DDS_UnsignedLong r_sequence_number; // Current out standing request SN
-    bool outstandingRequest;
+    bool outstanding_request;
     
 
   };
@@ -468,6 +472,87 @@ namespace topics
     
   };
 
+
+// Generator Device Authorization To Energize Request Writer  
+  class ATEReqGD_Wtr : public TopicWtr<tms::AuthorizationToEnergizeRequest,
+				       tms::AuthorizationToEnergizeRequestTypeSupport,
+				       tms::AuthorizationToEnergizeRequestDataWriter> {
+    public:
+      ATEReqGD_Wtr(const DDSDomainParticipant * participant, 
+                   const DDSPublisher * publisher,
+		   ApplicationStateObj * appStateObj,
+                   const bool periodic = false, 
+                   const int period = 0 ) :
+            TopicWtr(
+		     participant, 
+		     publisher,
+		     periodic,
+		     period,
+		     tms::QOS_LIBRARY,
+		     "Command",                         // QoS Profile name from XML 
+		     tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_REQUEST, // str name of topic
+		     generator_device::ATE_REQUEST_WRITER // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	
+
+      };
+
+    void write(void) {
+      std::cout << "\nWriting " << this->topicName << std::endl;
+
+      if (not this->appStateObj->outstandingRequest())
+	{}
+      else
+	std::cout << "\n** Application Error - Attempting to send a request while one is outstanding" << std::endl;
+    }
+ 
+    
+    private:
+    ApplicationStateObj * appStateObj;
+
+    };
+
+  // Master Controller Authorization To Energize Request Reader  
+  class ATEReqMC_Rdr : public TopicRdr<tms::AuthorizationToEnergizeRequest,
+				       tms::AuthorizationToEnergizeRequestTypeSupport,
+				       tms::AuthorizationToEnergizeRequestDataReader,
+				       tms::AuthorizationToEnergizeRequestSeq> {
+    public:
+      ATEReqMC_Rdr(DDSDomainParticipant * participant, 
+                   const DDSSubscriber * subscriber,
+		   const Cft filter,
+		   ApplicationStateObj * appStateObj
+                   ) :
+            TopicRdr(
+		     participant, 
+		     subscriber,
+		     filter,
+		     tms::QOS_LIBRARY,
+		     "Command",                           // QoS Profile name from XML 
+		     tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_REQUEST, // str name of topic
+		     master_controller::ATE_REQUEST_READER  // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	
+      };
+
+    void handler(const tms::AuthorizationToEnergizeRequest * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_REQUEST
+		<< std::flush;
+ 
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+    
+  };
+
+
+  
   
   
 } // namespace topics
