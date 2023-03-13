@@ -44,11 +44,11 @@ ApplicationStateObj::ApplicationStateObj(enum tms::DeviceRole role) {
 	    std::cout << "ERROR - must be a Controller or Source Device" << std::endl;
 
 	this->thisMCSelected = false;
-        this->authorizedForEnergizing = false;
-	this->controllerState = MC_INIT;
-        this->genDeviceState = D_INIT;
-	this->deviceStartStopPresentLevel = tms::ESSL_UNKNOWN;
-        this->deviceStartStopFutureLevel = tms::ESSL_UNKNOWN;
+        this->authorized_for_energizing = false;
+	this->controller_state = MC_INIT;
+        this->device_state = D_INIT;
+	this->device_start_stop_present_level = tms::ESSL_UNKNOWN;
+        this->device_start_stop_future_level = tms::ESSL_UNKNOWN;
 	this->sequence_number = 0;
 	this->r_sequence_number = 0;
         this->outstanding_request = false;

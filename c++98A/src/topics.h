@@ -56,6 +56,22 @@ namespace topics
     
       ~ApplicationStateObj() {};
 
+    enum tms::DeviceRole myRole(void) {return this->role;}
+    
+    void setControllerState(enum ControllerState newState){
+      this->controller_state = newState;
+    }
+
+    enum ControllerState controllerState(void) {
+      return this->controller_state;
+    }
+    
+    void setDeviceState(enum DeviceState newState) {
+      this->device_state = newState;
+    }
+
+    enum DeviceState deviceState(void) { return this->device_state; }
+    
     DDS_UnsignedLong sequenceNumber(void) {
       return this->sequence_number++;
     }
@@ -79,6 +95,18 @@ namespace topics
       return masterControllerId;
     }
 
+    // used by the Device to track the controller it selected
+    void setControllerId(DDS_Char * id) {
+      this->masterControllerId = id;
+      this->mcIdSet = true;
+    }
+
+    // used by the Controller to track a found Device
+    void setDeviceId(DDS_Char * id) {
+      this->deviceId = id;
+      this->deviceIdSet = true;
+    }
+
     void setThisMCSelected(bool b){
       this->thisMCSelected = b;
     }
@@ -87,19 +115,45 @@ namespace topics
       return this->outstanding_request;
     }
 
-    enum tms::DeviceRole myRole() {return this->role;}
+    void clearOutstandingRequest(void) {
+      this->outstanding_request = false;
+    } 
 
+    bool authorizedForEnergizing(bool b) {
+      return this->authorized_for_energizing;
+    }
+
+    void setAuthorizedForEnergizing(bool b) {
+      this->authorized_for_energizing = b;
+    }
+      
+    void setDeviceStartStopPresentLevel(enum tms::EnergyStartStopLevel newLevel) {
+      this->device_start_stop_present_level = newLevel;
+    }
+
+    enum tms::EnergyStartStopLevel deviceStartStopPresentLevel(void) {
+      return this->device_start_stop_present_level;
+    }
+
+    void setDeviceStartStopFutureLevel(enum tms::EnergyStartStopLevel newLevel) {
+      this->device_start_stop_future_level = newLevel;
+    }
+
+    enum tms::EnergyStartStopLevel deviceStartStopFutureLevel(void) {
+      return this->device_start_stop_future_level;
+    }
+    
     private:
-    enum ControllerState controllerState;
-    enum DeviceState genDeviceState;
+    enum ControllerState controller_state;
+    enum DeviceState device_state;
     enum tms::DeviceRole role;
-    enum tms::EnergyStartStopLevel  deviceStartStopPresentLevel;
-    enum tms::EnergyStartStopLevel  deviceStartStopFutureLevel;
+    enum tms::EnergyStartStopLevel  device_start_stop_present_level;
+    enum tms::EnergyStartStopLevel  device_start_stop_future_level;
 
     DDS_Char * deviceId;
     DDS_Char * masterControllerId;
     bool  thisMCSelected;  // designates that the device has selected this MC
-    bool  authorizedForEnergizing;
+    bool  authorized_for_energizing;
     bool  deviceIdSet;
     bool  mcIdSet;
     DDS_UnsignedLong sequence_number;   // Unique running sequence
@@ -320,7 +374,8 @@ namespace topics
     void handler(const tms::DeviceInfo * data) {
       std::cout << "\nReceived sample for topic: "
 		<< tms::topic::TOPIC_DEVICE_INFO
-		<< std::flush; 
+		<< std::flush;
+      DDS_Char * mcId = data->deviceId;
     };
      
     private:
