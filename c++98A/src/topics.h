@@ -750,6 +750,141 @@ namespace topics
 
   };
   
+  // Generator Device Reply Writer  
+  class ReplyGD_Wtr : public TopicWtr<tms::Reply,
+				      tms::ReplyTypeSupport,
+				      tms::ReplyDataWriter> {
+    public:
+      ReplyGD_Wtr(const DDSDomainParticipant * participant, 
+                  const DDSPublisher * publisher,
+		  ApplicationStateObj * appStateObj,
+                  const bool periodic = false, 
+                  const int period = 0 ) :
+	TopicWtr(
+		 participant, 
+		 publisher,
+		 periodic,
+		 period,
+		 tms::QOS_LIBRARY,
+		 "Reply",                       // QoS Profile name from XML 
+		 tms::topic::TOPIC_REPLY,       // str name of topic
+		 generator_device::REPLY_WRITER // str name of writer
+		 ) {
+	
+	this->appStateObj=appStateObj;	
+
+      };
+    
+    private:
+    ApplicationStateObj * appStateObj;
+
+    };
+
+  // Master Controller Reply Reader  
+  class ReplyMC_Rdr : public TopicRdr<tms::Reply,
+				      tms::ReplyTypeSupport,
+				      tms::ReplyDataReader,
+				      tms::ReplySeq> {
+    public:
+      ReplyMC_Rdr(DDSDomainParticipant * participant, 
+                  const DDSSubscriber * subscriber,
+		  const Cft filter,
+		  ApplicationStateObj * appStateObj
+                  ) :
+	TopicRdr(
+		 participant, 
+		 subscriber,
+		 filter,
+		 tms::QOS_LIBRARY,
+		 "Reply",                         // QoS Profile name from XML 
+		 tms::topic::TOPIC_REPLY,         // str name of topic
+		 master_controller::REPLY_READER  // str name of writer
+		 ) {
+	
+	this->appStateObj=appStateObj;
+	
+      };
+
+    void handler(const tms::Reply * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_REPLY
+		<< std::flush;
+ 
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+    
+  };
+
+
+  // Generator Device EnergyStartStopState Writer  
+  class ESSStateGD_Wtr : public TopicWtr<tms::EnergyStartStopState,
+					 tms::EnergyStartStopStateTypeSupport,
+					 tms::EnergyStartStopStateDataWriter> {
+    public:
+      ESSStateGD_Wtr(const DDSDomainParticipant * participant, 
+                     const DDSPublisher * publisher,
+		     ApplicationStateObj * appStateObj,
+                     const bool periodic = false, 
+                     const int period = 0 ) :
+	TopicWtr(
+		 participant, 
+		 publisher,
+		 periodic,
+		 period,
+		 tms::QOS_LIBRARY,
+		 "PublishLast",                      // QoS Profile name from XML 
+		 tms::topic::TOPIC_ENERGY_START_STOP_STATE, // str name of topic
+		 generator_device::ESS_STATE_WRITER  // str name of writer
+		 ) {
+	
+	this->appStateObj=appStateObj;	
+
+      };
+    
+    private:
+    ApplicationStateObj * appStateObj;
+
+    };
+
+  // Master Controller EnergyStartStopState Reader  
+  class ESSStateMC_Rdr : public TopicRdr<tms::EnergyStartStopState,
+				         tms::EnergyStartStopStateTypeSupport,
+				         tms::EnergyStartStopStateDataReader,
+				         tms::EnergyStartStopStateSeq> {
+    public:
+      ESSStateMC_Rdr(DDSDomainParticipant * participant, 
+                     const DDSSubscriber * subscriber,
+		     const Cft filter,
+		     ApplicationStateObj * appStateObj
+                     ) :
+            TopicRdr(
+		     participant, 
+		     subscriber,
+		     filter,
+		     tms::QOS_LIBRARY,
+		     "PublishLast",                       // QoS Profile name from XML 
+		     tms::topic::TOPIC_ENERGY_START_STOP_STATE, // str name of topic
+		     master_controller::ESS_STATE_READER  // str name of writer
+		     ) {
+	
+	this->appStateObj=appStateObj;
+	
+      };
+
+    void handler(const tms::EnergyStartStopState * data) {
+      std::cout << "\nReceived sample for topic: "
+		<< tms::topic::TOPIC_ENERGY_START_STOP_STATE
+		<< std::flush;
+ 
+    };
+     
+    private:
+    ApplicationStateObj * appStateObj;
+    
+  };
+
   
 } // namespace topics
 
