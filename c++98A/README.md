@@ -6,7 +6,7 @@ The example code was built with the following environment.
 
 * MacOS Darwin (x64)
 * Ubuntu 20.04 gcc 9.4.0
-* Connext DDS Professional 6.1.0 / 6.1.1
+* Connext DDS Professional 6.1.0 - 7.0.0 (CmakeList.txt calls out 7.0.0)
 
 ## Building Debug executable:
 

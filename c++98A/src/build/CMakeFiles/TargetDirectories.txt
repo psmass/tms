@@ -1,4 +1,0 @@
-/Users/pschmitt/GitHub/tms/c++98A/src/build/CMakeFiles/Controller.dir
-/Users/pschmitt/GitHub/tms/c++98A/src/build/CMakeFiles/Device.dir
-/Users/pschmitt/GitHub/tms/c++98A/src/build/CMakeFiles/edit_cache.dir
-/Users/pschmitt/GitHub/tms/c++98A/src/build/CMakeFiles/rebuild_cache.dir
