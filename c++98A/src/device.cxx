@@ -64,7 +64,10 @@ extern "C" int run_device_application(int domain_id) {
     const char *url_profiles[1] = { QOS_URL }; 
     DDS_Duration_t wait_period = {2,0};
     DDS_ReturnCode_t retcode;
+    bool shutdown = false;
 
+    // *** STANDUP PARTICIPANT AND PUBLISHER AND SUBSCRIBER ENTITIES
+    // *
     // https://community.rti.com/static/documentation/connext-dds/5.3.0/doc/manuals/connext_dds/html_files/RTI_ConnextDDS_CoreLibraries_UsersManual/Content/UsersManual/PROFILE_QosPolicy__DDS_Extension__.htm
     // for doing this, but I like the way the Sensor Example uses 
     // TheParticipantFactory too load my_custom_qos_profiles.xml,we need
@@ -111,74 +114,194 @@ extern "C" int run_device_application(int domain_id) {
         return -1;
     }
 
+    // ** CREATE TOPICS READERS AND WRITERS for the device
+    // *
     // App specific Object used to track global state 
     topics::ApplicationStateObj app_state_obj(tms::ROLE_SOURCE);
 					  
-    // create the device writer first since this devices ID is loaded in the c'tor
+    // Typically create writers first as they are given to readers to respond.
     topics::HeartbeatGD_Wtr device_hb_w(participant, publisher, &app_state_obj);
 
-    DDS_InstanceHandle_t device_hb_w_instance = device_hb_w.getMyDataWriter()->get_instance_handle();
+    // Heartbeats and DeviceInfo topics are writen and read by each application,
+    // so the readers take the writer instance handle to ignore our own writer
+    DDS_InstanceHandle_t device_hb_w_instance =
+      device_hb_w.getMyDataWriter()->get_instance_handle();
 
     // Reader API take a filter, but controller does not need one
-    topics::Cft hb_cft;        // create a disabled filter for the DeviceStatus Rdr
+    topics::Cft cft;        // create a disabled filter for the DeviceStatus Rdr
+    /*
+    // Device filters ConfigureDeviceRequests to it's deviceID
+    std::string s1 = std::to_string(device_state_writer.getTopicSample()->myDeviceId.resourceId);
+    std::string s2 = std::to_string(device_state_writer.getTopicSample()->myDeviceId.id);
+    const char *param_list[] = { s1.c_str(), s2.c_str(), NULL };
+    // std::cout << "****** " << param_list << " " << sizeof(param_list) << " " 
+    << sizeof(param_list[0]) << std::endl;
+
+    // create a filter for the ConfigureDeviceReader
+    Cft cdr_cft(param_list, "targetDeviceId.resourceId = %0, targetDeviceId.id=%1" );
+    */
     
     topics::HeartbeatGD_Rdr device_hb_r(participant,
-				subscriber,
-				hb_cft,
-				&app_state_obj,
-				device_hb_w_instance
-				);
+					subscriber,
+					cft,
+					&app_state_obj,
+					device_hb_w_instance // suppress our own HB wtr
+					);
 
     topics::DeviceInfoGD_Wtr device_di_w(participant, publisher, &app_state_obj);
-    DDS_InstanceHandle_t device_di_w_instance = device_di_w.getMyDataWriter()->get_instance_handle();
+    DDS_InstanceHandle_t device_di_w_instance =
+      device_di_w.getMyDataWriter()->get_instance_handle();  
     topics::DeviceInfoGD_Rdr device_di_r(participant,
 					 subscriber,
-					 hb_cft,
+					 cft,
 					 &app_state_obj,
 					 device_di_w_instance
 					 );
 
     topics::AMCStateGD_Wtr device_amc_state_w(participant, publisher, &app_state_obj);
-    
+    topics::ATEReqGD_Wtr device_ate_req_w(participant, publisher, &app_state_obj);
+    topics::ATEResultGD_Wtr device_ate_result_w(participant, publisher, &app_state_obj);
+    topics::ATEReplyGD_Rdr device_ate_reply_r(participant,
+					      subscriber,
+					      cft,
+					      &app_state_obj,
+					      &device_ate_result_w
+					      );
+
+    topics::ReplyGD_Wtr device_reply_w(participant, publisher, &app_state_obj);
+    topics::ESSReqGD_Rdr device_ess_req_r(participant,
+					  subscriber,
+					  cft,
+					  &app_state_obj,
+					  &device_reply_w);
+    topics::ESSStateGD_Wtr device_ess_state_w(participant, publisher, &app_state_obj);
+
+    // *** OPTIONALLY START WRITER LISTENER or MONITOR THREADS
+    // *
     // Create a listener if we'd rather use vs. event waitset thread.
     // Here we use a Default listener we created, but you can create your own
     // listener(s) (and as many as you need if topic specific)
     entities::DefaultDataWriterListener * listener = new entities::DefaultDataWriterListener();
     // not needed on hb, since periodic will run a thread (which monitors by default)
     // device_hb_w.getMyDataWriter()->set_listener(listener); 
-
-    /*
-    // Device filters ConfigureDeviceRequests to it's deviceID
-    std::string s1 = std::to_string(device_state_writer.getTopicSample()->myDeviceId.resourceId);
-    std::string s2 = std::to_string(device_state_writer.getTopicSample()->myDeviceId.id);
-    const char *param_list[] = { s1.c_str(), s2.c_str(), NULL };
-    // std::cout << "****** " << param_list << " " << sizeof(param_list) << " " << sizeof(param_list[0]) << std::endl;
-
-    Cft cdr_cft(param_list, "targetDeviceId.resourceId = %0, targetDeviceId.id=%1" ); // create a filter for the ConfigureDeviceReader
-    */
-
-
-    device_hb_w.runThread();
+    
+    // *** START READER THREADS (Read data and monitors statuses_
+    // *
     device_hb_r.runThread();
     device_di_r.runThread();
+    device_ate_reply_r.runThread();
+    device_ess_req_r.runThread();
 
+    NDDSUtility::sleep(wait_period); // let threads spin up and settle down for output readabilty 
 
-    device_di_w.write();
-    device_amc_state_w.write();
+    // DEVICE STATE MACHINE 
+    //
+    // The SM is transitioned by receiving specific commands / responses
+    // while in specific states (or from a specific state). A Request Response
+    // will not transition the SM. But must be received and correlated using
+    // the sequence  number. It is assumed only one request is allowed to be
+    // outstanding at a time. No further requests may be made until the
+    // outstanding request is cleared (either by receiving a correlated RR
+    // or manually via the app_state_obj.clearOutstandingReq().)
+    //
+    // The state machine will transition to ERROR if an unexpected command
+    // or response is received.
+    //
+    // INIT - send DI, ESS State and start  Heartbeat. Transition to DISCOVERY
+    //        reset state vars reset from DI. Note DI setMCId so leave that
+    //        the _mcIdSet flag true
+    //
+    // DISCOVERY - wait for MasterController DI, select MC.
+    //             Transition to FOUND_NEW_CONTROLLER
+    //
+    // FOUND_NEW_CONTROLLER - Set the new controller and transition immediately
+    //                        to POWER_UP_AUTH. Here, on a real device,  we'd do
+    //                        the MC selection process              
+    //
+    // POWER_UP_AUTH - send out AuthorizationToEnergize request every 10 sec
+    //                 note: theoretically we only need to send this once as its
+    //                 reliable. If the MC went away and came back we'd get a new DI
+    //                 and go back through INIT. Once we are Authorized,
+    //                 transition to WAIT_CMD_ILDE
+    //
+    // WAIT_CMD_IDLE - Idle State, check for things to do and do them
+    //
+    // ENERGIZE - one example of something to do when present and future state differ
+    //
+    // SHUT_DOWN     Device has been turned-off (CTRL-C) - Shutdown
+    //
+    // ERROR         For a given state an unexpected command or event
+    //               occured (SM has no basis to select next state)
+    //
+    // else          Logical default if no states were matched, (theortically
+    //               can't occur, unless bug in Device code)
+    //
+    //
 
-    while (!application::shutdown_requested)  {
-        // Device State Machine goes here;
-        // In this case, we simply publish current deviceState upon change.
-        
-        
-        std::cout << "." << std::flush;        
-        NDDSUtility::sleep(wait_period); // let entities get up and running
+    std::cout << "\n\n **** Starting State Machine" << std::endl;
+
+    app_state_obj.setDeviceState(D_INIT); // c'tor set to INIT anyway
+    int count_in_state = 0;
+
+    while (!shutdown)  {
+      if (application::shutdown_requested)
+	app_state_obj.setDeviceState(D_SHUT_DOWN);
+ 
+      switch (app_state_obj.deviceState()) {
+        case D_INIT:
+	  std::cout << "\nDEVICE STATE: INIT" << std::endl;
+	  // reset state vars (if we came back to INIT from a new DIscovery
+	  app_state_obj.setAuthorizedForEnergizing(false);
+	  app_state_obj.setControllerId((DDS_Char *)"");
+	  app_state_obj.setDeviceStartStopPresentLevel(tms::ESSL_UNKNOWN);
+	  app_state_obj.setDeviceStartStopFutureLevel(tms::ESSL_UNKNOWN);
+	  app_state_obj.clearOutstandingRequest();
+	  if (!device_hb_w.threadRunning()) { // in case already running
+	    device_hb_w.runThread();          // don't start again
+	    device_di_w.write();
+            device_ess_state_w.write();
+	  }
+	  app_state_obj.setDeviceState(D_DISCOVERY);
+	  break;
+        case D_DISCOVERY:
+	  // just print 'D's while waiting for Controller DI
+	  std::cout << "D " << std::flush;
+	  if (app_state_obj.mcIdSet()) // receiving a DI will set the MC Id
+	    app_state_obj.setDeviceState(D_FOUND_NEW_CONTROLLER);
+ 	  break;
+        case D_FOUND_NEW_CONTROLLER:
+	  std::cout << "\nDEVICE STATE: FOUND NEW CONTROLLER" << std::endl;
+	  // TODO: Implement tms Master Controller Selection Algorithm.
+          // Here once we know an MC, we'll select it first come, first serve
+          // returning an ActiveMicrogridControllerState
+	  device_amc_state_w.setMCIDinSample(app_state_obj.controllerID());
+	  device_amc_state_w.write();
+	  app_state_obj.setDeviceState(D_POWER_UP_AUTH);
+	  break;
+        case D_WAIT_CMD_IDLE:
+ 	  break;
+        case D_POWER_UP_AUTH:
+	  break;
+        case D_ENERGIZE:
+ 	  break;
+        case D_SHUT_DOWN:
+	  shutdown = true;
+	  break;
+        case D_ERROR:
+        default:
+	  app_state_obj.setDeviceState(D_SHUT_DOWN);
+      };
+     
+      std::cout << "." << std::flush;        
+      NDDSUtility::sleep(wait_period); // let entities get up and running
     }
     
     pthread_cancel(device_hb_r.Reader::getThreadId());
     pthread_cancel(device_hb_w.Writer::getThreadId());
     pthread_cancel(device_di_r.Reader::getThreadId());
-    
+    pthread_cancel(device_ate_reply_r.Reader::getThreadId());
+    pthread_cancel(device_ess_req_r.Reader::getThreadId());
+
     delete listener;
     // give threads a second to shut down
     NDDSUtility::sleep(wait_period); // give time for entities to shutdown

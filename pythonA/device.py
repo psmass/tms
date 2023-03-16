@@ -1,4 +1,4 @@
-"""
+ama"""
  * (c) Copyright, Real-Time Innovations, 2022.  All rights reserved.
  * RTI grants Licensee a license to use, modify, compile, and create derivative
  * works of the software solely for use with RTI Connext DDS. Licensee may
@@ -84,11 +84,8 @@ def device_main(domain_id):
     # outstanding request is cleared (either by receiving a correlated RR
     # or manually via the app_state_obj.clearOutstandingReq().)
     #
-    #
     # The state machine will transition to ERROR if an unexpected command
-    # or response is received (i.e., the SM is not in the proper state
-    # to expect one - e.g., say an unsolicited MMO comes in, we cannot
-    # assume we sent an MMR and should transition to JOINING_GRID.)
+    # or response is received. 
     #
     # INIT - send DI, ESS State and start  Heartbeat. Transition to DISCOVERY
     #        reset state vars reset from DI. Note DI setMCId so leave that

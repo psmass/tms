@@ -30,13 +30,13 @@ ApplicationStateObj::ApplicationStateObj(enum tms::DeviceRole role) {
 	// process.
 	if (role == tms::ROLE_MICROGRID_CONTROLLER) {
 	  this->masterControllerId = (DDS_Char *) CONTROLLER1_ID;
-	  this->mcIdSet = true;
+	  this->mc_id_set = true;
 	  this->deviceId= (DDS_Char *) "";
 	  this->deviceIdSet = false;
 	}
 	else if (role == tms::ROLE_SOURCE) {
 	  this->masterControllerId = (DDS_Char *) "";
-	  this->mcIdSet = false;
+	  this->mc_id_set = false;
 	  this->deviceId= (DDS_Char *) DEVICE1_ID;
 	  this->deviceIdSet = true;
 	}

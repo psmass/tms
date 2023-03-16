@@ -99,8 +99,10 @@ namespace topics
     // used by the Device to track the controller it selected
     void setControllerId(DDS_Char * id) {
       this->masterControllerId = id;
-      this->mcIdSet = true;
+      this->mc_id_set = true;
     }
+
+    bool mcIdSet(void) { return this->mc_id_set;}
 
     // used by the Controller to track a found Device
     void setDeviceId(DDS_Char * id) {
@@ -156,7 +158,7 @@ namespace topics
     bool  thisMCSelected;  // designates that the device has selected this MC
     bool  authorized_for_energizing;
     bool  deviceIdSet;
-    bool  mcIdSet;
+    bool  mc_id_set;
     DDS_UnsignedLong sequence_number;   // Unique running sequence
     DDS_UnsignedLong r_sequence_number; // Current out standing request SN
     bool outstanding_request;
@@ -481,7 +483,6 @@ namespace topics
 	
 	this->appStateObj=appStateObj;
 	this->getTopicSample()->deviceId = appStateObj->myID();
-	this->getTopicSample()->masterId = appStateObj->myID();
 
       };
 
@@ -524,10 +525,17 @@ namespace topics
 		<< tms::topic::TOPIC_ACTIVE_MICROGRID_CONTROLLER_STATE
 		<< std::flush;
       std::cout << "\nThis Master Controller ID: "
-		<< data->masterId
+		<< appStateObj->myID()
 		<< " has been selected"
 		<< std:: endl;
       this->appStateObj->setThisMCSelected(true);
+      // masterId is an optional field so the ptr has to be tested
+      if (data->masterId == (DDS_Char) NULL)
+	std::cout << "Optional field MasterId not populated";
+	else
+	  std::cout << "Optional Field MasterId is populated: "
+		    << data->masterId;
+      std::cout << std::endl;
     };
      
     private:
@@ -874,12 +882,12 @@ namespace topics
 
 
   // Generator Device EnergyStartStopRequest Reader  
-  class EESReqGD_Rdr : public TopicRdr<tms::EnergyStartStopRequest,
+  class ESSReqGD_Rdr : public TopicRdr<tms::EnergyStartStopRequest,
 				       tms::EnergyStartStopRequestTypeSupport,
 				       tms::EnergyStartStopRequestDataReader,
 				       tms::EnergyStartStopRequestSeq> {
     public:
-      EESReqGD_Rdr(DDSDomainParticipant * participant, 
+      ESSReqGD_Rdr(DDSDomainParticipant * participant, 
                    const DDSSubscriber * subscriber,
 		   const Cft filter,   // Not Used - pass in an empty filter
 		   ApplicationStateObj * appStateObj,
