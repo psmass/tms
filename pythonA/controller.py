@@ -132,38 +132,44 @@ def controller_main(domain_id):
     
     print("\n\n **** Starting State Machine")
     logging.info('Starting State Machine')
+
+    controller_di_w.write() # only need to write this once since QoS Durable    
     
     while not shutdown:
         if not application.run_flag:
             app_state_obj.setAppState(constants.ControllerState.SHUT_DOWN)
-
+            
         if app_state_obj.appState() == constants.ControllerState.INIT:
+            print("\nCONTROLLER STATE: INIT")
+
             # reset state vars
             app_state_obj._thisMCSelected=False
             app_state_obj._authorizedForEnergizing=False
-            print("\nCONTROLLER STATE: INIT")
-            if not controller_hb_w._thread_started: # Don't restart if reset DI 
-                controller_di_w.write() # only need to write this once since QoS Durable
-                controller_hb_w.start() # start sending heartbeats
-                
-            app_state_obj.setAppState(constants.ControllerState.DISCOVERY)
 
+            if not controller_hb_w._thread_running: # Don't restart if reset DI
+                controller_hb_w.start() # start sending heartbeat
+            
+            app_state_obj.setAppState(constants.ControllerState.DISCOVERY)
+            
         elif app_state_obj.appState() == constants.ControllerState.DISCOVERY:
             print("D ", end="", flush = True) # sit printing 'Ds' while discovering MC
+            
             # receiving DI will set the deviceId
             if app_state_obj._deviceIdSet:
                 app_state_obj.setAppState(constants.ControllerState.FOUND_NEW_DEVICE)
             
         elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
-            print("F ", end="", flush = True) # sit printing 'Ds' while discovering Device
-            # hold here until this MC has been selected and the device has been
-            # authorized
+            print("F ", end="", flush = True) # sit printing 'Fs' while FOUND_NEW_DEVICE
+            
+            # hold here until this MC has been selected and the device is authorized
+            # for energizing (device request and is granted from the request topic
             if app_state_obj._thisMCSelected and app_state_obj._authorizedForEnergizing:
                 # go to background Idle waiting for AuthorizationToPowerupRequest
                 app_state_obj.setAppState(constants.ControllerState.ENERGIZE)
-                        
+            
         elif app_state_obj.appState() == constants.ControllerState.ENERGIZE:
             print("\nCONTROLLER STATE: ENERGIZE")
+
             print("Controller Energizing device {d_id}, current State: {e_state}".
                   format(d_id=app_state_obj._deviceId,
                      e_state=app_state_obj._deviceStartStopPresentLevel))
@@ -172,8 +178,8 @@ def controller_main(domain_id):
             # we know the device just announced itself and the request is sent
             # reliably we only need to send it once. If the device goes away, we'll
             # loose hearbeat and expect to go back through DISCOVERY with it.
-            if app_state_obj._deviceStartStopPresentLevel \
-                ==  tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF:
+            if app_state_obj._deviceStartStopPresentLevel == \
+               tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF:
                 # we are going to go from OFF -> OPERATIONAL - a real device probably
                 # would need to transition through other states. Below we'll hand in
                 # the deviceId only because in a real system the MC might be tracking
@@ -192,18 +198,24 @@ def controller_main(domain_id):
 
         elif app_state_obj.appState() == constants.ControllerState.ERROR:
             print("\nCONTROLLER STATE: ERROR - Unexpected Event, resetting Target Device")
+
             # TODO: Printout, Device and event
-            app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
+            app_state_obj.setAppState(constants.ControllerState.SHUT_DOWN)
 
         else:
+            print("Else")
             logging.error('State Machine hit default(impossible?) else clause')
-
+            
         sleep(1)
 
     # ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
-    # controller_mmo_w.join() # uncomment if Thread Monitor vs. Listener used
-    if controller_hb_w._thread_started: # incase we ^C prior to heartbeat.start() 
+    # controller_mmo_w.join() # uncomment if Thread Monitor vs. Listener used 
+    print("Controller Exiting")
+    logging.info('Controller Exiting')
+    
+    if controller_hb_w._thread_running: # incase we ^C prior to heartbeat.start() 
         controller_hb_w.join()
+    controller_hb_r.join()
     controller_di_r.join()
     controller_amc_state_r.join()
     controller_ate_req_r.join()
@@ -211,8 +223,6 @@ def controller_main(domain_id):
     controller_reply_r.join()
     controller_ess_state_r.join()
 
-    print("Controller Exiting")
-    logging.info('Controller Exiting')
 
 if __name__ == "__main__":
     logging.basicConfig(filename='controller.log', encoding='utf-8', level=logging.INFO)

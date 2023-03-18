@@ -49,6 +49,7 @@ class Writer(threading.Thread):
         self._status_condition.enabled_statuses = dds.StatusMask.PUBLICATION_MATCHED
         self._waitset = dds.WaitSet()
         self._waitset += self._status_condition
+        self._thread_running = False
         threading.Thread.__init__(self)
         logging.info("Writer Topic {w_name} created".format(w_name=self._writer_name))
 
@@ -56,6 +57,7 @@ class Writer(threading.Thread):
 
     def run(self):  # Thread of execution Override to threading class
         logging.info("Writer Thread running for {w_name}".format(w_name=self._writer_name))
+        self._thread_running = True
         # handler() is implemented by concrete topic class and should
         # not return until program exit. It's while loop periodicity should
         # be set to 1 or more seconds or the rate of writing a periodic topic

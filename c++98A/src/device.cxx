@@ -263,12 +263,14 @@ extern "C" int run_device_application(int domain_id) {
 	  }
 	  app_state_obj.setDeviceState(D_DISCOVERY);
 	  break;
+	  
         case D_DISCOVERY:
 	  // just print 'D's while waiting for Controller DI
 	  std::cout << "D " << std::flush;
 	  if (app_state_obj.mcIdSet()) // receiving a DI will set the MC Id
 	    app_state_obj.setDeviceState(D_FOUND_NEW_CONTROLLER);
  	  break;
+	  
         case D_FOUND_NEW_CONTROLLER:
 	  std::cout << "\nDEVICE STATE: FOUND NEW CONTROLLER" << std::endl;
 	  // TODO: Implement tms Master Controller Selection Algorithm.
@@ -278,15 +280,36 @@ extern "C" int run_device_application(int domain_id) {
 	  device_amc_state_w.write();
 	  app_state_obj.setDeviceState(D_POWER_UP_AUTH);
 	  break;
+	  
         case D_WAIT_CMD_IDLE:
+	  // Here we sit waiting for a command
+	  std::cout << "." << std::flush;
+	  if (app_state_obj.deviceStartStopPresentLevel() !=
+	      app_state_obj.deviceStartStopFutureLevel())
+	    app_state_obj.setDeviceState(D_ENERGIZE);
  	  break;
+	  
         case D_POWER_UP_AUTH:
+	  std::cout << "P " << std::flush; // sit here printing P's
+	  // Theoretically, sending this once should work or if the MC went
+          // away, we'd go back through discovery. We know there is a good MC
+          // and the request is sent reliably.
+          count_in_state +=1;
+	  if (count_in_state % 10 == 0) { // request to power up every 10 sec
+	    app_state_obj.clearOutstandingRequest();
+	    device_ate_req_w.write();
+	  }
+          if (app_state_obj.authorizedForEnergizing()) // goto Idle and await commands
+	      app_state_obj.setDeviceState(D_WAIT_CMD_IDLE);
 	  break;
+	  
         case D_ENERGIZE:
  	  break;
+	  
         case D_SHUT_DOWN:
 	  shutdown = true;
 	  break;
+	  
         case D_ERROR:
         default:
 	  app_state_obj.setDeviceState(D_SHUT_DOWN);
@@ -295,9 +318,14 @@ extern "C" int run_device_application(int domain_id) {
       std::cout << "." << std::flush;        
       NDDSUtility::sleep(wait_period); // let entities get up and running
     }
-    
+
+    // ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
+    // controller_mmo_w.join() # uncomment if Thread Monitor vs. Listener used 
+    std::cout << "Controller Exiting" << std::endl;
+
+    if (device_hb_w.threadRunning())  // in case ^C hit prior to thread running
+      pthread_cancel(device_hb_w.Writer::getThreadId());      
     pthread_cancel(device_hb_r.Reader::getThreadId());
-    pthread_cancel(device_hb_w.Writer::getThreadId());
     pthread_cancel(device_di_r.Reader::getThreadId());
     pthread_cancel(device_ate_reply_r.Reader::getThreadId());
     pthread_cancel(device_ess_req_r.Reader::getThreadId());

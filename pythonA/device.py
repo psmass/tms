@@ -1,4 +1,4 @@
-ama"""
+"""
  * (c) Copyright, Real-Time Innovations, 2022.  All rights reserved.
  * RTI grants Licensee a license to use, modify, compile, and create derivative
  * works of the software solely for use with RTI Connext DDS. Licensee may
@@ -136,7 +136,7 @@ def device_main(domain_id):
                 tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN
             app_state_obj. _deviceStopStartFutureLevel = \
                 tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN 
-            if not device_hb_w._thread_started: # Don't restart if reset DI 
+            if not device_hb_w._thread_running: # Don't restart if reset DI 
                 device_di_w.write() # only need to write this once since QoS Durable
                 device_hb_w.start() # start sending heartbeats
                 device_ess_state_w.write() # publish on start
@@ -210,7 +210,7 @@ def device_main(domain_id):
 
     # ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
     # device_mmr_w.join() # uncomment if Thread Monitor vs. Listener used
-    if device_hb_w._thread_started: # incase we ^C prior to heartbeat.start() 
+    if device_hb_w._thread_running: # incase we ^C prior to heartbeat.start() 
         device_hb_w.join() 
     device_di_r.join()
     device_ate_rep_r.join()

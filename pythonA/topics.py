@@ -180,15 +180,11 @@ class HeartbeatMC_Wtr(ddsEntities.Writer):
                                     "tms::Heartbeat", # Heartbeat registered_type reference
                                     tmsConstants.master_controller.HEARTBEAT_WRITER)
 
-        self._thread_started = False  # track thread, to join() on exit only if started 
         self._app_state_obj = app_state_obj
-
         self._app_state_obj.setMCIdInSample(self._sample, "deviceId")
-        
 
     def write(self): # need to overload to add sequence #
         # A write is only called from a thread
-        self._thread_started = True
         self._sample["sequenceNumber"]=self._app_state_obj.sequenceNumber()
         self._writer.write(self._sample)
 
