@@ -18,7 +18,8 @@
  as needed.
 
 """
-import threading
+
+from threading import Thread
 import logging
 from datetime import time
 from time import sleep
@@ -33,9 +34,10 @@ class DefaultWriterListener(dds.DynamicData.NoOpDataWriterListener):
         logging.info('%s Listener Callback On Publication Match ', writer.topic_name)
         logging.info("Writer Subs: {0} {1}".format(status.current_count, status.current_count_change))
 
-class Writer(threading.Thread):
+class Writer(Thread):
 
     def __init__(self, participant, periodic, period, topic_type_name, writer_name):
+        Thread.__init__(self)
         self._topic_type_name = topic_type_name
         self._writer_name = writer_name
         self._periodic = periodic
@@ -49,15 +51,13 @@ class Writer(threading.Thread):
         self._status_condition.enabled_statuses = dds.StatusMask.PUBLICATION_MATCHED
         self._waitset = dds.WaitSet()
         self._waitset += self._status_condition
-        self._thread_running = False
-        threading.Thread.__init__(self)
         logging.info("Writer Topic {w_name} created".format(w_name=self._writer_name))
 
+        
     # def __del__(self): # d'tor
 
     def run(self):  # Thread of execution Override to threading class
         logging.info("Writer Thread running for {w_name}".format(w_name=self._writer_name))
-        self._thread_running = True
         # handler() is implemented by concrete topic class and should
         # not return until program exit. It's while loop periodicity should
         # be set to 1 or more seconds or the rate of writing a periodic topic
@@ -101,9 +101,10 @@ class Writer(threading.Thread):
         _enabled = False
 
 
-class Reader(threading.Thread):
+class Reader(Thread):
 
     def __init__(self, participant, topic_type_name, reader_name):
+        Thread.__init__(self)
         self._participant = participant
         self._topic_type_name = topic_type_name
         self._reader_name = reader_name
@@ -119,7 +120,6 @@ class Reader(threading.Thread):
         self._waitset = dds.WaitSet()
         self._waitset += self._status_condition
         self._waitset += self._read_condition
-        threading.Thread.__init__(self)
         logging.info("Reader Topic {r_name} created".format(r_name=self._reader_name))
 
         # def __del__(self): # d'tor
