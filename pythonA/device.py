@@ -201,7 +201,7 @@ def device_main(domain_id):
         elif app_state_obj.appState() == constants.DeviceState.ERROR:
             print("\nDEVICE STATE: ERROR - Unexpected Event, resetting Device")
             # TODO: Printout currentState, and Event that occurred
-            app_state_obj.setAppState(constants.DeviceState.JOINING_GRID)
+            app_state_obj.setAppState(constants.DeviceState.SHUT_DOWN)
 
         else:
             logging.error("State Machine else clause hit - Device in undefined state")

@@ -304,6 +304,20 @@ extern "C" int run_device_application(int domain_id) {
 	  break;
 	  
         case D_ENERGIZE:
+	  std::cout << "\nDEVICE STATE: ENERGIZE" << std::endl;
+          // energize in a separate state as likely we'd have lots of things
+          // to check before just writing the state change, also, a real
+          // generator would likely neeed to transition through a number of
+          // states to go from OFF to OPERATIONAL
+          // assumes we did what the generator does to get to the future level
+	  app_state_obj.setDeviceStartStopPresentLevel\
+	    (app_state_obj.deviceStartStopFutureLevel());
+	  device_ess_state_w.getTopicSample()->presentLevel = \
+	    app_state_obj.deviceStartStopPresentLevel();
+	  device_ess_state_w.write();
+ 
+	  app_state_obj.setDeviceState(D_WAIT_CMD_IDLE); // return idle loop
+	  
  	  break;
 	  
         case D_SHUT_DOWN:
