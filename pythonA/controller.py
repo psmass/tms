@@ -146,7 +146,7 @@ def controller_main(domain_id):
             app_state_obj._thisMCSelected=False
             app_state_obj._authorizedForEnergizing=False
 
-            if not controller_hb_w._thread_running: # Don't restart if reset DI
+            if not controller_hb_w.is_alive(): # Don't restart if reset DI
                 controller_hb_w.start() # start sending heartbeat
             
             app_state_obj.setAppState(constants.ControllerState.DISCOVERY)
@@ -213,7 +213,7 @@ def controller_main(domain_id):
     print("Controller Exiting")
     logging.info('Controller Exiting')
     
-    if controller_hb_w._thread_running: # incase we ^C prior to heartbeat.start() 
+    if controller_hb_w.is_alive(): # incase we ^C prior to heartbeat.start() 
         controller_hb_w.join()
     controller_hb_r.join()
     controller_di_r.join()
