@@ -100,6 +100,9 @@ namespace topics
     void setControllerId(DDS_Char * id) {
       this->masterControllerId = id;
       this->mc_id_set = true;
+      std::cout << "\nFound Controller Id: "
+		<< this->masterControllerId
+		<< std::endl;
     }
 
     bool mcIdSet(void) { return this->mc_id_set;}
@@ -108,6 +111,9 @@ namespace topics
     void setDeviceId(DDS_Char * id) {
       this->deviceId = id;
       this->deviceIdSet = true;
+      std::cout << "\nFound Device Id: "
+		<< this->deviceId
+		<< std::endl;
     }
 
     void setThisMCSelected(bool b){

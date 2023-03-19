@@ -33,12 +33,14 @@ ApplicationStateObj::ApplicationStateObj(enum tms::DeviceRole role) {
 	  this->mc_id_set = true;
 	  this->deviceId= (DDS_Char *) "";
 	  this->deviceIdSet = false;
+	  std::cout << "Master Controller ID set: " << this->masterControllerId << std::endl;
 	}
 	else if (role == tms::ROLE_SOURCE) {
 	  this->masterControllerId = (DDS_Char *) "";
 	  this->mc_id_set = false;
 	  this->deviceId= (DDS_Char *) DEVICE1_ID;
 	  this->deviceIdSet = true;
+	  std::cout << "Generator Device ID set: " << this->deviceId << std::endl;
 	}
 	else
 	    std::cout << "ERROR - must be a Controller or Source Device" << std::endl;

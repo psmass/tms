@@ -252,7 +252,6 @@ extern "C" int run_device_application(int domain_id) {
 	  std::cout << "\nDEVICE STATE: INIT" << std::endl;
 	  // reset state vars (if we came back to INIT from a new DIscovery
 	  app_state_obj.setAuthorizedForEnergizing(false);
-	  app_state_obj.setControllerId((DDS_Char *)"");
 	  app_state_obj.setDeviceStartStopPresentLevel(tms::ESSL_UNKNOWN);
 	  app_state_obj.setDeviceStartStopFutureLevel(tms::ESSL_UNKNOWN);
 	  app_state_obj.clearOutstandingRequest();
@@ -317,7 +316,6 @@ extern "C" int run_device_application(int domain_id) {
 	  device_ess_state_w.write();
  
 	  app_state_obj.setDeviceState(D_WAIT_CMD_IDLE); // return idle loop
-	  
  	  break;
 	  
         case D_SHUT_DOWN:
@@ -326,13 +324,14 @@ extern "C" int run_device_application(int domain_id) {
 	  
         case D_ERROR:
         default:
+	  std::cout << "\nDEVICE STATE: ERROR" << std::endl;
 	  app_state_obj.setDeviceState(D_SHUT_DOWN);
       };
      
       std::cout << "." << std::flush;        
       NDDSUtility::sleep(wait_period); // let entities get up and running
-    }
-
+    };
+    
     // ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
     // controller_mmo_w.join() # uncomment if Thread Monitor vs. Listener used 
     std::cout << "Controller Exiting" << std::endl;
@@ -345,13 +344,28 @@ extern "C" int run_device_application(int domain_id) {
     pthread_cancel(device_ess_req_r.Reader::getThreadId());
 
     delete listener;
+
     // give threads a second to shut down
     NDDSUtility::sleep(wait_period); // give time for entities to shutdown
 
+    // deleting topics, seems the python threads hang if you abruptly terminate
+    // readers to topics with deadlines?
+    device_hb_r.deleteTopic();
+    device_di_r.deleteTopic();
+    device_ate_reply_r.deleteTopic();
+    device_ess_req_r.deleteTopic();
+    // device_hb_w.deleteTopic(); // same topic as the reader
+    // device_di_w.deleteTopic(); // same topic as the reader
+    device_amc_state_w.deleteTopic();
+    device_ate_req_w.deleteTopic();
+    device_ate_result_w.deleteTopic();
+    device_reply_w.deleteTopic();
+    device_ess_state_w.deleteTopic();
+      
     /* Delete all entities */
     return participant_shutdown(participant);
     std::cout << "Device main thread shutting down" << std::endl;
-}
+} // run_device_application
 } // namespace device
 
 

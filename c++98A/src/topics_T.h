@@ -79,7 +79,34 @@ class TopicRdr : public entities::Reader {
             const char* qos_profile,
             const char* topic_name,
             const char* topic_rdr_name);
-        ~TopicRdr (void){};
+  
+         ~TopicRdr (void) { };
+
+         void deleteTopic (void) {
+
+	     DDS_ReturnCode_t retcode;
+	     DDS_Duration_t t = DDS_TIME_ZERO;
+	     
+	     DDSTopic * topic = this->topicParticipant->find_topic(this->topicName, t);
+	     
+	     if (topic != NULL) { // make sure topic exists
+
+	       retcode = this->topicParticipant->delete_topic(topic);
+	
+                // UnRegister the specific datatype to use when creating the Topic
+                // this calls a type specific type, so is required to be done in the specific
+                // type Reader/Writer. The remaining work is done in the base class
+                retcode =
+                   S::unregister_type(this->topicParticipant, this->topicTypeName);
+                if (retcode == DDS_RETCODE_ERROR) {
+		  throw std::invalid_argument(((std::string)this->topicTypeName +
+					       (std::string)"Reader thread: failed to delete topic")
+					       );
+	        };
+	     } else {
+	       std::cout << this->topicTypeName << "writer thread: no topic found" << std::endl;
+	     };
+	 };
 
         R* getThisReader(void) { return topicReader; };
 
@@ -91,6 +118,7 @@ class TopicRdr : public entities::Reader {
         
     protected:
         R * topicReader;
+ 
 };
 
 
@@ -265,7 +293,34 @@ class TopicWtr : public entities::Writer {
             const char* qos_profile,
             const char* topic_name,
             const char* topic_wtr_name);
+  
         ~TopicWtr(void){};
+
+         void deleteTopic (void) {
+
+	     DDS_ReturnCode_t retcode;
+	     DDS_Duration_t t = DDS_TIME_ZERO;
+	     
+	     DDSTopic * topic = this->topicParticipant->find_topic(this->topicName, t);
+	     
+	     if (topic != NULL) { // make sure topic exists
+
+	       retcode = this->topicParticipant->delete_topic(topic);
+	
+                // UnRegister the specific datatype to use when creating the Topic
+                // this calls a type specific type, so is required to be done in the specific
+                // type Reader/Writer. The remaining work is done in the base class
+                retcode =
+                   S::unregister_type(this->topicParticipant, this->topicTypeName);
+                if (retcode == DDS_RETCODE_ERROR) {
+		  throw std::invalid_argument(((std::string)this->topicTypeName +
+					       (std::string)"Writer thread: failed to delete topic")
+					       );
+	        };
+	     } else {
+	       std::cout << this->topicTypeName << "writer thread: no topic found" << std::endl;
+	     };
+	 };
 
 
         // Default write() will write the topic as is
