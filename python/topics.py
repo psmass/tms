@@ -71,7 +71,7 @@ class ApplicationStateObj():
         # Load the Device and Controller IDs respectively
         if (self._role == tmsConstants.tms_DeviceRole.ROLE_MICROGRID_CONTROLLER):
             self._masterControllerId=constants.CONTROLLER1_ID 
-            self._masterControllerIDSet = True
+            self._mcIdSet = True
             print("Master Controller ID set: ", self._masterControllerId)
         else:
             self._deviceId=constants.DEVICE1_ID

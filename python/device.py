@@ -132,7 +132,7 @@ def device_main(domain_id):
             # reset state vars 
             app_state_obj._authorizedForEnergizing = False
             app_state_obj._masterControllerId = ''
-            # reinitialize out state object
+            # reinitialize state object
             device_ess_state_w.__init__(participant, app_state_obj)
             device_di_w.write() # durable
             if not device_hb_w.is_alive(): # Don't restart if reset DI 

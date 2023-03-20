@@ -253,12 +253,12 @@ extern "C" int run_device_application(int domain_id) {
 	  // reset state vars (if we came back to INIT from a new DIscovery
 	  app_state_obj.setAuthorizedForEnergizing(false);
 	  device_ess_state_w.reset();
+	  device_ess_state_w.write();
 	  app_state_obj.clearOutstandingRequest();
 	  device_di_w.write();  // di write force controller back to init
-	  if (!device_hb_w.threadRunning()) { // in case already running
+	  if (!device_hb_w.threadRunning())   // in case already running
 	    device_hb_w.runThread();          // don't start again
-	  }
-	  device_ess_state_w.write();
+	  
 	  app_state_obj.setDeviceState(D_DISCOVERY);
 	  break;
 	  
