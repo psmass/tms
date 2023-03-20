@@ -11,12 +11,14 @@
  */
 """
 import sys
+import logging
 import argparse
 from os import path as osPath
 from time import sleep
 import rti.connextdds as dds
 import application
 import constants
+import tmsConstants
 import topics
 import ddsEntities
 
@@ -25,51 +27,60 @@ filepath = osPath.dirname(osPath.realpath(__file__))
 
 def controller_main(domain_id):
     print("Controller Powering Up")
+    logging.info('Controller Powering Up')
 
     shutdown = False
 
     # *** STANDUP PARTICIPANT WITH READERS AND WRITERS XML APP CREATE    
     qos_provider = dds.QosProvider(constants.QOS_URL)
-    participant = qos_provider.create_participant_from_config(constants.CONTROLLER_PARTICIPANT_NAME)
+    participant = qos_provider.create_participant_from_config(tmsConstants.master_controller.MASTER_CONTROLLER1)
 
     # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
     # (creates: readers, writers, and threads). All request reader topics also need
     # need the request response writer to post a response.
     # xml app create, so they already exist - here the base clas simply looks
     # up the handles so we can manipulate them.
-    app_state_obj = topics.ApplicationStateObj(constants.tms_DeviceRole.ROLE_MICROGRID_SYSTEM_MANAGER)
+    app_state_obj = topics.ApplicationStateObj(tmsConstants.tms_DeviceRole.ROLE_MICROGRID_CONTROLLER)
 
-    controller_rrm_w = topics.RequestRspMSMSimWtr(participant, app_state_obj)
-    controller_rrm_r = topics.RequestRspMSMSimRdr(participant,
-                                                  app_state_obj,
-                                                  controller_rrm_w.writer.instance_handle)
-    controller_da_r = topics.DeviceAnnouncementRdr(participant, app_state_obj)
-    controller_mmr_r = topics.MicrogridMembershipRqstRdr(participant, app_state_obj,
-                                                         controller_rrm_w)
-    controller_mmo_w = topics.MicrogridMembershipOutcomeWtr(participant, app_state_obj)
-    controller_str_w = topics.SrcTransitionRqstWtr(participant, app_state_obj)
-    controller_sts_r = topics.SrcTransitionStateRdr(participant, app_state_obj)
-    # controller_hb_r = topics.HeartbeatRdr(participant) // TODO implemented hb on controller
+    controller_di_w = topics.DeviceInfoMC_Wtr(participant, app_state_obj)
+    controller_di_r = topics.DeviceInfoMC_Rdr(participant, app_state_obj,
+                                              controller_di_w.writer.instance_handle)
+    controller_hb_w = topics.HeartbeatMC_Wtr(participant, app_state_obj)
+    controller_hb_r = topics.HeartbeatMC_Rdr(participant, app_state_obj,
+                                             controller_hb_w.writer.instance_handle)
+
+    controller_amc_state_r = topics.AMCStateMC_Rdr(participant, app_state_obj)
+    controller_ate_rep_w = topics.ATERepMC_Wtr(participant, app_state_obj)
+    controller_ate_req_r = topics.ATEReqMC_Rdr(participant, app_state_obj, controller_ate_rep_w)
+    controller_ate_result_r = topics.ATEResultMC_Rdr(participant, app_state_obj)
+    controller_ess_req_w = topics.ESSReqMC_Wtr(participant, app_state_obj)
+    controller_reply_r = topics.ReplyMC_Rdr(participant, app_state_obj)
+    controller_ess_state_r = topics.ESSStateMC_Rdr(participant, app_state_obj)
+    
+    # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
+    # device_di_w.start() # start a statuses monitor thread on the DA Writer
+    # or...#listener, Heartbeat is periodic and will run as a thread
+    controller_di_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
+                                        dds.StatusMask.ALL)
+
+
+    
+    # *** START READER THREADS (Reads data and monitors statuses)
+    controller_di_r.start()
+    controller_hb_r.start()
+    controller_amc_state_r.start()
+    controller_ate_req_r.start()
+    controller_ate_result_r.start()
+    controller_reply_r.start()
+    controller_ess_state_r.start()
+
 
     # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
-    # controller_rrm_w.start() # start a statuses monitor thread on the DA Writer
-    # or...#listener
-    controller_rrm_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
-                                    dds.StatusMask.ALL)
-    # device_mmo_w.start() # start a statuses monitor thread on the DA Writer
-    # or...#listener
-    controller_mmo_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
-                                    dds.StatusMask.ALL)
-    # device_str_w.start() # start a statuses monitor thread on the DA Writer
-    # or...#listener
-    controller_str_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
+    # controller_di_w.start() # start a statuses monitor thread on the DA Writer
+    # or...#listener, Heartbeat is periodic and runs in a thread.
+    controller_di_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
                                     dds.StatusMask.ALL)
 
-    # *** START READER THREADS (Reads data and monitors statuses)   
-    controller_da_r.start()
-    controller_mmr_r.start()
-    controller_rrm_r.start()
-    controller_sts_r.start()
 
     sleep(5) # wait for threads to spin up and settle printing (output readability)
 
@@ -83,27 +94,31 @@ def controller_main(domain_id):
     # outstanding request is cleared (either by receiving a correlated RR
     # or manually via the app_state_obj.clearOutstandingReq().)
     #
-    # Note - while we might expect an RR to come in before a response
-    # e.g., if we post an STR, we expect a RR followed by a STS. While
-    # both are sent reliably, the order is not guaranteed as the RR
-    # could have gotten lost and need to be resent by DDS.
-    #
     # The state machine will transition to ERROR if an unexpected command
     # or response is received (i.e., the SM is not in the proper state
     # to expect one) 
     #
-    # INIT - Waits for a DA to transition to FOUND_NEW_DEVICE
+    # INIT - send DI, ESS State and start  Heartbeat. Transition to DISCOVERY
+    #        reset state vars reset from DI. Note DI setMCId so leave that
+    #        the _mcIdSet flag true
     #
-    # FOUND_NEW_DEVICE - fills in DeviceId (from DA) and waits for MMR
+    # DISCOVERY - wait for Device DI.
+    #             Transition to FOUND_NEW_DEVICE
     #
-    # JOINING_GRID - Received MMR, sending MMO, transition to POWERING_UP
+    # FOUND_NEW_DEVICE -  We check that this MC has been selected and that the
+    #            device is AuthorizedForEnergization
     #
-    # POWERING_UP - Send STR, transition to Steady State
+    # POWER_UP_AUTH - Note used - Powerup reply is sent when we recieve
+    #                 (from the) the Powerup request topic reader        
     #
-    # STEADY_STATE - Controller can have logic here to handle other functions
-    #               In this example we just sit, printing '.'.
-    #               Leave this state by either a new DA (go back to JOINING_GRID
-    #               or CTRL-C for SHUT_DOWN
+    # WAIT_CMD_IDLE - Idle State, check for things to do and do them
+    #
+    # ENERGIZE - This state is transitioned to after FOUND_NEW_DEVICE
+    #            we check that the device is OFF and send a request to
+    #            EngergizeStartStop OPERATIONAL. Here, we don't bother
+    #            to repeat the request but assume it was received since
+    #            loss of device would be noted wiht loss of Heartbeat and
+    #            the request to energize is sent reliable.
     #
     # SHUT_DOWN     Device has been turned-off (CTRL-C) - Shutdown
     #
@@ -111,95 +126,106 @@ def controller_main(domain_id):
     #               occured (SM has no basis to select next state)
     #
     # else          Logical default if no states were matched, (theortically
-    #               can't occur, unless bug in Controller code)
+    #               can't occur, unless bug in Device code)
     #
-    # NOTE: With this version of TMS Data-model, all requests contain a keyed sampleID.
-    #       Since the SampleID contains a unique "SequenceID" all requests are unique
-    #       instances, and should be disposed of, or essentially we 'leak' memory.
-    #       Having unique instances of every sample, essentially makes the idea of
-    #       key'd managed resources per-instance effectively useless. This was corrected
-    #       in later TMS data-models.
-    #       Of course, since requests are sent reliably, we need to wait at least
-    #       a second to allow a potential retransmission. Since repeated requests of
-    #       the same topic is infrequent, and this issue has been corrected in
-    #       subsequent TMS Data-models, we won't dispose of them. One way to do
-    #       this is to have a DISPOSE_REQUEST state we transition to after each
-    #       request. It might use the app_state_obj to track the request instance,
-    #       unregistering and disposing of it.
     #
-    #       For a controller managing more than one device, one would want to dispose
-    #       of all writer instances as a Device departs the grid.
-
+    
     print("\n\n **** Starting State Machine")
+    logging.info('Starting State Machine')
+
+    controller_di_w.write() # only need to write this once since QoS Durable    
     
     while not shutdown:
         if not application.run_flag:
             app_state_obj.setAppState(constants.ControllerState.SHUT_DOWN)
-
+            
         if app_state_obj.appState() == constants.ControllerState.INIT:
-            print("Controller Initializing")
-            # receiving a DA moves us to the next state
+            print("\nCONTROLLER STATE: INIT")
 
+            # reset state vars
+            app_state_obj._thisMCSelected=False
+            app_state_obj._authorizedForEnergizing=False
+
+            if not controller_hb_w.is_alive(): # Don't restart if reset DI
+                controller_hb_w.start() # start sending heartbeat
+            
+            app_state_obj.setAppState(constants.ControllerState.DISCOVERY)
+            
+        elif app_state_obj.appState() == constants.ControllerState.DISCOVERY:
+            print("D ", end="", flush = True) # sit printing 'Ds' while discovering MC
+            
+            # receiving DI will set the deviceId
+            if app_state_obj._deviceIdSet:
+                app_state_obj.setAppState(constants.ControllerState.FOUND_NEW_DEVICE)
+            
         elif app_state_obj.appState() == constants.ControllerState.FOUND_NEW_DEVICE:
-            # this state in case we get a DA and not an MMR so hold waiting for MMR
-            # Note: DA is durable, so we can get a DA followed immediately by a DA
-            print("Controller Found a New Device, awaiting Microgrid JOIN Request")
+            print("F ", end="", flush = True) # sit printing 'Fs' while FOUND_NEW_DEVICE
+            
+            # hold here until this MC has been selected and the device is authorized
+            # for energizing (device request and is granted from the request topic
+            if app_state_obj._thisMCSelected and app_state_obj._authorizedForEnergizing:
+                # go to background Idle waiting for AuthorizationToPowerupRequest
+                app_state_obj.setAppState(constants.ControllerState.ENERGIZE)
+            
+        elif app_state_obj.appState() == constants.ControllerState.ENERGIZE:
+            print("\nCONTROLLER STATE: ENERGIZE")
 
-        elif app_state_obj.appState() == constants.ControllerState.JOINING_GRID:
-            print("Controller allowing Device to JOIN grid")
-            # waiting for MMR causes RR to be sent (from MMR reader), and MMO, then
-            # the state is set to POWERING_UP
+            print("Controller Energizing device {d_id}, current State: {e_state}".
+                  format(d_id=app_state_obj._deviceId,
+                     e_state=app_state_obj._deviceStartStopPresentLevel))
 
-            # at this point we know we received a DA and a MMR. If the controller
-            # comes up late, it gets them back-to-back - so we go from INIT straight
-            # to JOINING GRID. At this point we know and that the DeviceId has
-            # been loaded into the app_state_obj. So populate remaining writers
-            # if a new DA came in to reset to this state
-            app_state_obj.clearOutstandingRequest() 
-            controller_mmo_w.fillInDevId()
-            controller_str_w.fillInDevId()
-
-            controller_mmo_w.setResult(constants.tms_MicrogridMembershipResult.MMR_COMPLETE)
-            controller_mmo_w.write()
-            app_state_obj.setAppState(constants.ControllerState.POWERING_UP)
-                        
-        elif app_state_obj.appState() == constants.ControllerState.POWERING_UP:
-            print("Controller Powering-up device")
-            controller_str_w.setTransition(constants.tms_SourceTransition.ST_POWER_UP)
-            controller_str_w.write()
-            app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
-
-        elif app_state_obj.appState() == constants.ControllerState.STEADY_STATE:
-            #print("Controller Steady-state - generating power")
+            # In example, if we find a device is off, we'll turn it on, here since
+            # we know the device just announced itself and the request is sent
+            # reliably we only need to send it once. If the device goes away, we'll
+            # loose hearbeat and expect to go back through DISCOVERY with it.
+            if app_state_obj._deviceStartStopPresentLevel == \
+               tmsConstants.tms_EnergyStartStopLevel.ESSL_OFF:
+                # we are going to go from OFF -> OPERATIONAL - a real device probably
+                # would need to transition through other states. Below we'll hand in
+                # the deviceId only because in a real system the MC might be tracking
+                # an array of app_state_objs
+                controller_ess_req_w.write(app_state_obj._deviceId,
+                    tmsConstants.tms_EnergyStartStopLevel.ESSL_OPERATIONAL)
+            app_state_obj.setAppState(constants.ControllerState.WAIT_CMD_IDLE)
+            
+        elif app_state_obj.appState() == constants.ControllerState.WAIT_CMD_IDLE:
+            #print("Controller Steady-state - Waiting for other Device Requests")
             print(".", end="", flush=True)
 
         elif app_state_obj.appState() == constants.ControllerState.SHUT_DOWN:
-            print("Controller Shutting down")
+            print("\nCONTROLLER STATE: SHUTDOWN")
             shutdown = True
 
         elif app_state_obj.appState() == constants.ControllerState.ERROR:
-            print("ERROR - Unexpected Event, resetting Target Device")
+            print("\nCONTROLLER STATE: ERROR - Unexpected Event, resetting Target Device")
+
             # TODO: Printout, Device and event
-            app_state_obj.setAppState(constants.ControllerState.STEADY_STATE)
+            app_state_obj.setAppState(constants.ControllerState.SHUT_DOWN)
 
         else:
-            print("Device in undefined state")
-
+            print("Else")
+            logging.error('State Machine hit default(impossible?) else clause')
+            
         sleep(1)
 
     # ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
-    # controller_mmo_w.join() # uncomment if Thread Monitor vs. Listener used
-    # controller_rrm_w.join() # uncomment if Thread Monitor vs. Listener used
-    # controller_str_w.join() # uncomment if Thread Monitor vs. Listener used
-    controller_da_r.join()
-    controller_mmr_r.join()
-    controller_rrm_r.join()
-    controller_sts_r.join()
-
+    # controller_mmo_w.join() # uncomment if Thread Monitor vs. Listener used 
     print("Controller Exiting")
+    logging.info('Controller Exiting')
+    
+    if controller_hb_w.is_alive(): # incase we ^C prior to heartbeat.start() 
+        controller_hb_w.join()
+    controller_hb_r.join()
+    controller_di_r.join()
+    controller_amc_state_r.join()
+    controller_ate_req_r.join()
+    controller_ate_result_r.join()
+    controller_reply_r.join()
+    controller_ess_state_r.join()
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='controller.log', encoding='utf-8', level=logging.INFO)
     parser = argparse.ArgumentParser(
         description="RTI Connext DDS Example: Command Response Controller)"
     )

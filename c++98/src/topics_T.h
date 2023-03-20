@@ -96,8 +96,8 @@ class TopicRdr : public entities::Reader {
                 // UnRegister the specific datatype to use when creating the Topic
                 // this calls a type specific type, so is required to be done in the specific
                 // type Reader/Writer. The remaining work is done in the base class
-                retcode =
-                   S::unregister_type(this->topicParticipant, this->topicTypeName);
+                //retcode =
+	        S::unregister_type(this->topicParticipant, this->topicTypeName);
                 if (retcode == DDS_RETCODE_ERROR) {
 		  throw std::invalid_argument(((std::string)this->topicTypeName +
 					       (std::string)"Reader thread: failed to delete topic")
