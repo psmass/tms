@@ -132,14 +132,13 @@ def device_main(domain_id):
             # reset state vars 
             app_state_obj._authorizedForEnergizing = False
             app_state_obj._masterControllerId = ''
-            app_state_obj._deviceStopStartPresentLevel =\
-                tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN
-            app_state_obj. _deviceStopStartFutureLevel = \
-                tmsConstants.tms_EnergyStartStopLevel.ESSL_UNKNOWN 
+            # reinitialize out state object
+            device_ess_state_w.__init__(participant, app_state_obj)
             if not device_hb_w.is_alive(): # Don't restart if reset DI 
                 device_di_w.write() # only need to write this once since QoS Durable
                 device_hb_w.start() # start sending heartbeats
-                device_ess_state_w.write() # publish on start
+
+            device_ess_state_w.write() # publish on start
                 
             app_state_obj.setAppState(constants.DeviceState.DISCOVERY)
 
