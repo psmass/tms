@@ -120,32 +120,61 @@ extern "C" int run_controller_application(int domain_id) {
       controller_hb_w.getMyDataWriter()->get_instance_handle();
     
     // Reader API take a filter, but controller does not need one
-    topics::Cft hb_cft;        // create a disabled filter for the DeviceStatus Rdr
+    topics::Cft cft;        // create a disabled filter for the DeviceStatus Rdr
     
     topics::HeartbeatMC_Rdr controller_hb_r(participant,
 				    subscriber,
-				    hb_cft,
+				    cft,
 				    &app_state_obj,
 				    controller_hb_w_instance
 				    );
 
     topics::DeviceInfoMC_Wtr controller_di_w(participant, publisher, &app_state_obj);
-    DDS_InstanceHandle_t controller_di_w_instance =
+    DDS_InstanceHandle_t controller_di_w_instance = \
       controller_di_w.getMyDataWriter()->get_instance_handle();
     topics::DeviceInfoMC_Rdr controller_di_r(participant,
 					 subscriber,
-					 hb_cft,
+					 cft,
 					 &app_state_obj,
 					 controller_di_w_instance
 					 );
 
     topics::AMCStateMC_Rdr controller_amc_state_r(participant,
 						  subscriber,
-						  hb_cft,
+						  cft,
 						  &app_state_obj
 						  );
+    
+    topics::ATEReplyMC_Wtr controller_ate_reply_w(participant, publisher, &app_state_obj);
+						  
 					    
+    topics::ATEReqMC_Rdr controller_ate_req_r(participant,
+					       subscriber,
+					       cft,
+					       &app_state_obj,
+					       &controller_ate_reply_w
+					       );
 
+    topics::ATEResultMC_Rdr controller_ate_result_r(participant,
+						    subscriber,
+						    cft,
+						    &app_state_obj
+						    );
+
+    topics::ESSReqMC_Wtr controller_ess_req_w(participant, publisher, &app_state_obj);
+
+    topics::ReplyMC_Rdr controller_reply_r(participant,
+					   subscriber,
+					   cft,
+					   &app_state_obj
+					   );
+  
+    topics::ESSStateMC_Rdr controller_ess_state_r(participant,
+						  subscriber,
+						  cft,
+						  &app_state_obj
+						  );
+    
     // Create a listener if we'd rather use vs. event waitset thread.
     // Here we use a Default listener we created, but you can create your own
     // listener(s) (and as many as you need if topic specific)
@@ -153,13 +182,15 @@ extern "C" int run_controller_application(int domain_id) {
     // not needed on hb, since periodic will run a thread (which monitors by default)
     // device_hb_w.getMyDataWriter()->set_listener(listener); 
 
-    controller_hb_w.runThread();
+    // *** START READER THREADS (Reads data and monitors statuses)
     controller_hb_r.runThread();
     controller_di_r.runThread();
     controller_amc_state_r.runThread();
-
-    controller_di_w.write();
-    
+    controller_ate_req_r.runThread();
+    controller_ate_result_r.runThread();
+    controller_reply_r.runThread();
+    controller_ess_state_r.runThread();
+  
     while (!application::shutdown_requested)  {
         // Controller State Machine goes here;
         // In this case, we simply publish current deviceState upon change.
@@ -168,14 +199,35 @@ extern "C" int run_controller_application(int domain_id) {
         std::cout << "." << std::flush;        
         NDDSUtility::sleep(wait_period); // let entities get up and running
     }
-    
+
+    if (controller_hb_w.threadRunning()) // in case ^C hit prior to thread running
+      pthread_cancel(controller_hb_w.Writer::getThreadId());
     pthread_cancel(controller_hb_r.Reader::getThreadId());
-    pthread_cancel(controller_hb_w.Writer::getThreadId());
     pthread_cancel(controller_di_r.Reader::getThreadId());
+    pthread_cancel(controller_amc_state_r.Reader::getThreadId());
+    pthread_cancel(controller_ate_req_r.Reader::getThreadId());
+    pthread_cancel(controller_ate_result_r.Reader::getThreadId());
+    pthread_cancel(controller_reply_r.Reader::getThreadId());
+    pthread_cancel(controller_ess_state_r.Reader::getThreadId());
+  
     delete listener;
 
     // give threads a second to shut down
     NDDSUtility::sleep(wait_period); // give time for entities to shutdown
+
+    // deleting topics, seems the python threads hang if you abruptly terminate
+    // readers to topics with deadlines?
+    controller_hb_r.deleteTopic();
+    controller_di_r.deleteTopic();
+    controller_amc_state_r.deleteTopic();
+    controller_ate_req_r.deleteTopic();
+    // controller_hb_w.deleteTopic(); // same topic as the reader
+    // controller_di_w.deleteTopic(); // same topic as the reader
+    controller_ate_result_r.deleteTopic();
+    controller_reply_r.deleteTopic();
+    controller_ess_state_r.deleteTopic();
+    controller_ate_reply_w.deleteTopic();
+    controller_ess_req_w.deleteTopic();
     
     /* Delete all entities */
     return participant_shutdown(participant);

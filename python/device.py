@@ -134,8 +134,8 @@ def device_main(domain_id):
             app_state_obj._masterControllerId = ''
             # reinitialize out state object
             device_ess_state_w.__init__(participant, app_state_obj)
+            device_di_w.write() # durable
             if not device_hb_w.is_alive(): # Don't restart if reset DI 
-                device_di_w.write() # only need to write this once since QoS Durable
                 device_hb_w.start() # start sending heartbeats
 
             device_ess_state_w.write() # publish on start

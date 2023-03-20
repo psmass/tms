@@ -997,8 +997,13 @@ namespace topics
 		 tms::topic::TOPIC_ENERGY_START_STOP_STATE, // str name of topic
 		 generator_device::ESS_STATE_WRITER  // str name of writer
 		 ) {
-	
 	this->appStateObj=appStateObj;
+	this->reset();
+        };
+	
+
+	void reset(void) {
+
 	this->appStateObj->setDeviceStartStopPresentLevel(tms::ESSL_OFF);
 	this->appStateObj->setDeviceStartStopFutureLevel(tms::ESSL_OFF);
 
