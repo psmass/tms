@@ -344,25 +344,11 @@ extern "C" int run_device_application(int domain_id) {
 
 
     NDDSUtility::sleep(wait_period);   // give threads a second to shut down
-    /**
-    // deleting topics, seems the python threads hang if you abruptly terminate
-    // readers to topics with deadlines?
-    device_hb_r.deleteTopic();
-    device_di_r.deleteTopic();
-    device_ate_reply_r.deleteTopic();
-    device_ess_req_r.deleteTopic();
-    // device_hb_w.deleteTopic(); // same topic as the reader
-    // device_di_w.deleteTopic(); // same topic as the reader
-    device_amc_state_w.deleteTopic();
-    device_ate_req_w.deleteTopic();
-    device_ate_result_w.deleteTopic();
-    device_reply_w.deleteTopic();
-    device_ess_state_w.deleteTopic();
-    **/
     
     /* Delete all entities */
     return participant_shutdown(participant);
     std::cout << "Device main thread shutting down" << std::endl;
+
 } // run_device_application
 } // namespace device
 

@@ -289,23 +289,7 @@ extern "C" int run_controller_application(int domain_id) {
 
     // give threads a second to shut down
     NDDSUtility::sleep(wait_period); // give time for entities to shutdown
-
-    /**
-    // deleting topics, seems the python threads hang if you abruptly terminate
-    // readers to topics with deadlines?
-    controller_hb_r.deleteTopic();
-    controller_di_r.deleteTopic();
-    controller_amc_state_r.deleteTopic();
-    controller_ate_req_r.deleteTopic();
-    // controller_hb_w.deleteTopic(); // same topic as the reader
-    // controller_di_w.deleteTopic(); // same topic as the reader
-    controller_ate_result_r.deleteTopic();
-    controller_reply_r.deleteTopic();
-    controller_ess_state_r.deleteTopic();
-    controller_ate_reply_w.deleteTopic();
-    controller_ess_req_w.deleteTopic();
-    **/
-    
+   
     /* Delete all entities */
     return participant_shutdown(participant);
     std::cout << "Controller main thread shutting down" << std::endl;
