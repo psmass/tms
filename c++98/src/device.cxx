@@ -63,7 +63,6 @@ extern "C" int run_device_application(int domain_id) {
     // Create the participant
     const char *url_profiles[1] = { QOS_URL }; 
     DDS_Duration_t wait_period = {2,0};
-    DDS_ReturnCode_t retcode;
     bool shutdown = false;
 
     // *** STANDUP PARTICIPANT AND PUBLISHER AND SUBSCRIBER ENTITIES
@@ -326,8 +325,7 @@ extern "C" int run_device_application(int domain_id) {
 	  std::cout << "\nDEVICE STATE: ERROR" << std::endl;
 	  app_state_obj.setDeviceState(D_SHUT_DOWN);
       };
-     
-      std::cout << "." << std::flush;        
+            
       NDDSUtility::sleep(wait_period); // let entities get up and running
     };
     
@@ -344,9 +342,9 @@ extern "C" int run_device_application(int domain_id) {
 
     delete listener;
 
-    // give threads a second to shut down
-    NDDSUtility::sleep(wait_period); // give time for entities to shutdown
 
+    NDDSUtility::sleep(wait_period);   // give threads a second to shut down
+    /**
     // deleting topics, seems the python threads hang if you abruptly terminate
     // readers to topics with deadlines?
     device_hb_r.deleteTopic();
@@ -360,7 +358,8 @@ extern "C" int run_device_application(int domain_id) {
     device_ate_result_w.deleteTopic();
     device_reply_w.deleteTopic();
     device_ess_state_w.deleteTopic();
-      
+    **/
+    
     /* Delete all entities */
     return participant_shutdown(participant);
     std::cout << "Device main thread shutting down" << std::endl;

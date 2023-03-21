@@ -51,8 +51,7 @@ namespace topics
 
   class ApplicationStateObj {
 
-    public:
-    ApplicationStateObj(enum tms::DeviceRole role);
+    public:    ApplicationStateObj(enum tms::DeviceRole role);
     
       ~ApplicationStateObj() {};
 
@@ -72,9 +71,7 @@ namespace topics
 
     enum DeviceState deviceState(void) { return this->device_state; }
     
-    DDS_UnsignedLong sequenceNumber(void) {
-      return this->sequence_number++;
-    }
+    DDS_UnsignedLong sequenceNumber(void) { return this->sequence_number++; }
 
     // Request Sequenc Number
     DDS_UnsignedLong rSequenceNumber() {
@@ -87,14 +84,14 @@ namespace topics
 
     DDS_Char * myID(void) {
       if (role == tms::ROLE_MICROGRID_CONTROLLER)
-	return masterControllerId;
+	return this->masterControllerId;
       else
-	return deviceId;
+	return this->deviceId;
     }
 
-    DDS_Char * controllerID(void) {
-      return masterControllerId;
-    }
+    DDS_Char * controllerID(void) { return this->masterControllerId; }
+
+    DDS_Char * deviceID(void) { return this->deviceId;}
 
     // used by the Device to track the controller it selected
     void setControllerId(DDS_Char * id) {
@@ -110,15 +107,17 @@ namespace topics
     // used by the Controller to track a found Device
     void setDeviceId(DDS_Char * id) {
       this->deviceId = id;
-      this->deviceIdSet = true;
+      this->device_id_set = true;
       std::cout << "\nFound Device Id: "
 		<< this->deviceId
 		<< std::endl;
     }
 
-    void setThisMCSelected(bool b){
-      this->thisMCSelected = b;
-    }
+    bool deviceIdSet(void) { return this->device_id_set; }
+    
+    void setThisMCSelected(bool b){ this->this_MC_selected = b; }
+
+    bool thisMCSelected (void) { return this->this_MC_selected; }
 
     bool outstandingRequest(void) {
       return this->outstanding_request;
@@ -161,9 +160,9 @@ namespace topics
 
     DDS_Char * deviceId;
     DDS_Char * masterControllerId;
-    bool  thisMCSelected;  // designates that the device has selected this MC
+    bool  this_MC_selected;  // designates that the device has selected this MC
     bool  authorized_for_energizing;
-    bool  deviceIdSet;
+    bool  device_id_set;
     bool  mc_id_set;
     DDS_UnsignedLong sequence_number;   // Unique running sequence
     DDS_UnsignedLong r_sequence_number; // Current out standing request SN
@@ -609,7 +608,7 @@ namespace topics
 	
       };
 
-    void handler(const tms::AuthorizationToEnergizeRequest * data) {
+    void handler(const tms::AuthorizationToEnergizeResult * data) {
       std::cout << "\nReceived sample for topic: "
 		<< tms::topic::TOPIC_AUTHORIZATION_TO_ENERGIZE_RESULT
 		<< std::flush;
@@ -760,7 +759,6 @@ namespace topics
       this->ateReplyMC_Wtr->getTopicSample()->timeOfReview.nanoseconds = 55;
       this->appStateObj->setAuthorizedForEnergizing(true);
       this->ateReplyMC_Wtr->write();
-     
     };
      
     private:

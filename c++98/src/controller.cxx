@@ -62,7 +62,8 @@ static int participant_shutdown(DDSDomainParticipant *participant)
 extern "C" int run_controller_application(int domain_id) {
 
     const char *url_profiles[1] = { QOS_URL }; 
-    DDS_Duration_t wait_period = {2,0}; 
+    DDS_Duration_t wait_period = {2,0};
+    bool shutdown = false;
 
     // https://community.rti.com/static/documentation/connext-dds/5.3.0/doc/manuals/connext_dds/html_files/RTI_ConnextDDS_CoreLibraries_UsersManual/Content/UsersManual/PROFILE_QosPolicy__DDS_Extension__.htm
     // for doing this, but I like the way the Sensor Example uses 
@@ -190,16 +191,90 @@ extern "C" int run_controller_application(int domain_id) {
     controller_ate_result_r.runThread();
     controller_reply_r.runThread();
     controller_ess_state_r.runThread();
-  
-    while (!application::shutdown_requested)  {
-        // Controller State Machine goes here;
-        // In this case, we simply publish current deviceState upon change.
-        
-        
-        std::cout << "." << std::flush;        
-        NDDSUtility::sleep(wait_period); // let entities get up and running
-    }
 
+    controller_di_w.write();
+    
+    while (!shutdown)  {
+      if (application::shutdown_requested)
+	app_state_obj.setControllerState(MC_SHUT_DOWN);
+
+      switch (app_state_obj.controllerState()) {
+
+      case MC_INIT:
+	std::cout << "\nCONTROLLER STATE: INIT" << std::endl;
+
+        // reset state vars
+        app_state_obj.setThisMCSelected(false);
+        app_state_obj.setAuthorizedForEnergizing(false);
+
+        if (!controller_hb_w.threadRunning())  // Don't restart if reset DI
+	  controller_hb_w.runThread();         // start sending heartbeat
+            
+        app_state_obj.setControllerState(MC_DISCOVERY);
+	break;
+      
+      case MC_DISCOVERY:
+	std::cout << "D " << std::flush; // sit printing 'Ds' while discovering MC
+        // receiving DI will set the deviceId
+        if (app_state_obj.deviceIdSet())
+	  app_state_obj.setControllerState(MC_FOUND_NEW_DEVICE);
+        break;
+	    
+      case MC_FOUND_NEW_DEVICE:
+	std::cout << "F " << std::flush; // sit printing 'Fs' while FOUND_NEW_DEVICE
+            
+	// hold here until this MC has been selected and the device is authorized
+	// for energizing (device request and is granted from the request topic
+        if (app_state_obj.thisMCSelected() && app_state_obj.authorizedForEnergizing())
+	  // go to background Idle waiting for AuthorizationToPowerupRequest
+          app_state_obj.setControllerState(MC_ENERGIZE);
+	break;
+	
+      case MC_ENERGIZE:
+	std::cout << "\nCONTROLLER STATE: ENERGIZE" << std::endl;
+
+	std::cout << "Controller Energizing device: " << app_state_obj.deviceID()
+		  << " , current State: " << app_state_obj.deviceStartStopPresentLevel()
+		  << std::endl;
+
+	// In example, if we find a device is off, we'll turn it on, here since
+	// we know the device just announced itself and the request is sent
+	// reliably we only need to send it once. If the device goes away, we'll
+	// loose heartbeat and expect to go back through DISCOVERY with it.
+	if (app_state_obj.deviceStartStopPresentLevel() == tms::ESSL_OFF) {
+	  // we are going to go from OFF -> OPERATIONAL - a real device probably
+	  // would need to transition through other states. Below we'll hand in
+	  // the deviceId only because in a real system the MC might be tracking
+	  // an array of app_state_objs
+          controller_ess_req_w.write(app_state_obj.deviceID(), tms::ESSL_OPERATIONAL);
+	}
+	app_state_obj.setControllerState(MC_WAIT_CMD_IDLE);
+	break;
+	
+      case MC_WAIT_CMD_IDLE:
+	std::cout << "." << std::flush;
+	break;
+	      
+      case MC_SHUT_DOWN:
+	std::cout << "\nCONTROLLER STATE: SHUTDOWN" << std::endl;
+        shutdown = true;
+	break;
+	
+      case MC_ERROR:
+      default:
+	std::cout << "\nCONTROLLER STATE: ERROR - Unexpected Event, resetting Target Device"
+		  << std::endl;
+	app_state_obj.setControllerState(MC_SHUT_DOWN);
+      };
+
+      NDDSUtility::sleep(wait_period); // let entities get up and running
+ 
+    };
+
+    // ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
+    // controller_mmo_w.join() # uncomment if Thread Monitor vs. Listener used 
+    std::cout << "Device Exiting" << std::endl;
+    
     if (controller_hb_w.threadRunning()) // in case ^C hit prior to thread running
       pthread_cancel(controller_hb_w.Writer::getThreadId());
     pthread_cancel(controller_hb_r.Reader::getThreadId());
@@ -215,6 +290,7 @@ extern "C" int run_controller_application(int domain_id) {
     // give threads a second to shut down
     NDDSUtility::sleep(wait_period); // give time for entities to shutdown
 
+    /**
     // deleting topics, seems the python threads hang if you abruptly terminate
     // readers to topics with deadlines?
     controller_hb_r.deleteTopic();
@@ -228,6 +304,7 @@ extern "C" int run_controller_application(int domain_id) {
     controller_ess_state_r.deleteTopic();
     controller_ate_reply_w.deleteTopic();
     controller_ess_req_w.deleteTopic();
+    **/
     
     /* Delete all entities */
     return participant_shutdown(participant);
