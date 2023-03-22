@@ -234,7 +234,9 @@ extern "C" int run_controller_application(int domain_id) {
 	std::cout << "\nCONTROLLER STATE: ENERGIZE" << std::endl;
 
 	std::cout << "Controller Energizing device: " << app_state_obj.deviceID()
-		  << " , current State: " << app_state_obj.deviceStartStopPresentLevel()
+		  << " , current State: "
+		  << app_state_obj.energyLevelEnumText(app_state_obj.deviceStartStopPresentLevel())
+		  << "\n"
 		  << std::endl;
 
 	// In example, if we find a device is off, we'll turn it on, here since

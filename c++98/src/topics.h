@@ -150,6 +150,37 @@ namespace topics
     enum tms::EnergyStartStopLevel deviceStartStopFutureLevel(void) {
       return this->device_start_stop_future_level;
     }
+
+    std::string energyLevelEnumText(enum tms::EnergyStartStopLevel level) {
+      switch (level) {
+      case tms::ESSL_UNKNOWN:
+	return "ESSL_UNKNOWN";
+	break;
+      case tms::ESSL_ANY:
+	return "ESSL_ANY";
+	break;
+      case tms::ESSL_OFF:
+	return "ESSL_OFF";
+	break;
+      case tms::ESSL_WARM:
+	return "ESSL_WARM";
+	break;
+      case tms::ESSL_IDLE:
+	return "ESSL_IDLE";
+	break;
+      case tms::ESSL_READY:
+	return "ESSL_READY";
+	break;
+      case tms::ESSL_READY_SYNCED:
+	return "ESSL_READY_SYNCED";
+	break;
+      case tms::ESSL_OPERATIONAL:
+	return "ESSL_OPERATIONAL";
+	break;
+      default:
+	return "Level Out of Range";
+      }
+    }
     
     private:
     enum ControllerState controller_state;
@@ -1055,7 +1086,10 @@ namespace topics
       appStateObj->setDeviceStartStopPresentLevel(data->presentLevel);
       appStateObj->setDeviceStartStopFutureLevel(data->futureLevel);
       std::cout << "\nDevice" << data->deviceId
-		<< " Energy State: " << data->presentLevel;
+		<< " Energy State: "
+		<< this->appStateObj->energyLevelEnumText(data->presentLevel)
+		<< "\n"
+		<< std::endl;
  
     };
      
