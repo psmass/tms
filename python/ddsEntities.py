@@ -32,7 +32,10 @@ import rti.connextdds as dds
 class DefaultWriterListener(dds.DynamicData.NoOpDataWriterListener):
     def on_publication_matched(self, writer, status):
         logging.info('%s Listener Callback On Publication Match ', writer.topic_name)
-        logging.info("Writer Subs: {0} {1}".format(status.current_count, status.current_count_change))
+        logging.info("{0} Writer Subs: {1} {2}".
+                     format(writer.topic_name,
+                            status.current_count,
+                            status.current_count_change))
 
 class Writer(Thread):
 
@@ -50,7 +53,7 @@ class Writer(Thread):
         self._status_condition = dds.StatusCondition(self._writer)
         # switch to Mask.NONE and thread blocking condition stops
         self._status_condition.enabled_statuses = dds.StatusMask.PUBLICATION_MATCHED
-        # self._status_condition.enabled_statuses = dds.StatusMask.NONE
+        #self._status_condition.enabled_statuses = dds.StatusMask.NONE
         self._waitset = dds.WaitSet()
         self._waitset += self._status_condition
         logging.info("Writer Topic {w_name} created".format(w_name=self._writer_name))
@@ -69,7 +72,10 @@ class Writer(Thread):
                 status_mask = self._writer.status_changes
                 st = self._writer.publication_matched_status
                 if dds.StatusMask.PUBLICATION_MATCHED in status_mask:
-                    logging.info("Writer Subs: {0} {1}".format(st.current_count, st.current_count_change))
+                    logging.info("{0} Writer Subs: {1} {2}".
+                                 format(self._topic_type_name,
+                                        st.current_count, st.
+                                        current_count_change))
 
             elif self._periodic:  # no active condition, check if periodic
                 self.write()
@@ -137,7 +143,10 @@ class Reader(Thread):
                 status_mask = self._reader.status_changes
                 st = self._reader.subscription_matched_status
                 if dds.StatusMask.SUBSCRIPTION_MATCHED in status_mask:
-                    logging.info( "Reader Pubs: {0} {1}".format(st.current_count, st.current_count_change))
+                    logging.info( "{0} Reader Pubs: {1} {2}".
+                                  format(self._topic_type_name,
+                                         st.current_count,
+                                         st.current_count_change))
 
             if self._read_condition in condition:
                 for (data, info) in filter(lambda s: s.info.valid, self._reader.take()):
