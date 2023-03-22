@@ -38,7 +38,7 @@ def controller_main(domain_id):
     # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
     # (creates: readers, writers, and threads). All request reader topics also need
     # need the request response writer to post a response.
-    # xml app create, so they already exist - here the base clas simply looks
+    # xml app create, so they already exist - here the base class simply looks
     # up the handles so we can manipulate them.
     app_state_obj = topics.ApplicationStateObj(tmsConstants.tms_DeviceRole.ROLE_MICROGRID_CONTROLLER)
 
@@ -122,8 +122,6 @@ def controller_main(domain_id):
     
     print("\n\n **** Starting State Machine")
     logging.info('Starting State Machine')
-
-    controller_di_w.write() # only need to write this once since QoS Durable    
     
     while not shutdown:
         if not application.run_flag:
@@ -135,7 +133,7 @@ def controller_main(domain_id):
             # reset state vars
             app_state_obj._thisMCSelected=False
             app_state_obj._authorizedForEnergizing=False
-
+            controller_di_w.write() # only need to write this once since QoS Durable    
             if not controller_hb_w.is_alive(): # Don't restart if reset DI
                 controller_hb_w.start() # start sending heartbeat
             

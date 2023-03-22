@@ -26,7 +26,7 @@
  needs to see all status and responses from a device unless there are multiple controllers
  where some topic field values are used to load balance.
 
- If you don't which to run writer threads for event or a periodic topics you may omit
+ If you don't wish to run writer threads for event or a periodic topics you may omit
  calling the writer.start(). If you would prefer to use a listener to montior events
  you will need to modify the ddsEntities.py infrastructure file.
 
@@ -249,7 +249,10 @@ class DeviceInfoGD_Rdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
         mcId=data["deviceId"]
         self._app_state_obj.setMCId(mcId)
-        self._app_state_obj.setAppState(constants.DeviceState.INIT)
+        # Need some hysteresis here so the controller and device don't keep
+        # reseting eachother indefinitely upon a reset of one or the other
+        if (self._app_state_obj.appState() != constants.DeviceState.DISCOVERY):
+            self._app_state_obj.setAppState(constants.DeviceState.INIT)
 
 
 # MC DI Topic Writer        
@@ -292,7 +295,10 @@ class DeviceInfoMC_Rdr(ddsEntities.Reader):
         #print (data, end="", flush=True)
         devId=data["deviceId"]
         self._app_state_obj.setDevId(devId)
-        self._app_state_obj.setAppState(constants.ControllerState.INIT)
+        # Need some hysteresis here so the controller and device don't keep
+        # reseting eachother indefinitely upon a reset of one or the other
+        if (self._app_state_obj.appState() != constants.ControllerState.DISCOVERY):
+            self._app_state_obj.setAppState(constants.ControllerState.INIT)
 
 
 # Generator Device Active Microgrid Controller State (MC Selection) Topic Writer        
