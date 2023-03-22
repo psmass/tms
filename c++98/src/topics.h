@@ -414,7 +414,10 @@ namespace topics
 		<< tms::topic::TOPIC_DEVICE_INFO
 		<< std::flush;
       this->appStateObj->setControllerId(data->deviceId);
-      this->appStateObj->setDeviceState(D_INIT);
+      // Need some hysteresis here so the controller and device don't keep
+      // reseting eachother indefinitely upon a reset of one or the other
+      if (this->appStateObj->deviceState() != D_DISCOVERY) 
+	this->appStateObj->setDeviceState(D_INIT);
     };
      
     private:
@@ -488,7 +491,10 @@ namespace topics
 		<< tms::topic::TOPIC_DEVICE_INFO
 		<< std::flush;
       this->appStateObj->setDeviceId(data->deviceId);
-      this->appStateObj->setControllerState(MC_INIT);
+      // Need some hysteresis here so the controller and device don't keep
+      // reseting eachother indefinitely upon a reset of one or the other
+      if (this->appStateObj->controllerState() != MC_DISCOVERY)
+	this->appStateObj->setControllerState(MC_INIT);
     };
      
     private:

@@ -191,8 +191,6 @@ extern "C" int run_controller_application(int domain_id) {
     controller_ate_result_r.runThread();
     controller_reply_r.runThread();
     controller_ess_state_r.runThread();
-
-    controller_di_w.write();
     
     while (!shutdown)  {
       if (application::shutdown_requested)
@@ -206,7 +204,7 @@ extern "C" int run_controller_application(int domain_id) {
         // reset state vars
         app_state_obj.setThisMCSelected(false);
         app_state_obj.setAuthorizedForEnergizing(false);
-
+	controller_di_w.write();
         if (!controller_hb_w.threadRunning())  // Don't restart if reset DI
 	  controller_hb_w.runThread();         // start sending heartbeat
             
