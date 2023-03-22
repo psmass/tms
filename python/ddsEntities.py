@@ -48,7 +48,9 @@ class Writer(Thread):
         self._sample = dds.DynamicData(self._topic_type)
         self._writer = dds.DynamicData.DataWriter.find_by_name(participant, self._writer_name)
         self._status_condition = dds.StatusCondition(self._writer)
+        # switch to Mask.NONE and thread blocking condition stops
         self._status_condition.enabled_statuses = dds.StatusMask.PUBLICATION_MATCHED
+        # self._status_condition.enabled_statuses = dds.StatusMask.NONE
         self._waitset = dds.WaitSet()
         self._waitset += self._status_condition
         logging.info("Writer Topic {w_name} created".format(w_name=self._writer_name))
@@ -62,12 +64,13 @@ class Writer(Thread):
         # not return until program exit. It's while loop periodicity should
         # be set to 1 or more seconds or the rate of writing a periodic topic
         while application.run_flag:
-            active = self._waitset.wait(self._period)
-            if self._status_condition in active:
+            condition = self._waitset.wait(self._period)
+            if self._status_condition in condition:
                 status_mask = self._writer.status_changes
                 st = self._writer.publication_matched_status
                 if dds.StatusMask.PUBLICATION_MATCHED in status_mask:
                     logging.info("Writer Subs: {0} {1}".format(st.current_count, st.current_count_change))
+
             elif self._periodic:  # no active condition, check if periodic
                 self.write()
     
@@ -129,14 +132,14 @@ class Reader(Thread):
         while application.run_flag:
             # Get the StatusCondition associated with the reader and set the mask to get liveliness updates
             # change Status condition for matched publishers
-            active = self._waitset.wait(4.0)
-            if self._status_condition in active:
+            condition = self._waitset.wait(4.0)
+            if self._status_condition in condition:
                 status_mask = self._reader.status_changes
                 st = self._reader.subscription_matched_status
                 if dds.StatusMask.SUBSCRIPTION_MATCHED in status_mask:
                     logging.info( "Reader Pubs: {0} {1}".format(st.current_count, st.current_count_change))
 
-            if self._read_condition in active:
+            if self._read_condition in condition:
                 for (data, info) in filter(lambda s: s.info.valid, self._reader.take()):
                     self.handler(data) # execute the reader specific handler to parse topic
                     #print(data)
