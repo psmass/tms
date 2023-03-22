@@ -63,8 +63,6 @@ def controller_main(domain_id):
     controller_di_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
                                         dds.StatusMask.ALL)
 
-
-    
     # *** START READER THREADS (Reads data and monitors statuses)
     controller_di_r.start()
     controller_hb_r.start()
@@ -73,14 +71,6 @@ def controller_main(domain_id):
     controller_ate_result_r.start()
     controller_reply_r.start()
     controller_ess_state_r.start()
-
-
-    # *** START WRITER LISTENERS or MONITOR THREADS (This step Optional)
-    # controller_di_w.start() # start a statuses monitor thread on the DA Writer
-    # or...#listener, Heartbeat is periodic and runs in a thread.
-    controller_di_w.writer.set_listener(ddsEntities.DefaultWriterListener(),
-                                    dds.StatusMask.ALL)
-
 
     sleep(5) # wait for threads to spin up and settle printing (output readability)
 
