@@ -191,6 +191,56 @@ extern "C" int run_controller_application(int domain_id) {
     controller_ate_result_r.runThread();
     controller_reply_r.runThread();
     controller_ess_state_r.runThread();
+
+    // CONTROLLER STATE MACHINE 
+    //
+    // The SM is transitioned by receiving specific commands / responses
+    // while in specific states (or from a specific state). A Request Response
+    // will not transition the SM. But must be received and correlated using
+    // the sequence  number. It is assumed only one request is allowed to be
+    // outstanding at a time. No further requests may be made until the
+    // outstanding request is cleared (either by receiving a correlated RR
+    // or manually via the app_state_obj.clearOutstandingReq().)
+    //
+    // The state machine will transition to ERROR if an unexpected command
+    // or response is received (i.e., the SM is not in the proper state
+    // to expect one) 
+    //
+    // INIT - send DI, ESS State and start  Heartbeat. Transition to DISCOVERY
+    //        reset state vars reset from DI. Note DI setMCId so leave that
+    //        the _mcIdSet flag true
+    //
+    // DISCOVERY - wait for Device DI.
+    //             Transition to FOUND_NEW_DEVICE
+    //
+    // FOUND_NEW_DEVICE -  We check that this MC has been selected and that the
+    //            device is AuthorizedForEnergization
+    //
+    // POWER_UP_AUTH - Note used - Powerup reply is sent when we recieve
+    //                 (from the) the Powerup request topic reader        
+    //
+    // WAIT_CMD_IDLE - Idle State, check for things to do and do them
+    //
+    // ENERGIZE - This state is transitioned to after FOUND_NEW_DEVICE
+    //            we check that the device is OFF and send a request to
+    //            EngergizeStartStop OPERATIONAL. Here, we don't bother
+    //            to repeat the request but assume it was received since
+    //            loss of device would be noted wiht loss of Heartbeat and
+    //            the request to energize is sent reliable.
+    //
+    // SHUT_DOWN   Device has been turned-off (CTRL-C) - Shutdown
+    //
+    // ERROR       For a given state an unexpected command or event
+    //             occured (SM has no basis to select next state)
+    //
+    // default     Logical default if no states were matched, (theortically
+    //             can't occur, unless bug in Device code)
+    
+
+     
+    std::cout << "\n\n **** Starting Controller State Machine" << std::endl;
+
+    app_state_obj.setControllerState(MC_INIT); // c'tor set to INIT anyway
     
     while (!shutdown)  {
       if (application::shutdown_requested)

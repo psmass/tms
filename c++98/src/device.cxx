@@ -232,12 +232,10 @@ extern "C" int run_device_application(int domain_id) {
     // ERROR         For a given state an unexpected command or event
     //               occured (SM has no basis to select next state)
     //
-    // else          Logical default if no states were matched, (theortically
+    // default       Logical default if no states were matched, (theortically
     //               can't occur, unless bug in Device code)
-    //
-    //
 
-    std::cout << "\n\n **** Starting State Machine" << std::endl;
+    std::cout << "\n\n **** Starting Device State Machine" << std::endl;
 
     app_state_obj.setDeviceState(D_INIT); // c'tor set to INIT anyway
     int count_in_state = 0;
@@ -341,7 +339,6 @@ extern "C" int run_device_application(int domain_id) {
     pthread_cancel(device_ess_req_r.Reader::getThreadId());
 
     delete listener;
-
 
     NDDSUtility::sleep(wait_period);   // give threads a second to shut down
     
