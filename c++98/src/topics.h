@@ -572,7 +572,7 @@ namespace topics
 		<< std:: endl;
       this->appStateObj->setThisMCSelected(true);
       // masterId is an optional field so the ptr has to be tested
-      if (data->masterId == (DDS_Char) NULL)
+      if (data->masterId == NULL)
 	std::cout << "Optional field MasterId not populated";
 	else
 	  std::cout << "Optional Field MasterId is populated: "

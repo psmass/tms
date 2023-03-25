@@ -87,7 +87,7 @@ class TopicRdr : public entities::Reader {
         void process_data(const DDSConditionSeq active_conditions_seq);
         // override for specific topic process_data 
         virtual void handler(const T * data) { // default prints the data
-	  std::cout << "\nDefault Reader Handler (should be overriden)" << std::cout;
+	  std::cout << "\nDefault Reader Handler (should be overriden)" << std::endl;
             S::print_data(data); 
         };
         
