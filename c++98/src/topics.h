@@ -39,6 +39,8 @@
 #define TOPICS_H
 
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 #include "ddsEntities.h"
 #include "tmsExampleApp.h"
 #include "tmsExampleAppSupport.h"
@@ -371,10 +373,14 @@ namespace topics
 	this->appStateObj=appStateObj;
 	this->getTopicSample()->deviceId = appStateObj->myID(); // load my device ID
 	this->getTopicSample()->role = appStateObj->myRole();   // load device role
-	// example of multinested assignment
+ 	// example of multinested assignments
+	// each sequence must declare the maximum length
 	this->getTopicSample()->product.modelName = (DDS_Char *)"MyGeneratorDevice";
-
-	
+        this->getTopicSample()->topics.dataModelVersion=(DDS_Char *) tms::TMS_VERSION;
+	this->getTopicSample()->topics.publishedConditionalTopics.length(1); // or tms::TopicList_MAXLEN
+	this->getTopicSample()->topics.publishedConditionalTopics[0]=(DDS_Char *) tms::topic::TOPIC_DEVICE_INFO;
+	this->getTopicSample()->powerDevice->powerPorts.length(1); // tms::PowerPortInfoSequence_MAXLEN
+	this->getTopicSample()->powerDevice->powerPorts[0].hasSwitch=true;
       };
          
     private:

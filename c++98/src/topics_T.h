@@ -352,7 +352,12 @@ TopicWtr<T,S,W>::TopicWtr(
             }  
     
         // Create data for writing, allocating all members
-        this->topicSample=S::create_data();
+	// TODO: May want to pass in the allocation of optional data
+	//  "set_allocate_optional_members..."
+        this->topicSample=S::create_data(DDS_TypeAllocationParams_t(). \
+					 set_allocate_optional_members( \
+					 DDS_BOOLEAN_TRUE)\
+					 );
         if (this->topicSample == NULL) {
             throw std::invalid_argument("Writer thread: create data error");
         } 

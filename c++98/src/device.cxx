@@ -139,6 +139,13 @@ extern "C" int run_device_application(int domain_id) {
     // create a filter for the ConfigureDeviceReader
     Cft cdr_cft(param_list, "targetDeviceId.resourceId = %0, targetDeviceId.id=%1" );
     */
+
+    DDS_Long resourceId = 123456;
+
+    std::string s1 = std::to_string(resourceId);
+
+    const char * param_list[] = { s1.c_str(), NULL };
+    topics::Cft ate_cft(param_list, "deviceId = %0" );
     
     topics::HeartbeatGD_Rdr device_hb_r(participant,
 					subscriber,
