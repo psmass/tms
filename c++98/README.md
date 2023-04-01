@@ -13,10 +13,15 @@ The example code was built with the following environment.
 
 2. From build type the following.
 from c++/src> mkdir build, cd build (any of the following)
+
 `cmake ..`
+
 `cmake -DBUILD_SHARED_LIBS=ON ..`
+
 `cmake -DCMAKE_BUILD_TYPE=Debug ..`
+
 `cmake -DBUILD_SHARED_LIBS=ON -DCONNEXTDDS_ARCH=x64Darwin17clang9.0 -DCMAKE_BUILD_TYPE=Debug ..`
+
 `cmake -DBUILD_SHARED_LIBS=ON -DCONNEXTDDS_ARCH=x64Linux4gcc7.3.0 (5.4.0 also good) -DCMAKE_BUILD_TYPE=Debug ..`
 
 3. The project can be built from the command line.
