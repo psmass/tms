@@ -41,6 +41,10 @@ Device and Controller must be executed from the src directory.
 (you should not need to set the rti env variables to run, but not a problem if you do)
 e.g. ./src/build/Device  ./src/build/Controller
 
+## Use with Visual Studio Code (Debugging w/LLDB)
+compile a debug version per above (can't compile with VSC yet)
+(note both the cmake .. file debug and the makefile debug (cmake --build . -- config debug)
+Select debug 'tab' on right, select runDeviceDebug(c++98) or runControlerDebug(c++98) from the pulldown
 
 ## Issues
 RUN Scripts in toplevel dir broken
