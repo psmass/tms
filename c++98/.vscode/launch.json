@@ -22,10 +22,10 @@
             "name": "runControllerDebug",
             "type": "lldb",
             "request": "launch",
-            //"program": "${workspaceFolder}/src/build/Controller",
+            "program": "${workspaceFolder}/src/build/Controller",
             "args": [],
             //"stopAtEntry": false,
-            "preLaunchTask": "runControllerDebug"
+            "preLaunchTask": "setRtiEnv7.0"
         },
         {
             "name": "g++ - Build and Run Pub",
