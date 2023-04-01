@@ -1,0 +1,103 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "runControllerDebug",
+            "type": "shell",
+            "command": "source /Applications/rti_connext_dds-7.0.0/resource/scripts/rtisetenv_x64Darwin17clang9.0.bash; ./src/build/Controller",
+        },
+        {
+            "label": "Build All",
+            "type": "shell",
+            "command": "make all",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build Clean",
+            "type": "shell",
+            "command": "make clean",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "setRtiEnv7.0",
+            "type": "shell",
+            "command": "source /Applications/rti_connext_dds-7.0.0/resource/scripts/rtisetenv_x64Darwin17clang9.0.bash",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build/Run Publisher",
+            "type": "shell",
+            "command": "./objs/x64Darwin17Clang9.0/ShapeType_publisher",
+            "dependsOn": [
+                "Build Clean",
+                "Build All"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build/Debug Publisher",
+            "type": "shell",
+            "command": "./objs/x64Darwin17Clang9.0/ShapeType_publisher",
+            "dependsOn": [
+                "Build Clean",
+                "Build Debug"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run Subscriber",
+            "type": "shell",
+            "command": "./objs/x64Darwin17Clang9.0/ShapeType_subscriber; ./src/build/Controller",
+        },
+        {
+            "label": "Build/Run Subscriber",
+            "type": "shell",
+            "command": "./objs/x64Darwin17Clang9.0/ShapeType_subscriber",
+            "dependsOn": [
+                "Build Clean",
+                "Build All"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build/Debug Subscriber",
+            "type": "shell",
+            "command": "./objs/x64Darwin17Clang9.0/ShapeType_subscriber",
+            "dependsOn": [
+                "Build Clean",
+                "Build Debug"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

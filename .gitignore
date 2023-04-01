@@ -6,3 +6,5 @@ python/#*
 python/__pycache__/*
 python/venv/*
 python/*.log
+.DS_Store
+c++98/.DS_Store

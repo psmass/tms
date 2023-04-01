@@ -91,6 +91,14 @@ namespace topics
 	return this->deviceId;
     }
 
+    // Places single quotes around strings as required for DDS content filter on strings
+    void parameratizeStr(std::string * my_str) {
+      my_str->insert (0, 1, '\'');
+      my_str->insert(my_str->size(),1,'\'');
+      return;
+    }
+      
+
     DDS_Char * controllerID(void) { return this->masterControllerId; }
 
     DDS_Char * deviceID(void) { return this->deviceId;}
@@ -703,7 +711,7 @@ namespace topics
     public:
       ATEReplyGD_Rdr(DDSDomainParticipant * participant, 
                      const DDSSubscriber * subscriber,
-		     const Cft filter,   // Not Used - pass in an empty filter
+		     const Cft filter,   
 		     ApplicationStateObj * appStateObj,
 		     ATEResultGD_Wtr * ateResultGD_Wtr
                      ) :

@@ -144,10 +144,13 @@ TopicRdr<T,S,R, D>::TopicRdr(
 	}
 
         if (filter.filter ==true) { // create a filter topic
- 
+	    // need unique filter names - use topicNameCFT
+	    std::string filter_name = this->topicName;
+	    filter_name.append("CFT");
+	  
             DDSContentFilteredTopic *cft = NULL;
             cft = ((DDSDomainParticipant *)participant)->create_contentfilteredtopic(
-                    "ContentFilteredTopic",
+		    (const char *)&filter_name,
                     topic,
                     filter.filter_expression,
                     filter.parameters);

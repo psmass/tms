@@ -140,12 +140,12 @@ extern "C" int run_device_application(int domain_id) {
     Cft cdr_cft(param_list, "targetDeviceId.resourceId = %0, targetDeviceId.id=%1" );
     */
 
-    DDS_Long resourceId = 123456;
+    std::string p1 = app_state_obj.myID();
+    app_state_obj.parameratizeStr(&p1);
 
-    std::string s1 = std::to_string(resourceId);
-
-    const char * param_list[] = { s1.c_str(), NULL };
-    topics::Cft ate_cft(param_list, "deviceId = %0" );
+    const char * param_list[] = { p1.c_str(), NULL };
+    topics::Cft ate_reply_cft(param_list, "relatedRequestId.requestingDeviceId = %0" );
+    topics::Cft ess_req_cft(param_list, "requestId.targetDeviceId = %0");
     
     topics::HeartbeatGD_Rdr device_hb_r(participant,
 					subscriber,
@@ -169,7 +169,7 @@ extern "C" int run_device_application(int domain_id) {
     topics::ATEResultGD_Wtr device_ate_result_w(participant, publisher, &app_state_obj);
     topics::ATEReplyGD_Rdr device_ate_reply_r(participant,
 					      subscriber,
-					      cft,
+					      ate_reply_cft,
 					      &app_state_obj,
 					      &device_ate_result_w
 					      );
@@ -177,7 +177,7 @@ extern "C" int run_device_application(int domain_id) {
     topics::ReplyGD_Wtr device_reply_w(participant, publisher, &app_state_obj);
     topics::ESSReqGD_Rdr device_ess_req_r(participant,
 					  subscriber,
-					  cft,
+					  ess_req_cft,
 					  &app_state_obj,
 					  &device_reply_w);
     topics::ESSStateGD_Wtr device_ess_state_w(participant, publisher, &app_state_obj);

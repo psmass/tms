@@ -1,0 +1,57 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "runDeviceDebug",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/build/Device",
+            "args": [],
+            //"stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "relativePathBase":"${workspaceFolder}",
+            //"environment": [],
+            //"externalConsole": false,
+            //"MIMode": "lldb",
+            "preLaunchTask": "setRtiEnv7.0"
+        },
+        {
+            "name": "runControllerDebug",
+            "type": "lldb",
+            "request": "launch",
+            //"program": "${workspaceFolder}/src/build/Controller",
+            "args": [],
+            //"stopAtEntry": false,
+            "preLaunchTask": "runControllerDebug"
+        },
+        {
+            "name": "g++ - Build and Run Pub",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/objs/x64Darwin17clang9.0/ShapeType_publisher",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "Build/Run Publisher"
+        },
+        {
+            "name": "g++ - Build and Run Sub",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/objs/x64Darwin17clang9.0/ShapeType_subscriber",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "Build/Run Subscriber"
+        }
+    ]
+}
