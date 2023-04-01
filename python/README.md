@@ -29,6 +29,8 @@ The example code was built with the following environment.
 
 ## Running Example:
 Device and Controller must be executed from the build directory.
+(You need need a clear terminal with no path to DDS libs or python 
+will go down the wrong path searching for connext python libs)
 > python Device or python3 device
 > python Controller or python3 controller
 
