@@ -15,56 +15,69 @@
 #include <ndds/ndds_cpp.h>
 #include "tmsExampleApp.h"   // rti generated file from idl to use model const Topics
 #include "tmsExampleAppSupport.h"
+#include "constants.h"
 #include "ddsEntities.h"
 #include "topics.h"
 #include "application.h"
 
 
-namespace controller
-{
-const char* QOS_URL = "../model_distroA/tmsExampleApp.xml";
+namespace controller {
 
-static int participant_shutdown(DDSDomainParticipant *participant)
+  using namespace application;
+
+  ApplicationArguments Arguments;
+  
+// Delete all entities
+static int participant_shutdown(
+    DDSDomainParticipant *participant,
+    const char *shutdown_message,
+    int status)
 {
     DDS_ReturnCode_t retcode;
-    int status = 0;
+
+    std::cout << shutdown_message << std::endl;
 
     if (participant != NULL) {
+        // Cleanup everything created by this Participant
         retcode = participant->delete_contained_entities();
         if (retcode != DDS_RETCODE_OK) {
-            std::cout <<  "delete_contained_entities error: " << retcode << std::endl;
-            status = -1;
+            std::cerr << "delete_contained_entities error " << retcode
+            << std::endl;
+            status = EXIT_FAILURE;
         }
 
         retcode = DDSTheParticipantFactory->delete_participant(participant);
         if (retcode != DDS_RETCODE_OK) {
-            std::cout <<  "delete_participant error: " << retcode << std::endl;
-            status = -1;
+            std::cerr << "delete_participant error " << retcode << std::endl;
+            status = EXIT_FAILURE;
         }
     }
 
-    /* RTI Connext provides finalize_instance() method on
-       domain participant factory for people who want to release memory used
-       by the participant factory. Uncomment the following block of code for
-       clean destruction of the singleton. */
-
-    /*
-    retcode = DDSDomainParticipantFactory::finalize_instance();
-    if (retcode != DDS_RETCODE_OK) {
-        std::cout << "finalize_instance error" << retcode << std::endl;
-        status = -1;
-    }
-    */
     return status;
 }
 
 
-extern "C" int run_controller_application(int domain_id) {
+extern "C" int run_application(void) {
 
     const char *url_profiles[1] = { QOS_URL }; 
     DDS_Duration_t wait_period = {2,0};
     bool shutdown = false;
 
+    std::string observabilityDomainStr =
+            std::to_string(Arguments.observability_domain_id);
+    DDS_ReturnCode_t retcode;
+
+    application::set_env(
+            "OBSERVABILITY_DOMAIN",
+            observabilityDomainStr.c_str());
+    application::set_env(
+            "COLLECTOR_PEER",
+            Arguments.collector_peer.c_str());
+    application::set_env(
+            "APPLICATION_NAME",
+            Arguments.application_name.c_str());
+
+    
     // https://community.rti.com/static/documentation/connext-dds/5.3.0/doc/manuals/connext_dds/html_files/RTI_ConnextDDS_CoreLibraries_UsersManual/Content/UsersManual/PROFILE_QosPolicy__DDS_Extension__.htm
     // for doing this, but I like the way the Sensor Example uses 
     // TheParticipantFactory too load my_custom_qos_profiles.xml,we need
@@ -80,7 +93,7 @@ extern "C" int run_controller_application(int domain_id) {
     // (with default QoS Profiles, we'll put the  QoS on the Readers and Writers)
      DDSDomainParticipant * participant = 
         DDSTheParticipantFactory->create_participant_with_profile(
-            domain_id,
+            Arguments.domain_id,
             tms::QOS_LIBRARY,
 	    "LargeTopicParticipantQoS", // Device Info topic is huge
             NULL /* listener */,
@@ -88,8 +101,7 @@ extern "C" int run_controller_application(int domain_id) {
     
     if (participant == NULL) {
         std::cout << "create_participant error" << std::endl;
-        participant_shutdown(participant);
-        return -1;
+        return participant_shutdown(participant,"create_participant error", EXIT_FAILURE);
     }
 
     DDSSubscriber * subscriber = participant->create_subscriber(
@@ -98,8 +110,7 @@ extern "C" int run_controller_application(int domain_id) {
             DDS_STATUS_MASK_NONE);
     if (subscriber == NULL) {
         std::cout << "create_subscriber error" << std::endl;
-        participant_shutdown(participant);
-        return -1;
+        return participant_shutdown(participant,"create_subscriber error", EXIT_FAILURE);
     }
 
     DDSPublisher * publisher = participant->create_publisher(
@@ -108,8 +119,7 @@ extern "C" int run_controller_application(int domain_id) {
             DDS_STATUS_MASK_NONE);
     if (publisher == NULL) {
         std::cout << "create_publisher error" << std::endl;
-        participant_shutdown(participant);
-         return -1;
+        return participant_shutdown(participant, "create_publisher error", EXIT_FAILURE); 
     }
 
     // App specific Object used to track global state 
@@ -339,10 +349,9 @@ extern "C" int run_controller_application(int domain_id) {
 
     // give threads a second to shut down
     NDDSUtility::sleep(wait_period); // give time for entities to shutdown
-   
+    
     /* Delete all entities */
-    return participant_shutdown(participant);
-    std::cout << "Controller main thread shutting down" << std::endl;
+    return participant_shutdown(participant, "Controller Shutting down", EXIT_SUCCESS);
 
     // TO_DO do I need a delete_participant call to clean anything up?
 }
@@ -350,23 +359,27 @@ extern "C" int run_controller_application(int domain_id) {
 
 int main(int argc, char *argv[]) {
 
-    using namespace application;
-
-    int domain_id = 0;
-
-    setup_signal_handlers();
-
-    
-    try {
-        return controller::run_controller_application(domain_id);
-    }
-    catch (const std::exception &ex) {
-        // This will catch DDS exceptions
-        std::cerr << "Exception in run_controller_application(): " << ex.what()
-                  << std::endl;
+    // Parse arguments and handle control-C
+    parse_arguments(controller::Arguments, argc, argv, true);
+    if (controller::Arguments.parse_result == application::PARSE_RETURN_EXIT) {
+        return EXIT_SUCCESS;
+    } else if (controller::Arguments.parse_result == application::PARSE_RETURN_FAILURE) {
         return EXIT_FAILURE;
     }
 
-    return EXIT_SUCCESS;
-}
+    // Sets Connext verbosity to help debugging
+    NDDSConfigLogger::get_instance()->set_verbosity(controller::Arguments.verbosity);
+
+    int status = controller::run_application();
+
+    // Releases the memory used by the participant factory.  Optional at
+    // application exit
+    DDS_ReturnCode_t retcode = DDSDomainParticipantFactory::finalize_instance();
+    if (retcode != DDS_RETCODE_OK) {
+        std::cerr << "finalize_instance error " << retcode << std::endl;
+        status = EXIT_FAILURE;
+    }
+
+    return status;
+ }
 

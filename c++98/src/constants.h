@@ -15,12 +15,12 @@
 
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
-/*
-const char* QOS_URL = "../model_distroA/tmsExampleApp.xml";
 
-const DDS_Char * DEVICE1_ID = "DGen1234";
-const DDS_Char *  CONTROLLER1_ID =  "MC0001";
-*/
+#define QOS_URL "../model_distroA/tmsExampleApp.xml"
+
+#define  DEVICE1_ID "DGen1234"
+#define  CONTROLLER1_ID "MC0001"
+
 #define HEARTBEAT_PERIOD {1, 0}
 
 typedef enum ControllerState {

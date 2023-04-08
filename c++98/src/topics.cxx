@@ -16,9 +16,6 @@
 #include <string>
 #include "topics.h"
 
-const DDS_Char * CONTROLLER1_ID =  "MC0001";
-const DDS_Char * DEVICE1_ID = "DGen1234";
-
 extern bool application::shutdown_requested;
 
 using namespace topics;
