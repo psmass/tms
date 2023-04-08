@@ -356,9 +356,8 @@ static int participant_shutdown(
 
     NDDSUtility::sleep(wait_period);   // give threads a second to shut down
 
-    std::cout << "Device main thread shutting down" << std::endl;
     /* Delete all entities */
-    return participant_shutdown(participant, "Shutting down", EXIT_SUCCESS);
+    return participant_shutdown(participant, "DeviceShutting down", EXIT_SUCCESS);
     
 } // run_device_application
 } // namespace device
@@ -367,7 +366,7 @@ static int participant_shutdown(
 int main(int argc, char *argv[]) {
 
     // Parse arguments and handle control-C
-    parse_arguments(device::Arguments, argc, argv, true);
+    parse_arguments(device::Arguments, argc, argv, false);
     if (device::Arguments.parse_result == application::PARSE_RETURN_EXIT) {
         return EXIT_SUCCESS;
     } else if (device::Arguments.parse_result == application::PARSE_RETURN_FAILURE) {

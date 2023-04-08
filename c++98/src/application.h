@@ -174,35 +174,26 @@ namespace application {
                 std::cout << "Usage:\n"\
                 "    -n, --application-name     <str>   Application name\n"
                 "                                       Default:\n" 
-                "                                       Controller_<init_id>\n"
-                "    -d, --domain               <int>   Application domain ID\n"
-                "                                       Default: 0\n"
-                "    -o, --observability-domain <int>   Domain for sending telemetry\n"
-                "                                       data\n"
-                "                                       Default: 2\n"
-                "    -c, --collector-peer       <int>   Collector Service peer\n"
-                "                                       Default: udpv4://localhost\n"
-                "    -v, --verbosity            <int>   How much debugging output to show\n"
-                "                                       Range: 0-3 \n"
-                "                                       Default: 1"
-                << std::endl;
+		"                                       Controller_<init_id>\n";
             } else {
                 std::cout << "Usage:\n"\
                 "    -n, --application-name     <str>   Application name\n"
                 "                                       Default:\n" 
-                "                                       Device_<init_id\n"
+		"                                       Device_<init_id\n";
+	    }
+	    std::cout << \
                 "    -d, --domain               <int>   Application domain ID\n"
                 "                                       Default: 0\n"
                 "    -o, --observability-domain <int>   Domain for sending telemetry\n"
                 "                                       data\n"
                 "                                       Default: 2\n"
-                "    -c, --collector-peer       <int>   Collector Service peer\n"
+                "    -c, --collector-peer       <str>   Collector Service peer\n"
+	        "                                       udpv4_wan\n"
                 "                                       Default: udpv4://localhost\n"
                 "    -v, --verbosity            <int>   How much debugging output to show\n"
                 "                                       Range: 0-3\n"
                 "                                       Default: 1"
                 << std::endl;
-            }
         } else {
 	  std::cout << "Running with parameters:\n" 
                     << "\tApplication Resource Name: " << "/applications/" << arguments.application_name << std::endl
