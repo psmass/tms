@@ -44,6 +44,7 @@ namespace application {
         int observability_domain_id;
         std::string application_name;
         NDDS_Config_LogVerbosity verbosity;
+        std::string participant_profile;
     };
 
     inline void set_verbosity(
@@ -100,10 +101,11 @@ namespace application {
         arguments.sample_count = INT_MAX;
 	arguments.init_id = 0;
         arguments.verbosity = NDDS_CONFIG_LOG_VERBOSITY_ERROR;
-        arguments.collector_peer = "udpv4://localhost";
+        arguments.collector_peer = ""; // default no collector
         arguments.observability_domain_id = 2;
         arguments.parse_result = PARSE_RETURN_OK;
         arguments.application_name = "";
+	arguments.participant_profile = "LargeTopicParticipantQoS"; // default no observability
 
         while (arg_processing < argc) {
             if ((argc > arg_processing + 1)
@@ -127,6 +129,14 @@ namespace application {
                                     == 0)) {
                 arguments.collector_peer = argv[arg_processing + 1];
                 arg_processing += 2;
+		if (arguments.collector_peer == "udpv4_lan") {
+		  arguments.collector_peer = "udpv4://localhost";
+                  arguments.participant_profile = "Participant_Profile_With_Observability_Over_LAN";
+		} else if (arguments.collector_peer.c_str() == "udpv4_wan") {
+		  arguments.participant_profile = "Participant_Profile_With_Observability_Over_LAN";
+                } else { // default no Observabilty
+                arguments.participant_profile = "LargeTopicParticipantQoS";
+		}
             } else if (
                     (argc > arg_processing + 1)
                     && (strcmp(argv[arg_processing], "-o") == 0
@@ -164,7 +174,7 @@ namespace application {
 	      arguments.application_name = "Controller_"
 		+ (std::string)CONTROLLER1_ID;
             } else {
-	      arguments.application_name = "device_"
+	      arguments.application_name = "Device_"
 		+  (std::string)DEVICE1_ID;
             }
         }
@@ -189,7 +199,8 @@ namespace application {
                 "                                       Default: 2\n"
                 "    -c, --collector-peer       <str>   Collector Service peer\n"
 	        "                                       udpv4_wan\n"
-                "                                       Default: udpv4://localhost\n"
+	        "                                       udpv4_lan (//localhost)\n"
+                "                                       Default: (no Observabilty)"
                 "    -v, --verbosity            <int>   How much debugging output to show\n"
                 "                                       Range: 0-3\n"
                 "                                       Default: 1"
@@ -201,6 +212,7 @@ namespace application {
                     << "\tInit ID: " << arguments.init_id << std::endl
                     << "\tObservability Domain: " << arguments.observability_domain_id << std::endl
                     << "\tCollector Peer: " << arguments.collector_peer << std::endl
+	            << "\tUseing Participant Library: " << arguments.participant_profile << std::endl
                     << "\tVerbosity: " << verbosity << std::endl;
 	}
     }

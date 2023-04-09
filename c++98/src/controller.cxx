@@ -95,7 +95,7 @@ extern "C" int run_application(void) {
         DDSTheParticipantFactory->create_participant_with_profile(
             Arguments.domain_id,
             tms::QOS_LIBRARY,
-	    "LargeTopicParticipantQoS", // Device Info topic is huge
+	    Arguments.participant_profile.c_str(), // Device Info topic is huge
             NULL /* listener */,
             DDS_STATUS_MASK_NONE);
     

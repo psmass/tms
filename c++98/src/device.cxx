@@ -73,8 +73,7 @@ static int participant_shutdown(
     application::set_env(
             "APPLICATION_NAME",
             Arguments.application_name.c_str());
-
-
+    
     // *** STANDUP PARTICIPANT AND PUBLISHER AND SUBSCRIBER ENTITIES
     // *
     // https://community.rti.com/static/documentation/connext-dds/5.3.0/doc/manuals/connext_dds/html_files/RTI_ConnextDDS_CoreLibraries_UsersManual/Content/UsersManual/PROFILE_QosPolicy__DDS_Extension__.htm
@@ -94,7 +93,7 @@ static int participant_shutdown(
         DDSTheParticipantFactory->create_participant_with_profile(
 	    Arguments.domain_id,
             tms::QOS_LIBRARY,
-	    "LargeTopicParticipantQoS",  // Device Info Topic is huge
+	    Arguments.participant_profile.c_str(),  // Device Info Topic is huge
             NULL /* listener */,
             DDS_STATUS_MASK_NONE);
     if (participant == NULL) {
