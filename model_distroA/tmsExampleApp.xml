@@ -1433,6 +1433,92 @@
           </receiver_pool>
         </domain_participant_qos>
       </qos_profile>
+              <!-- QoS profile used to configure the Observability Library to send
+            telemetry data over the WAN using the Real-Time WAN Transport.
+        -->
+        <qos_profile name="Observability_Distribution_Over_WAN" base_name="BuiltinQosLib::Generic.Observability">
+            <base_name>
+                <element>BuiltinQosSnippetLib::Transport.UDP.WAN</element>
+            </base_name>
+            <domain_participant_qos>
+                <discovery>
+                    <initial_peers>
+                        <element>$(COLLECTOR_PEER)</element>
+                    </initial_peers>
+                </discovery>
+            </domain_participant_qos>
+        </qos_profile>
+
+        <!-- QoS profile used to configure the Observability Library to send
+            telemetry data over the LAN using the UDPv4 Transport.
+        -->
+        <qos_profile name="Observability_Distribution_Over_LAN" base_name="BuiltinQosLib::Generic.Observability">
+            <domain_participant_qos>
+                <discovery>
+                    <initial_peers>
+                        <element>$(COLLECTOR_PEER)</element>
+                    </initial_peers>
+                </discovery>
+            </domain_participant_qos>
+        </qos_profile>
+
+        <!-- This snippet enables Observability on the Temperature example. -->
+        <qos_profile name="Enable_Observability">
+            <?rti-qos_snippet?>
+            <base_name>
+                <element>BuiltinQosSnippetLib::Feature.Observability.Enable</element>
+            </base_name>
+            <participant_factory_qos>
+                <monitoring>
+                    <application_name>$(APPLICATION_NAME)</application_name>
+                    <distribution_settings>
+                        <dedicated_participant>
+			  <domain_id>$(OBSERVABILITY_DOMAIN)</domain_id>
+                        </dedicated_participant>
+                    </distribution_settings>
+                </monitoring>
+            </participant_factory_qos>
+        </qos_profile>
+
+        <!-- QoS profile used to enable Observability over LAN for the Temperature 
+            example applications.
+        -->
+        <qos_profile name="Participant_Profile_With_Observability_Over_LAN" base_name="LargeTopicParticipantQoS">
+            <base_name>
+                <element>TMSQoSLib::Enable_Observability</element>
+            </base_name>
+            <participant_factory_qos>
+                <monitoring>
+                    <distribution_settings>
+                        <dedicated_participant>
+                            <participant_qos_profile_name>
+                                TMSQoSLib::Observability_Distribution_Over_LAN
+                            </participant_qos_profile_name>
+                        </dedicated_participant>
+                    </distribution_settings>
+                </monitoring>
+            </participant_factory_qos>
+        </qos_profile>
+
+        <!-- QoS profile used to enable Observability over WAN for the Temperature 
+            example applications.
+        -->
+        <qos_profile name="Participant_Profile_With_Observability_Over_WAN" base_name="LargeTopicParticipantQoS">
+            <base_name>
+                <element>TMSQoSLib::Enable_Observability</element>
+            </base_name>
+            <participant_factory_qos>
+                <monitoring>
+                    <distribution_settings>
+                        <dedicated_participant>
+                            <participant_qos_profile_name>
+                                TMSQoSLib::Observability_Distribution_Over_WAN
+                            </participant_qos_profile_name>
+                        </dedicated_participant>
+                    </distribution_settings>
+                </monitoring>
+            </participant_factory_qos>
+        </qos_profile>
     </qos_library>
 
     <domain_library name="MyDomainLib">
