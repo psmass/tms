@@ -81,19 +81,40 @@ static int participant_shutdown(
     // TheParticipantFactory too load my_custom_qos_profiles.xml,we need
     // to modify the factory_qos profile
     DDS_DomainParticipantFactoryQos factory_qos;
-    DDSTheParticipantFactory->get_qos(factory_qos);
-
     // We are only going to add one XML file to the url_profile sequence
+    retcode = DDSTheParticipantFactory->get_qos(factory_qos);
     factory_qos.profile.url_profile.from_array(url_profiles, 1);
-    DDSTheParticipantFactory->set_qos(factory_qos);
+
+    retcode = DDSTheParticipantFactory->set_qos(factory_qos);
+    if (retcode != DDS_RETCODE_OK) {
+        return participant_shutdown( NULL, "set_qos error", EXIT_FAILURE);
+    } 
+
+    retcode = DDSTheParticipantFactory->get_participant_factory_qos_from_profile(
+            factory_qos,
+            tms::QOS_LIBRARY,
+	    Arguments.participant_profile.c_str());  // Device Info Topic is huge
+    
+    if (retcode != DDS_RETCODE_OK) {
+        return participant_shutdown(
+                NULL,
+                "get_participant_factory_qos_from_profile error",
+                EXIT_FAILURE);
+    }
+    
+    factory_qos.profile.url_profile.from_array(url_profiles, 1);
+    
+    retcode = DDSTheParticipantFactory->set_qos(factory_qos);
+    if (retcode != DDS_RETCODE_OK) {
+        return participant_shutdown( NULL, "set_qos error", EXIT_FAILURE);
+    } 
 
     // create DDS containser entities: Participant, Publisher and Subscriber
     // (with default QoS Profiles, we'll put the  QoS on the Readers and Writers)
      DDSDomainParticipant * participant = 
-        DDSTheParticipantFactory->create_participant_with_profile(
+        DDSTheParticipantFactory->create_participant(
 	    Arguments.domain_id,
-            tms::QOS_LIBRARY,
-	    Arguments.participant_profile.c_str(),  // Device Info Topic is huge
+            DDS_PARTICIPANT_QOS_DEFAULT,
             NULL /* listener */,
             DDS_STATUS_MASK_NONE);
     if (participant == NULL) {
