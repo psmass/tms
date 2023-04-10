@@ -1,5 +1,6 @@
+c++98/src/tmsExampleApp*.*
 c++98/src/build/*
-c++98/src/tmsExampleApp*
+c++98/objs/*
 python/*~
 python/.#*
 python/#*
