@@ -358,7 +358,7 @@ static int participant_shutdown(
 	  app_state_obj.setDeviceState(D_SHUT_DOWN);
       };
             
-      NDDSUtility::sleep(wait_period); // let entities get up and running
+      NDDSUtility::sleep(wait_period); // state machine period
     };
     
     // ** SHUTDOWN READER THREADS (and WRITER THREADS, if used) AND EXIT
@@ -385,6 +385,8 @@ static int participant_shutdown(
 
 int main(int argc, char *argv[]) {
 
+    application::setup_signal_handlers();
+    
     // Parse arguments and handle control-C
     parse_arguments(device::Arguments, argc, argv, false);
     if (device::Arguments.parse_result == application::PARSE_RETURN_EXIT) {

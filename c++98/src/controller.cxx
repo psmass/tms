@@ -327,7 +327,7 @@ extern "C" int run_application(void) {
 	app_state_obj.setControllerState(MC_SHUT_DOWN);
       };
 
-      NDDSUtility::sleep(wait_period); // let entities get up and running
+      NDDSUtility::sleep(wait_period); // state machine period
  
     };
 
@@ -359,6 +359,8 @@ extern "C" int run_application(void) {
 
 int main(int argc, char *argv[]) {
 
+    application::setup_signal_handlers();
+
     // Parse arguments and handle control-C
     parse_arguments(controller::Arguments, argc, argv, true);
     if (controller::Arguments.parse_result == application::PARSE_RETURN_EXIT) {
@@ -369,9 +371,9 @@ int main(int argc, char *argv[]) {
 
     // Sets Connext verbosity to help debugging
     NDDSConfigLogger::get_instance()->set_verbosity(controller::Arguments.verbosity);
-
+    
     int status = controller::run_application();
-
+    
     // Releases the memory used by the participant factory.  Optional at
     // application exit
     DDS_ReturnCode_t retcode = DDSDomainParticipantFactory::finalize_instance();
