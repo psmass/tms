@@ -1457,9 +1457,9 @@
         -->
         <qos_profile name="Observability_Distribution_Over_LAN" base_name="BuiltinQosLib::Generic.Observability">
           <domain_participant_qos>
-	    <transport_builtin>
+	    <!--transport_builtin>
 	      <mask>UDPv4</mask>
-	    </transport_builtin>
+	    </transport_builtin-->
               <discovery>		
                     <initial_peers>
                         <element>$(COLLECTOR_PEER)</element>
