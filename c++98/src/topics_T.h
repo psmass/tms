@@ -150,7 +150,7 @@ TopicRdr<T,S,R, D>::TopicRdr(
 	  
             DDSContentFilteredTopic *cft = NULL;
             cft = ((DDSDomainParticipant *)participant)->create_contentfilteredtopic(
-		    (const char *)&filter_name,
+		    filter_name.c_str(),
                     topic,
                     filter.filter_expression,
                     filter.parameters);
