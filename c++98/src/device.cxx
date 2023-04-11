@@ -109,7 +109,7 @@ static int participant_shutdown(
         return participant_shutdown( NULL, "set_qos error", EXIT_FAILURE);
     } 
 
-    // create DDS containser entities: Participant, Publisher and Subscriber
+    // create DDS container entities: Participant, Publisher and Subscriber
     // (with default QoS Profiles, we'll put the  QoS on the Readers and Writers)
      DDSDomainParticipant * participant = 
         DDSTheParticipantFactory->create_participant(
