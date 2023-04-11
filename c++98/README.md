@@ -7,6 +7,16 @@ The example code was built with the following environment.
 * Ubuntu 20.04 gcc 9.4.0
 * Connext DDS Professional 6.1.0 - 7.0.0 (CmakeList.txt calls out 7.0.0)
 
+* 7.1.0 on the Observability branch
+
+
+## Generate data-type files (rtiCodeGen)
+We need the constants created in tmsExampleApp.xml (the original tmsExampleApp.idl was converted to xml and sucked into System Designer, where entities for XML app create was added (should not affect c++ use of XML file) [you need to turn on the preprocessor to pick up a RADIAN_MAX #define].
+
+So USE the tmsExampleApp.xml with preprocessor on, c++ w/name_space, Typefile gen only.
+
+NOTE for 7.1.0 Observabilty branch, rtiCodeGen does not like the 'Monitor key word in the QoS Library section, so you will have to take the tmsExampleApp.xml and remove everything but the <type> ...</type> section. 
+
 ## Building Debug executable:
 
 1. Create build directory. 
