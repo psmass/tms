@@ -11,6 +11,7 @@
  */
 """
 import sys
+import os
 import logging
 import argparse
 from os import path as osPath
@@ -30,7 +31,18 @@ def controller_main(domain_id):
     logging.info('Controller Powering Up')
 
     shutdown = False
+    # for python we'll just statically set these
+    os.environ["OBSERVABILITY_DOMAIN"]="2"
+    os.environ["APPLICATION_NAME"]="Controller_MC0001"
+    os.environ["COLLECTOR_PEER"]="udpv4://localhost"
 
+    print("Running with parameters:")
+    print("\tApplication Resource Name: /applications/",os.environ["APPLICATION_NAME"])
+    print("\tObserability Domain: ", os.environ["OBSERVABILITY_DOMAIN"])
+    print("\tCollector Peer: ", os.environ["COLLECTOR_PEER"])
+    print("\tUsing Participant Library (hardcoded in XML for Particpant Qos):")
+    print("\t\tParticipant_Profile_With_Observability_Over_LAN")
+      
     # *** STANDUP PARTICIPANT WITH READERS AND WRITERS XML APP CREATE    
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(tmsConstants.master_controller.MASTER_CONTROLLER1)

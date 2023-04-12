@@ -133,7 +133,7 @@ namespace application {
 		  arguments.collector_peer = "udpv4://localhost";
                   arguments.participant_profile = "Participant_Profile_With_Observability_Over_LAN";
 		} else if (arguments.collector_peer.c_str() == "udpv4_wan") {
-		  arguments.participant_profile = "Participant_Profile_With_Observability_Over_LAN";
+		  arguments.participant_profile = "Participant_Profile_With_Observability_Over_WAN";
                 } else { // default no Observabilty
                 arguments.participant_profile = "LargeTopicParticipantQoS";
 		}
