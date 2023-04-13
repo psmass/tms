@@ -1407,6 +1407,7 @@
         </datawriter_qos>
       </qos_profile>
       <qos_profile name="LargeTopicParticipantQoS">
+        <!--domain_participant_qos base_name="BuiltinQosLib::Generic.Observability"-->
         <domain_participant_qos>
           <property>
             <value>
@@ -1433,57 +1434,59 @@
           </receiver_pool>
         </domain_participant_qos>
       </qos_profile>
+
     </qos_library>
 
     <domain_library name="MyDomainLib">
       <domain name="MyDomain" domain_id="0">
-        <register_type name="ControlHardwareUpdateType" type_ref="tms::ControlHardwareUpdate"/>
-        <register_type name="DeviceInfoType" type_ref="tms::DeviceInfo"/>
-        <register_type name="HeartbeatType" type_ref="tms::Heartbeat"/>
-        <register_type name="ActiveMicrogridControllerStateType" type_ref="tms::ActiveMicrogridControllerState"/>
-        <register_type name="AuthorizationToEnergizeReplyType" type_ref="tms::AuthorizationToEnergizeReply"/>
-        <register_type name="AuthorizationToEnergizeRequestType" type_ref="tms::AuthorizationToEnergizeRequest"/>
-        <register_type name="AuthorizationToEnergizeResultType" type_ref="tms::AuthorizationToEnergizeResult"/>
-        <register_type name="EnergyStartStopStateType" type_ref="tms::EnergyStartStopState"/>
-        <register_type name="EnergyStartStopRequestType" type_ref="tms::EnergyStartStopRequest"/>
-        <register_type name="ReplyType" type_ref="tms::Reply"/>
-        <topic name="ControlHardwareUpdate" register_type_ref="ControlHardwareUpdateType">
+	<!-- make types of the format namespace::Name (not NameType) to match compiled types/c++98 -->
+        <register_type name="tms::ControlHardwareUpdate" type_ref="tms::ControlHardwareUpdate"/>
+        <register_type name="tms::DeviceInfo" type_ref="tms::DeviceInfo"/>
+        <register_type name="tms::Heartbeat" type_ref="tms::Heartbeat"/>
+        <register_type name="tms::ActiveMicrogridControllerState" type_ref="tms::ActiveMicrogridControllerState"/>
+        <register_type name="tms::AuthorizationToEnergizeReply" type_ref="tms::AuthorizationToEnergizeReply"/>
+        <register_type name="tms::AuthorizationToEnergizeRequest" type_ref="tms::AuthorizationToEnergizeRequest"/>
+        <register_type name="tms::AuthorizationToEnergizeResult" type_ref="tms::AuthorizationToEnergizeResult"/>
+        <register_type name="tms::EnergyStartStopState" type_ref="tms::EnergyStartStopState"/>
+        <register_type name="tms::EnergyStartStopRequest" type_ref="tms::EnergyStartStopRequest"/>
+        <register_type name="tms::Reply" type_ref="tms::Reply"/>
+        <topic name="ControlHardwareUpdate" register_type_ref="tms::ControlHardwareUpdate">
           <topic_qos base_name="TMSQoSLib::Slow">
           </topic_qos>
         </topic>
-        <topic name="DeviceInfo" register_type_ref="DeviceInfoType">
+        <topic name="DeviceInfo" register_type_ref="tms::DeviceInfo">
           <topic_qos base_name="TMSQoSLib::PublishLast">
           </topic_qos>
         </topic>
-        <topic name="Heartbeat" register_type_ref="HeartbeatType">
+        <topic name="Heartbeat" register_type_ref="tms::Heartbeat">
           <topic_qos base_name="TMSQoSLib::Medium">
           </topic_qos>
         </topic>
-        <topic name="ActiveMicrogridControllerState" register_type_ref="ActiveMicrogridControllerStateType">
+        <topic name="ActiveMicrogridControllerState" register_type_ref="tms::ActiveMicrogridControllerState">
           <topic_qos base_name="TMSQoSLib::PublishLast">
           </topic_qos>
         </topic>
-        <topic name="AuthorizationToEnergizeReply" register_type_ref="AuthorizationToEnergizeReplyType">
+        <topic name="AuthorizationToEnergizeReply" register_type_ref="tms::AuthorizationToEnergizeReply">
           <topic_qos base_name="TMSQoSLib::Response">
           </topic_qos>
         </topic>
-        <topic name="AuthorizationToEnergizeRequest" register_type_ref="AuthorizationToEnergizeRequestType">
+        <topic name="AuthorizationToEnergizeRequest" register_type_ref="tms::AuthorizationToEnergizeRequest">
           <topic_qos base_name="TMSQoSLib::Command">
           </topic_qos>
         </topic>
-        <topic name="AuthorizationToEnergizeResult" register_type_ref="AuthorizationToEnergizeResultType">
+        <topic name="AuthorizationToEnergizeResult" register_type_ref="tms::AuthorizationToEnergizeResult">
           <topic_qos base_name="TMSQoSLib::Response">
           </topic_qos>
         </topic>
-        <topic name="EnergyStartStopState" register_type_ref="EnergyStartStopStateType">
+        <topic name="EnergyStartStopState" register_type_ref="tms::EnergyStartStopState">
           <topic_qos base_name="TMSQoSLib::PublishLast">
           </topic_qos>
         </topic>
-        <topic name="EnergyStartStopRequest" register_type_ref="EnergyStartStopRequestType">
+        <topic name="EnergyStartStopRequest" register_type_ref="tms::EnergyStartStopRequest">
           <topic_qos base_name="TMSQoSLib::Command">
           </topic_qos>
         </topic>
-        <topic name="Reply" register_type_ref="ReplyType">
+        <topic name="Reply" register_type_ref="tms::Reply">
           <topic_qos base_name="TMSQoSLib::Reply">
           </topic_qos>
         </topic>
