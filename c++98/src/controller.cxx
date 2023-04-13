@@ -77,6 +77,8 @@ extern "C" int run_application(void) {
             "APPLICATION_NAME",
             Arguments.application_name.c_str());
 
+    // not used for c++ for XML app create, but need to define for XML parser
+    application::set_env("APPLICATION_DOMAIN", "0"); 
     
     // https://community.rti.com/static/documentation/connext-dds/5.3.0/doc/manuals/connext_dds/html_files/RTI_ConnextDDS_CoreLibraries_UsersManual/Content/UsersManual/PROFILE_QosPolicy__DDS_Extension__.htm
     // for doing this, but I like the way the Sensor Example uses 

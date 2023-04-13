@@ -38,9 +38,11 @@ def device_main(domain_id):
     os.environ["OBSERVABILITY_DOMAIN"]="2"
     os.environ["APPLICATION_NAME"]="Device_DGen1234"
     os.environ["COLLECTOR_PEER"]="udpv4://localhost"
-    
+    os.environ["APPLICATION_DOMAIN"]=str(domain_id)
+
     print("Running with parameters:")
     print("\tApplication Resource Name: /applications/",os.environ["APPLICATION_NAME"])
+    print("\tApplication Domain: ", os.environ["APPLICATION_DOMAIN"])
     print("\tObserability Domain: ", os.environ["OBSERVABILITY_DOMAIN"])
     print("\tCollector Peer: ", os.environ["COLLECTOR_PEER"])
     print("\tUsing Participant Library (hardcoded in XML for Particpant Qos):")

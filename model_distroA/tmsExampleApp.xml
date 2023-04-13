@@ -1528,7 +1528,7 @@
     </qos_library>
 
     <domain_library name="MyDomainLib">
-      <domain name="MyDomain" domain_id="0">
+      <domain name="MyDomain" domain_id="$(APPLICATION_DOMAIN)">
         <register_type name="ControlHardwareUpdateType" type_ref="tms::ControlHardwareUpdate"/>
         <register_type name="DeviceInfoType" type_ref="tms::DeviceInfo"/>
         <register_type name="HeartbeatType" type_ref="tms::Heartbeat"/>
