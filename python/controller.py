@@ -49,6 +49,12 @@ def controller_main(domain_id):
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(tmsConstants.master_controller.MASTER_CONTROLLER1)
 
+    # *** ENABLE THE OBSERBABILITY LIBRARY IN THE XML FILE
+    provider_params = dds.QosProviderParams()
+    provider_params.url_profile = [constants.QOS_URL]
+    dds.QosProvider.default_provider_params = provider_params
+
+    
     # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
     # (creates: readers, writers, and threads). All request reader topics also need
     # need the request response writer to post a response.

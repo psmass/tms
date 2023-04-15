@@ -51,7 +51,12 @@ def device_main(domain_id):
     # *** STANDUP PARTICIPANT WITH READERS AND WRITERS XML APP CREATE
     qos_provider = dds.QosProvider(constants.QOS_URL)
     participant = qos_provider.create_participant_from_config(tmsConstants.generator_device.DEVICE1)
-   
+
+    # *** ENABLE THE OBSERBABILITY LIBRARY IN THE XML FILE    
+    provider_params = dds.QosProviderParams()
+    provider_params.url_profile = [constants.QOS_URL]
+    dds.QosProvider.default_provider_params = provider_params
+    
     # *** DECLARE OUR APP_STATE_OBJ and (FIND) TOPICS for the device
     # (creates: readers, writers, and threads). All request reader topics also need
     # need the request response writer to post a response.
