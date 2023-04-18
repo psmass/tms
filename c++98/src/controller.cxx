@@ -99,7 +99,6 @@ extern "C" int run_application(void) {
             factory_qos,
             tms::QOS_LIBRARY,
 	    Arguments.participant_profile.c_str());  // Device Info Topic is huge
-    
     if (retcode != DDS_RETCODE_OK) {
         return participant_shutdown(
                 NULL,
