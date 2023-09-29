@@ -19,6 +19,10 @@ NOTE for 7.1.0 Observabilty branch, rtiCodeGen does not like the 'Monitor key wo
 
 ## Building Debug executable:
 
+0. build the serializers using RTI Code Gen - from the model_distroA, use the tmsExampleApp.xml (it removed RADIANS which code gen does not like)
+- select Example files disable, Typefiles Create, Makefiles disable, Lanugage Tranditional C++ (C++98 namespace)
+- copy *.cxx and *.h from the model_distroA over to ../c++98/src
+
 1. Create build directory. 
 
 2. From build type the following.
