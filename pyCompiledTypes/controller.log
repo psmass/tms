@@ -1,0 +1,253 @@
+2026-06-30 Tuesday 15:55:41 root:INFO:Controller Powering Up
+2026-06-30 Tuesday 15:55:41 root:INFO:Writer Topic MC_Publisher::DeviceInfoWriter created
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Topic MC_Subscriber::DeviceInfoReader created
+2026-06-30 Tuesday 15:55:41 root:INFO:Writer Topic MC_Publisher::HeartbeatWriter created
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Topic MC_Subscriber::HeartbeatReader created
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+2026-06-30 Tuesday 15:55:41 root:INFO:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+2026-06-30 Tuesday 15:55:41 root:INFO:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Topic MC_Subscriber::ReplyReader created
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+2026-06-30 Tuesday 15:55:41 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Thread running for MC_Subscriber::DeviceInfoReader
+2026-06-30 Tuesday 15:55:41 root:INFO:DeviceInfo Writer Subs: 2 2
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Thread running for MC_Subscriber::HeartbeatReader
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Thread running for MC_Subscriber::ReplyReader
+2026-06-30 Tuesday 15:55:41 root:INFO:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+2026-06-30 Tuesday 15:55:41 root:INFO:tms_DeviceInfo Reader Pubs: 1 1
+2026-06-30 Tuesday 15:55:41 root:INFO:tms_Heartbeat Reader Pubs: 1 1
+2026-06-30 Tuesday 15:55:46 root:INFO:Starting State Machine
+2026-06-30 Tuesday 15:55:46 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 15:55:46 root:INFO:Writer Thread running for MC_Publisher::HeartbeatWriter
+2026-06-30 Tuesday 15:55:46 root:INFO:tms_Heartbeat Writer Subs: 2 2
+2026-06-30 Tuesday 15:58:44 root:INFO:Controller Powering Up
+2026-06-30 Tuesday 15:59:12 root:INFO:Controller Powering Up
+2026-06-30 Tuesday 15:59:13 root:INFO:tms_DeviceInfo Reader Pubs: 2 1
+2026-06-30 Tuesday 15:59:13 root:INFO:tms_Heartbeat Reader Pubs: 2 1
+2026-06-30 Tuesday 15:59:13 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 15:59:13 root:INFO:DeviceInfo Writer Subs: 3 1
+2026-06-30 Tuesday 15:59:13 root:INFO:tms_Heartbeat Writer Subs: 3 1
+2026-06-30 Tuesday 15:59:13 root:INFO:Writer Topic MC_Publisher::DeviceInfoWriter created
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Topic MC_Subscriber::DeviceInfoReader created
+2026-06-30 Tuesday 15:59:13 root:INFO:Writer Topic MC_Publisher::HeartbeatWriter created
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Topic MC_Subscriber::HeartbeatReader created
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+2026-06-30 Tuesday 15:59:13 root:INFO:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+2026-06-30 Tuesday 15:59:13 root:INFO:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Topic MC_Subscriber::ReplyReader created
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Thread running for MC_Subscriber::DeviceInfoReader
+2026-06-30 Tuesday 15:59:13 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 15:59:13 root:INFO:DeviceInfo Writer Subs: 2 2
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Thread running for MC_Subscriber::HeartbeatReader
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Thread running for MC_Subscriber::ReplyReader
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+2026-06-30 Tuesday 15:59:13 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+2026-06-30 Tuesday 15:59:13 root:INFO:tms_DeviceInfo Reader Pubs: 1 1
+2026-06-30 Tuesday 15:59:13 root:INFO:tms_Heartbeat Reader Pubs: 1 1
+2026-06-30 Tuesday 15:59:18 root:INFO:Starting State Machine
+2026-06-30 Tuesday 15:59:18 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 15:59:18 root:INFO:Writer Thread running for MC_Publisher::HeartbeatWriter
+2026-06-30 Tuesday 15:59:18 root:INFO:tms_Heartbeat Writer Subs: 2 2
+2026-06-30 Tuesday 15:59:18 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 16:00:32 root:INFO:Controller Exiting
+2026-06-30 Tuesday 16:02:03 root:INFO:Controller Powering Up
+2026-06-30 Tuesday 16:02:03 root:INFO:Writer Topic MC_Publisher::DeviceInfoWriter created
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Topic MC_Subscriber::DeviceInfoReader created
+2026-06-30 Tuesday 16:02:03 root:INFO:Writer Topic MC_Publisher::HeartbeatWriter created
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Topic MC_Subscriber::HeartbeatReader created
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+2026-06-30 Tuesday 16:02:03 root:INFO:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+2026-06-30 Tuesday 16:02:03 root:INFO:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Topic MC_Subscriber::ReplyReader created
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Thread running for MC_Subscriber::DeviceInfoReader
+2026-06-30 Tuesday 16:02:03 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 16:02:03 root:INFO:DeviceInfo Writer Subs: 1 1
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Thread running for MC_Subscriber::HeartbeatReader
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+2026-06-30 Tuesday 16:02:03 root:INFO:Reader Thread running for MC_Subscriber::ReplyReader
+2026-06-30 Tuesday 16:02:03 root:INFO:tms_Heartbeat Reader Pubs: 0 0
+2026-06-30 Tuesday 16:02:03 root:INFO:tms_DeviceInfo Reader Pubs: 0 0
+2026-06-30 Tuesday 16:02:08 root:INFO:Starting State Machine
+2026-06-30 Tuesday 16:02:08 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 16:02:08 root:INFO:Writer Thread running for MC_Publisher::HeartbeatWriter
+2026-06-30 Tuesday 16:02:08 root:INFO:tms_Heartbeat Writer Subs: 1 1
+2026-06-30 Tuesday 16:02:23 root:INFO:tms_Heartbeat Reader Pubs: 1 1
+2026-06-30 Tuesday 16:02:23 root:INFO:tms_DeviceInfo Reader Pubs: 1 1
+2026-06-30 Tuesday 16:02:23 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 16:02:23 root:INFO:DeviceInfo Writer Subs: 2 1
+2026-06-30 Tuesday 16:02:23 root:INFO:tms_Heartbeat Writer Subs: 2 1
+2026-06-30 Tuesday 16:03:57 root:INFO:Controller Exiting
+2026-06-30 Tuesday 16:12:51 root:INFO:Controller Powering Up
+2026-06-30 Tuesday 16:12:51 root:INFO:Writer Topic MC_Publisher::DeviceInfoWriter created
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Topic MC_Subscriber::DeviceInfoReader created
+2026-06-30 Tuesday 16:12:51 root:INFO:Writer Topic MC_Publisher::HeartbeatWriter created
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Topic MC_Subscriber::HeartbeatReader created
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+2026-06-30 Tuesday 16:12:51 root:INFO:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+2026-06-30 Tuesday 16:12:51 root:INFO:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Topic MC_Subscriber::ReplyReader created
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Thread running for MC_Subscriber::DeviceInfoReader
+2026-06-30 Tuesday 16:12:51 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 16:12:51 root:INFO:DeviceInfo Writer Subs: 2 2
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Thread running for MC_Subscriber::HeartbeatReader
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+2026-06-30 Tuesday 16:12:51 root:INFO:Reader Thread running for MC_Subscriber::ReplyReader
+2026-06-30 Tuesday 16:12:51 root:INFO:tms_DeviceInfo Reader Pubs: 1 1
+2026-06-30 Tuesday 16:12:51 root:INFO:tms_ActiveMicrogridControllerState Reader Pubs: 1 1
+2026-06-30 Tuesday 16:12:51 root:INFO:tms_AuthorizationToEnergizeRequest Reader Pubs: 1 1
+2026-06-30 Tuesday 16:12:51 root:INFO:tms_Heartbeat Reader Pubs: 1 1
+2026-06-30 Tuesday 16:12:51 root:INFO:tms_AuthorizationToEnergizeResult Reader Pubs: 1 1
+2026-06-30 Tuesday 16:12:51 root:INFO:tms_EnergyStartStopState Reader Pubs: 1 1
+2026-06-30 Tuesday 16:12:51 root:INFO:tms_Reply Reader Pubs: 1 1
+2026-06-30 Tuesday 16:12:56 root:INFO:Starting State Machine
+2026-06-30 Tuesday 16:12:56 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 16:12:56 root:INFO:Writer Thread running for MC_Publisher::HeartbeatWriter
+2026-06-30 Tuesday 16:12:56 root:INFO:tms_Heartbeat Writer Subs: 2 2
+2026-06-30 Tuesday 16:13:07 root:INFO:Writing (Default Writer) - tms_AuthorizationToEnergizeReply 
+2026-06-30 Tuesday 16:13:36 root:INFO:Controller Exiting
+2026-06-30 Tuesday 16:13:40 root:INFO:Controller Powering Up
+2026-06-30 Tuesday 16:13:40 root:INFO:Writer Topic MC_Publisher::DeviceInfoWriter created
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Topic MC_Subscriber::DeviceInfoReader created
+2026-06-30 Tuesday 16:13:40 root:INFO:Writer Topic MC_Publisher::HeartbeatWriter created
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Topic MC_Subscriber::HeartbeatReader created
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+2026-06-30 Tuesday 16:13:40 root:INFO:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+2026-06-30 Tuesday 16:13:40 root:INFO:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Topic MC_Subscriber::ReplyReader created
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Thread running for MC_Subscriber::DeviceInfoReader
+2026-06-30 Tuesday 16:13:40 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 16:13:40 root:INFO:DeviceInfo Writer Subs: 2 2
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Thread running for MC_Subscriber::HeartbeatReader
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Thread running for MC_Subscriber::ReplyReader
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+2026-06-30 Tuesday 16:13:40 root:INFO:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+2026-06-30 Tuesday 16:13:40 root:INFO:tms_Heartbeat Reader Pubs: 1 1
+2026-06-30 Tuesday 16:13:40 root:INFO:tms_ActiveMicrogridControllerState Reader Pubs: 1 1
+2026-06-30 Tuesday 16:13:40 root:INFO:tms_DeviceInfo Reader Pubs: 1 1
+2026-06-30 Tuesday 16:13:40 root:INFO:tms_AuthorizationToEnergizeRequest Reader Pubs: 1 1
+2026-06-30 Tuesday 16:13:40 root:INFO:tms_Reply Reader Pubs: 1 1
+2026-06-30 Tuesday 16:13:40 root:INFO:tms_EnergyStartStopState Reader Pubs: 1 1
+2026-06-30 Tuesday 16:13:40 root:INFO:tms_AuthorizationToEnergizeResult Reader Pubs: 1 1
+2026-06-30 Tuesday 16:13:45 root:INFO:Starting State Machine
+2026-06-30 Tuesday 16:13:45 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 16:13:45 root:INFO:Writer Thread running for MC_Publisher::HeartbeatWriter
+2026-06-30 Tuesday 16:13:45 root:INFO:tms_Heartbeat Writer Subs: 2 2
+2026-06-30 Tuesday 16:14:02 root:INFO:tms_DeviceInfo Reader Pubs: 2 1
+2026-06-30 Tuesday 16:14:02 root:INFO:tms_Heartbeat Reader Pubs: 2 1
+2026-06-30 Tuesday 16:14:02 root:INFO:tms_EnergyStartStopState Reader Pubs: 2 1
+2026-06-30 Tuesday 16:14:02 root:INFO:tms_Reply Reader Pubs: 2 1
+2026-06-30 Tuesday 16:14:02 root:INFO:tms_ActiveMicrogridControllerState Reader Pubs: 2 1
+2026-06-30 Tuesday 16:14:02 root:INFO:tms_AuthorizationToEnergizeResult Reader Pubs: 2 1
+2026-06-30 Tuesday 16:14:02 root:INFO:tms_AuthorizationToEnergizeRequest Reader Pubs: 2 1
+2026-06-30 Tuesday 16:14:02 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 16:14:02 root:INFO:DeviceInfo Writer Subs: 3 1
+2026-06-30 Tuesday 16:14:02 root:INFO:tms_Heartbeat Writer Subs: 3 1
+2026-06-30 Tuesday 16:14:19 root:INFO:Writing (Default Writer) - tms_AuthorizationToEnergizeReply 
+2026-06-30 Tuesday 16:14:50 root:INFO:Controller Exiting
+2026-06-30 Tuesday 16:15:19 root:INFO:Controller Powering Up
+2026-06-30 Tuesday 16:15:19 root:INFO:Writer Topic MC_Publisher::DeviceInfoWriter created
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Topic MC_Subscriber::DeviceInfoReader created
+2026-06-30 Tuesday 16:15:19 root:INFO:Writer Topic MC_Publisher::HeartbeatWriter created
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Topic MC_Subscriber::HeartbeatReader created
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+2026-06-30 Tuesday 16:15:19 root:INFO:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+2026-06-30 Tuesday 16:15:19 root:INFO:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Topic MC_Subscriber::ReplyReader created
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Thread running for MC_Subscriber::DeviceInfoReader
+2026-06-30 Tuesday 16:15:19 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 16:15:19 root:INFO:DeviceInfo Writer Subs: 2 2
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Thread running for MC_Subscriber::ReplyReader
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Thread running for MC_Subscriber::HeartbeatReader
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+2026-06-30 Tuesday 16:15:19 root:INFO:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+2026-06-30 Tuesday 16:15:19 root:INFO:tms_AuthorizationToEnergizeRequest Reader Pubs: 1 1
+2026-06-30 Tuesday 16:15:19 root:INFO:tms_DeviceInfo Reader Pubs: 1 1
+2026-06-30 Tuesday 16:15:19 root:INFO:tms_Reply Reader Pubs: 1 1
+2026-06-30 Tuesday 16:15:19 root:INFO:tms_Heartbeat Reader Pubs: 1 1
+2026-06-30 Tuesday 16:15:19 root:INFO:tms_ActiveMicrogridControllerState Reader Pubs: 1 1
+2026-06-30 Tuesday 16:15:19 root:INFO:tms_EnergyStartStopState Reader Pubs: 1 1
+2026-06-30 Tuesday 16:15:19 root:INFO:tms_AuthorizationToEnergizeResult Reader Pubs: 1 1
+2026-06-30 Tuesday 16:15:24 root:INFO:Starting State Machine
+2026-06-30 Tuesday 16:15:24 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 16:15:24 root:INFO:Writer Thread running for MC_Publisher::HeartbeatWriter
+2026-06-30 Tuesday 16:15:24 root:INFO:tms_Heartbeat Writer Subs: 2 2
+2026-06-30 Tuesday 16:15:36 root:INFO:Writing (Default Writer) - tms_AuthorizationToEnergizeReply 
+2026-06-30 Tuesday 16:15:59 root:INFO:tms_Heartbeat Reader Pubs: 2 1
+2026-06-30 Tuesday 16:15:59 root:INFO:tms_EnergyStartStopState Reader Pubs: 2 1
+2026-06-30 Tuesday 16:15:59 root:INFO:tms_AuthorizationToEnergizeRequest Reader Pubs: 2 1
+2026-06-30 Tuesday 16:15:59 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 16:15:59 root:INFO:DeviceInfo Writer Subs: 3 1
+2026-06-30 Tuesday 16:15:59 root:INFO:tms_DeviceInfo Reader Pubs: 2 1
+2026-06-30 Tuesday 16:15:59 root:INFO:tms_Reply Reader Pubs: 2 1
+2026-06-30 Tuesday 16:15:59 root:INFO:tms_ActiveMicrogridControllerState Reader Pubs: 2 1
+2026-06-30 Tuesday 16:15:59 root:INFO:tms_AuthorizationToEnergizeResult Reader Pubs: 2 1
+2026-06-30 Tuesday 16:15:59 root:INFO:tms_Heartbeat Writer Subs: 3 1
+2026-06-30 Tuesday 16:16:04 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 16:16:16 root:INFO:Writing (Default Writer) - tms_AuthorizationToEnergizeReply 
+2026-06-30 Tuesday 16:16:26 root:INFO:Controller Exiting
+2026-06-30 Tuesday 16:16:29 root:INFO:Controller Powering Up
+2026-06-30 Tuesday 16:16:29 root:INFO:Writer Topic MC_Publisher::DeviceInfoWriter created
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Topic MC_Subscriber::DeviceInfoReader created
+2026-06-30 Tuesday 16:16:29 root:INFO:Writer Topic MC_Publisher::HeartbeatWriter created
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Topic MC_Subscriber::HeartbeatReader created
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Topic MC_Subscriber::ActiveMicrogridControllerStateReader created
+2026-06-30 Tuesday 16:16:29 root:INFO:Writer Topic MC_Publisher::AuthorizationToEnergizeReplyWriter created
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeRequestReader created
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Topic MC_Subscriber::AuthorizationToEnergizeResultReader created
+2026-06-30 Tuesday 16:16:29 root:INFO:Writer Topic MC_Publisher::EnergyStartStopRequestWriter created
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Topic MC_Subscriber::ReplyReader created
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Topic MC_Subscriber::EnergyStartStopStateReader created
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Thread running for MC_Subscriber::DeviceInfoReader
+2026-06-30 Tuesday 16:16:29 root:INFO:DeviceInfo Listener Callback On Publication Match 
+2026-06-30 Tuesday 16:16:29 root:INFO:DeviceInfo Writer Subs: 2 2
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Thread running for MC_Subscriber::ActiveMicrogridControllerStateReader
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Thread running for MC_Subscriber::HeartbeatReader
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeRequestReader
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Thread running for MC_Subscriber::AuthorizationToEnergizeResultReader
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Thread running for MC_Subscriber::ReplyReader
+2026-06-30 Tuesday 16:16:29 root:INFO:Reader Thread running for MC_Subscriber::EnergyStartStopStateReader
+2026-06-30 Tuesday 16:16:29 root:INFO:tms_Heartbeat Reader Pubs: 1 1
+2026-06-30 Tuesday 16:16:29 root:INFO:tms_DeviceInfo Reader Pubs: 1 1
+2026-06-30 Tuesday 16:16:29 root:INFO:tms_ActiveMicrogridControllerState Reader Pubs: 1 1
+2026-06-30 Tuesday 16:16:29 root:INFO:tms_EnergyStartStopState Reader Pubs: 1 1
+2026-06-30 Tuesday 16:16:29 root:INFO:tms_Reply Reader Pubs: 1 1
+2026-06-30 Tuesday 16:16:29 root:INFO:tms_AuthorizationToEnergizeRequest Reader Pubs: 1 1
+2026-06-30 Tuesday 16:16:29 root:INFO:tms_AuthorizationToEnergizeResult Reader Pubs: 1 1
+2026-06-30 Tuesday 16:16:34 root:INFO:Starting State Machine
+2026-06-30 Tuesday 16:16:34 root:INFO:Writing (Default Writer) - tms_DeviceInfo 
+2026-06-30 Tuesday 16:16:34 root:INFO:Writer Thread running for MC_Publisher::HeartbeatWriter
+2026-06-30 Tuesday 16:16:34 root:INFO:tms_Heartbeat Writer Subs: 2 2
+2026-06-30 Tuesday 16:16:46 root:INFO:Writing (Default Writer) - tms_AuthorizationToEnergizeReply 
+2026-06-30 Tuesday 16:16:56 root:INFO:Controller Exiting
